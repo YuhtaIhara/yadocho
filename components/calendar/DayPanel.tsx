@@ -102,7 +102,9 @@ export default function DayPanel({
           dotColor="bg-accent"
         >
           {checkIns.map(r => (
-            <ResCard key={r.id} reservation={r} onClick={() => onSelectReservation?.(r.id)} />
+            <div key={r.id} className="stagger-item">
+              <ResCard reservation={r} onClick={() => onSelectReservation?.(r.id)} />
+            </div>
           ))}
         </Section>
       )}
@@ -115,7 +117,9 @@ export default function DayPanel({
           dotColor="bg-warning"
         >
           {checkOuts.map(r => (
-            <ResCard key={r.id} reservation={r} onClick={() => onSelectReservation?.(r.id)} />
+            <div key={r.id} className="stagger-item">
+              <ResCard reservation={r} onClick={() => onSelectReservation?.(r.id)} />
+            </div>
           ))}
         </Section>
       )}
@@ -127,7 +131,9 @@ export default function DayPanel({
           dotColor="bg-primary"
         >
           {staying.map(r => (
-            <ResCard key={r.id} reservation={r} onClick={() => onSelectReservation?.(r.id)} />
+            <div key={r.id} className="stagger-item">
+              <ResCard reservation={r} onClick={() => onSelectReservation?.(r.id)} />
+            </div>
           ))}
         </Section>
       )}
@@ -141,7 +147,9 @@ export default function DayPanel({
         >
           <DailyReasonEditor blockedDates={blockedDates} />
           {blockedDates.map(b => (
-            <BlockedCard key={b.id} block={b} rooms={rooms} />
+            <div key={b.id} className="stagger-item">
+              <BlockedCard block={b} rooms={rooms} />
+            </div>
           ))}
         </Section>
       )}

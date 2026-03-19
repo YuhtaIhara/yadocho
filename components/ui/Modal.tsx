@@ -24,11 +24,11 @@ export default function Modal({ open, onClose, title, children, className }: Pro
       ref={ref}
       onClose={onClose}
       className={cn(
-        'backdrop:bg-black/40 bg-transparent p-0 max-w-lg w-[calc(100%-2rem)] mx-auto rounded-2xl',
+        'backdrop:bg-black/40 backdrop:animate-fade-in bg-transparent p-0 max-w-lg w-[calc(100%-2rem)] mx-auto rounded-2xl',
         'open:animate-in open:fade-in open:zoom-in-95',
       )}
     >
-      <div className={cn('bg-surface rounded-2xl shadow-elevated', className)}>
+      <div className={cn('bg-surface rounded-2xl shadow-elevated animate-scale-in', className)}>
         {title && (
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
             <h2 className="text-base font-bold">{title}</h2>

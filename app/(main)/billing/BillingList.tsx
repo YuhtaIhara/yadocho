@@ -139,7 +139,7 @@ export default function BillingList() {
               return (
                 <Card
                   key={r.id}
-                  className="active:scale-[0.98] transition-transform cursor-pointer"
+                  className="stagger-item active:scale-[0.98] transition-transform cursor-pointer"
                   onClick={() => router.push(`/billing/${r.id}`)}
                 >
                   <div className="flex items-start justify-between">
@@ -182,7 +182,7 @@ export default function BillingList() {
                 return (
                   <Card
                     key={r.id}
-                    className="active:scale-[0.98] transition-transform cursor-pointer"
+                    className="stagger-item active:scale-[0.98] transition-transform cursor-pointer"
                     onClick={() => router.push(`/billing/${r.id}`)}
                   >
                     <div className="flex items-start justify-between">

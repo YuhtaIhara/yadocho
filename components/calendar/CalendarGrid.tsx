@@ -20,8 +20,8 @@ const BAR_Y = 6
 const BAR_H = ROW_H - BAR_Y * 2
 
 const BAR_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  scheduled: { bg: 'rgba(139,74,63,0.12)', text: '#8b4a3f', border: 'rgba(139,74,63,0.22)' },
-  settled:   { bg: 'rgba(118,145,100,0.15)', text: '#5a7048', border: 'rgba(118,145,100,0.28)' },
+  scheduled: { bg: 'rgba(226,114,91,0.15)', text: '#C4503A', border: 'rgba(226,114,91,0.25)' },
+  settled:   { bg: 'rgba(74,155,127,0.15)', text: '#3A7D63', border: 'rgba(74,155,127,0.25)' },
 }
 
 type Props = {
@@ -200,7 +200,7 @@ export default function CalendarGrid({
                     }
                   }}
                   className={cn(
-                    'shrink-0 border-r border-b border-border/15 cursor-pointer',
+                    'shrink-0 border-r border-b border-border/15 cursor-pointer hover:bg-primary/[0.05] transition-colors',
                     today && 'bg-primary/[0.03]',
                     selected && !today && 'bg-primary/[0.06]',
                   )}
@@ -215,7 +215,11 @@ export default function CalendarGrid({
                         }
                       : {}),
                   }}
-                />
+                >
+                  {!blocked && !occupied && (
+                    <span className="flex items-center justify-center w-full h-full text-[10px] text-text-3/40 select-none">＋</span>
+                  )}
+                </div>
               )
             })}
 
@@ -232,7 +236,7 @@ export default function CalendarGrid({
                     e.stopPropagation()
                     onSelectReservation?.(res.id)
                   }}
-                  className="absolute flex items-center px-1.5 text-[11px] font-semibold truncate active:brightness-90 transition-all"
+                  className="absolute flex items-center gap-0.5 px-1.5 text-[11px] font-semibold truncate active:brightness-90 transition-all"
                   style={{
                     left: pos.left,
                     width: pos.width,
@@ -245,7 +249,9 @@ export default function CalendarGrid({
                     zIndex: 5,
                   }}
                 >
+                  {res.status === 'settled' && <span className="shrink-0">✓</span>}
                   {res.guest?.name ?? '—'}
+                  {(res.adults + res.children) > 0 ? ` (${res.adults + res.children}名)` : ''}
                 </button>
               )
             })}

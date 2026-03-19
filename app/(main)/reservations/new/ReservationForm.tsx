@@ -849,13 +849,13 @@ function MealRow({
           type="button"
           onClick={() => onToggle(!enabled)}
           className={cn(
-            'w-12 h-7 rounded-full transition-colors relative shrink-0',
+            'w-12 h-7 rounded-full transition-colors duration-200 relative shrink-0',
             enabled ? 'bg-primary' : 'bg-border',
           )}
         >
           <span
             className={cn(
-              'absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-transform',
+              'absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out',
               enabled ? 'translate-x-5' : 'translate-x-0.5',
             )}
           />

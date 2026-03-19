@@ -18,10 +18,10 @@ export default function Stepper({ value, onChange, min = 0, max = 99 }: Props) {
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
         className={cn(
-          'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
+          'w-8 h-8 rounded-full flex items-center justify-center transition-all duration-100',
           value <= min
             ? 'text-text-3/30'
-            : 'text-primary bg-primary-soft active:bg-primary/20',
+            : 'text-primary bg-primary-soft active:bg-primary/20 active:scale-90',
         )}
       >
         <Minus size={16} strokeWidth={2.5} />
@@ -32,10 +32,10 @@ export default function Stepper({ value, onChange, min = 0, max = 99 }: Props) {
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
         className={cn(
-          'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
+          'w-8 h-8 rounded-full flex items-center justify-center transition-all duration-100',
           value >= max
             ? 'text-text-3/30'
-            : 'text-primary bg-primary-soft active:bg-primary/20',
+            : 'text-primary bg-primary-soft active:bg-primary/20 active:scale-90',
         )}
       >
         <Plus size={16} strokeWidth={2.5} />

@@ -45,7 +45,7 @@ export default function GuestList() {
             {guests.map(g => (
               <Card
                 key={g.id}
-                className="active:scale-[0.98] transition-transform cursor-pointer"
+                className="stagger-item active:scale-[0.98] transition-transform cursor-pointer"
                 onClick={() => router.push(`/guests/${g.id}`)}
               >
                 <div className="flex items-center justify-between">

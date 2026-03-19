@@ -14,10 +14,10 @@ export default function PageHeader({ title, showBack = true, rightSlot }: Props)
 
   return (
     <div
-      className="sticky top-0 z-10 bg-surface/90 backdrop-blur-lg border-b border-border/40"
+      className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg border-b border-border/20"
       style={{ paddingTop: 'max(env(safe-area-inset-top), 12px)' }}
     >
-      <div className="flex items-center h-12 px-4 gap-3">
+      <div className="flex items-center h-14 px-5 gap-3">
         {showBack && (
           <button
             type="button"
@@ -27,7 +27,7 @@ export default function PageHeader({ title, showBack = true, rightSlot }: Props)
             <ArrowLeft size={20} className="text-text-2" />
           </button>
         )}
-        <h1 className="text-lg font-bold flex-1 min-w-0 truncate">{title}</h1>
+        <h1 className="text-xl font-bold flex-1 min-w-0 truncate">{title}</h1>
         {rightSlot && <div className="shrink-0">{rightSlot}</div>}
       </div>
     </div>

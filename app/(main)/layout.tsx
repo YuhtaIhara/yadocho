@@ -38,7 +38,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-      <main className="max-w-xl mx-auto pb-24 min-h-screen">
+      <main className="max-w-xl mx-auto pb-24 min-h-screen animate-fade-in">
         {children}
       </main>
       <BottomNav />
