@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-fg);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-fg);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-primary-soft: var(--primary-soft);
+  --font-sans: var(--font-sans);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+:root {
+  --background: #f5f0e3;
+  --foreground: #2c2420;
+  --surface: #faf6ec;
+  --primary: #8b4a3f;
+  --primary-fg: #faf6ec;
+  --primary-soft: rgba(139, 74, 63, 0.08);
+  --accent: #769164;
+  --accent-fg: #faf6ec;
+  --warning: #96783a;
+  --danger: #b54a4a;
+  --danger-soft: rgba(181, 74, 74, 0.06);
+  --border: #d6c6af;
+  --input: #d6c6af;
+  --ring: rgba(139, 74, 63, 0.3);
+  --text-1: #2c2420;
+  --text-2: #6b5e54;
+  --text-3: #888e7e;
+
+  --shadow-card: 0 2px 8px rgba(139, 74, 63, 0.06), 0 1px 3px rgba(139, 74, 63, 0.04);
+  --shadow-elevated: 0 4px 16px rgba(139, 74, 63, 0.08), 0 2px 6px rgba(139, 74, 63, 0.05);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "palt";
+    letter-spacing: 0.02em;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+}
+
+.shadow-card { box-shadow: var(--shadow-card); }
+.shadow-elevated { box-shadow: var(--shadow-elevated); }
+
+/* Touch-first: hide scrollbars */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Print styles */
+@page { size: A4; margin: 15mm 20mm; }
+@media print {
+  .no-print { display: none !important; }
+  nav, header, footer { display: none !important; }
+  body { background: white !important; color: black !important; font-size: 12px !important; }
+  main { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+}
