@@ -136,9 +136,10 @@ export default function DayPanel({
       {blockedDates.length > 0 && (
         <Section
           icon={<Ban size={14} className="text-danger" />}
-          title={`休業 — ${blockedDates.length}件`}
+          title={`休業 — ${blockedDates.length}室`}
           dotColor="bg-danger"
         >
+          <DailyReasonEditor blockedDates={blockedDates} />
           {blockedDates.map(b => (
             <BlockedCard key={b.id} block={b} rooms={rooms} />
           ))}
@@ -198,6 +199,70 @@ function ResCard({ reservation: r, onClick }: { reservation: Reservation; onClic
       >
         {roomLabel(r)}
       </Badge>
+    </Card>
+  )
+}
+
+/** Edit a shared reason for ALL blocked dates on this day */
+function DailyReasonEditor({ blockedDates }: { blockedDates: BlockedDate[] }) {
+  const [editing, setEditing] = useState(false)
+  // Use the first block's reason as the "shared" reason
+  const sharedReason = blockedDates[0]?.reason ?? ''
+  const [reason, setReason] = useState(sharedReason)
+  const updateBlocked = useUpdateBlockedDate()
+
+  function handleSave() {
+    // Update ALL blocks for this day with the same reason
+    blockedDates.forEach(b => {
+      updateBlocked.mutate({ id: b.id, reason: reason.trim() || null })
+    })
+    setEditing(false)
+  }
+
+  return (
+    <Card className="py-2.5 px-3 border-danger/20 bg-danger/[0.03]">
+      {!editing ? (
+        <button
+          type="button"
+          onClick={() => { setReason(sharedReason); setEditing(true) }}
+          className="w-full text-left text-sm"
+        >
+          <span className="text-xs font-semibold text-danger">休業理由（共通）</span>
+          <p className="text-text-2 mt-0.5">{sharedReason || '（タップして理由を入力）'}</p>
+        </button>
+      ) : (
+        <div>
+          <span className="text-xs font-semibold text-danger">休業理由（全室共通）</span>
+          <div className="flex items-center gap-2 mt-1.5">
+            <input
+              type="text"
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="定休日、改装工事 など"
+              className="flex-1 text-sm px-2.5 py-1.5 rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-ring"
+              autoFocus
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleSave()
+                if (e.key === 'Escape') setEditing(false)
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleSave}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white active:brightness-90"
+            >
+              <Check size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-border active:bg-primary-soft"
+            >
+              <X size={14} className="text-text-2" />
+            </button>
+          </div>
+        </div>
+      )}
     </Card>
   )
 }
