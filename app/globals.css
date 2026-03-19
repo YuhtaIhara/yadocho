@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-fg);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-fg);
-  --color-warning: var(--warning);
-  --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-text-1: var(--text-1);
-  --color-text-2: var(--text-2);
-  --color-text-3: var(--text-3);
-  --color-primary-soft: var(--primary-soft);
+  --color-background: #FDFBF9;
+  --color-foreground: #3D3935;
+  --color-surface: #FFFFFF;
+  --color-primary: #E2725B;
+  --color-primary-foreground: #FFFFFF;
+  --color-primary-soft: rgba(226, 114, 91, 0.10);
+  --color-accent: #4A9B7F;
+  --color-accent-foreground: #FFFFFF;
+  --color-warning: #D4944A;
+  --color-danger: #D93025;
+  --color-danger-soft: rgba(217, 48, 37, 0.06);
+  --color-border: #E8E2DA;
+  --color-input: #E8E2DA;
+  --color-ring: rgba(226, 114, 91, 0.3);
+  --color-text-1: #3D3935;
+  --color-text-2: #7A7470;
+  --color-text-3: #A8A29E;
   --font-sans: var(--font-sans);
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -26,24 +26,6 @@
 }
 
 :root {
-  --background: #FDFBF9;
-  --foreground: #3D3935;
-  --surface: #FFFFFF;
-  --primary: #E2725B;
-  --primary-fg: #FFFFFF;
-  --primary-soft: rgba(226, 114, 91, 0.10);
-  --accent: #4A9B7F;
-  --accent-fg: #FFFFFF;
-  --warning: #D4944A;
-  --danger: #D93025;
-  --danger-soft: rgba(217, 48, 37, 0.06);
-  --border: #E8E2DA;
-  --input: #E8E2DA;
-  --ring: rgba(226, 114, 91, 0.3);
-  --text-1: #3D3935;
-  --text-2: #7A7470;
-  --text-3: #A8A29E;
-
   --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
   --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
@@ -93,7 +75,7 @@
 
 /* Skeleton loading */
 .skeleton {
-  background: linear-gradient(90deg, var(--border) 25%, rgba(255,255,255,0.5) 50%, var(--border) 75%);
+  background: linear-gradient(90deg, var(--color-border) 25%, rgba(255,255,255,0.5) 50%, var(--color-border) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 8px;
