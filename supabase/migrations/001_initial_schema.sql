@@ -235,3 +235,36 @@ CREATE TRIGGER trg_reservations_updated BEFORE UPDATE ON reservations
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE TRIGGER trg_meal_days_updated BEFORE UPDATE ON meal_days
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- =============================================================================
+-- シードデータ（いちかわ荘）
+-- =============================================================================
+
+INSERT INTO inns (id, name, address, phone, representative)
+VALUES (
+  '00000000-0000-0000-0000-000000000001',
+  'いちかわ荘',
+  '長野県下高井郡野沢温泉村',
+  '0269-85-XXXX',
+  '市川'
+);
+
+INSERT INTO rooms (inn_id, name, capacity, sort_order) VALUES
+  ('00000000-0000-0000-0000-000000000001', '201', 3, 1),
+  ('00000000-0000-0000-0000-000000000001', '202', 3, 2),
+  ('00000000-0000-0000-0000-000000000001', '203', 4, 3),
+  ('00000000-0000-0000-0000-000000000001', '205', 3, 4),
+  ('00000000-0000-0000-0000-000000000001', '206', 2, 5),
+  ('00000000-0000-0000-0000-000000000001', '207', 2, 6),
+  ('00000000-0000-0000-0000-000000000001', '208', 2, 7);
+
+INSERT INTO pricing_config (inn_id)
+VALUES ('00000000-0000-0000-0000-000000000001');
+
+INSERT INTO tax_periods (inn_id, rate_percent, threshold, effective_from)
+VALUES (
+  '00000000-0000-0000-0000-000000000001',
+  3.50,
+  6000,
+  '2026-06-01'
+);

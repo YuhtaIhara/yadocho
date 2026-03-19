@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge'
 import { useGuest } from '@/lib/hooks/useGuests'
 import { useReservations } from '@/lib/hooks/useReservations'
 import { updateGuest } from '@/lib/api/guests'
+import { roomLabel } from '@/lib/types'
 import { formatDateJP, nightCount, toDateStr } from '@/lib/utils/date'
 import { useQueryClient } from '@tanstack/react-query'
 import { subYears } from 'date-fns'
@@ -166,18 +167,18 @@ export default function GuestDetail() {
                 >
                   <div className="flex items-center justify-between text-sm">
                     <span>
-                      {formatDateJP(r.checkin)} {r.room?.name} {nightCount(r.checkin, r.checkout)}泊
+                      {formatDateJP(r.checkin)} {roomLabel(r)} {nightCount(r.checkin, r.checkout)}泊
                     </span>
                     <Badge
                       variant={
                         r.status === 'cancelled'
                           ? 'danger'
-                          : r.status === 'checked_in'
+                          : r.status === 'settled'
                             ? 'accent'
-                            : 'outline'
+                            : 'default'
                       }
                     >
-                      {r.room?.name}
+                      {roomLabel(r)}
                     </Badge>
                   </div>
                 </Card>

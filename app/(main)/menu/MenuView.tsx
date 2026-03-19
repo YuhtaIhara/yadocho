@@ -8,8 +8,9 @@ import { Card } from '@/components/ui/Card'
 import { signOut } from '@/lib/auth'
 
 const MENU_ITEMS = [
-  { href: '/guests', icon: Users, label: 'ゲスト管理' },
   { href: '/settings', icon: Settings, label: '設定' },
+  { href: '/guests', icon: Users, label: 'ゲスト管理' },
+  { href: '/report', icon: BarChart3, label: '月次レポート' },
 ] as const
 
 export default function MenuView() {

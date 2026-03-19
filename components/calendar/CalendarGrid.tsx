@@ -20,9 +20,8 @@ const BAR_Y = 6
 const BAR_H = ROW_H - BAR_Y * 2
 
 const BAR_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  scheduled:   { bg: 'rgba(139,74,63,0.12)',  text: '#8b4a3f', border: 'rgba(139,74,63,0.22)' },
-  checked_in:  { bg: 'rgba(118,145,100,0.15)', text: '#5a7048', border: 'rgba(118,145,100,0.28)' },
-  checked_out: { bg: 'rgba(136,142,126,0.10)', text: '#888e7e', border: 'rgba(136,142,126,0.15)' },
+  scheduled: { bg: 'rgba(139,74,63,0.12)', text: '#8b4a3f', border: 'rgba(139,74,63,0.22)' },
+  settled:   { bg: 'rgba(118,145,100,0.15)', text: '#5a7048', border: 'rgba(118,145,100,0.28)' },
 }
 
 type Props = {
@@ -33,6 +32,8 @@ type Props = {
   selectedDate: Date
   onSelectDate: (date: Date) => void
   onSelectReservation?: (id: string) => void
+  onCellClick?: (date: string, roomId: string) => void
+  onBlockToggle?: (date: string, roomId: string) => void
 }
 
 export default function CalendarGrid({
@@ -43,6 +44,8 @@ export default function CalendarGrid({
   selectedDate,
   onSelectDate,
   onSelectReservation,
+  onCellClick,
+  onBlockToggle,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const firstDate = dates[0]
@@ -51,7 +54,11 @@ export default function CalendarGrid({
   const resByRoom = useMemo(() => {
     const map: Record<string, Reservation[]> = {}
     for (const r of reservations) {
-      ;(map[r.room_id] ??= []).push(r)
+      if (r.rooms) {
+        for (const room of r.rooms) {
+          ;(map[room.id] ??= []).push(r)
+        }
+      }
     }
     return map
   }, [reservations])
@@ -59,15 +66,15 @@ export default function CalendarGrid({
   const blockedLookup = useMemo(() => {
     const map: Record<string, Set<string>> = {}
     for (const b of blockedDates) {
-      const key = b.room_id ?? '__all__'
-      ;(map[key] ??= new Set()).add(b.date)
+      if (!b.room_id) continue
+      ;(map[b.room_id] ??= new Set()).add(b.date)
     }
     return map
   }, [blockedDates])
 
   const isBlocked = useCallback(
     (roomId: string, dateStr: string) =>
-      blockedLookup.__all__?.has(dateStr) || blockedLookup[roomId]?.has(dateStr) || false,
+      blockedLookup[roomId]?.has(dateStr) || false,
     [blockedLookup],
   )
 
@@ -176,10 +183,22 @@ export default function CalendarGrid({
               const blocked = isBlocked(room.id, ds)
               const today = dateFnsIsToday(d)
               const selected = isSameDay(d, selectedDate)
+              const occupied = resByRoom[room.id]?.some(
+                r => r.checkin <= ds && r.checkout > ds,
+              ) ?? false
               return (
                 <div
                   key={ds}
-                  onClick={() => onSelectDate(d)}
+                  onClick={() => {
+                    if (onBlockToggle) {
+                      onBlockToggle(ds, room.id)
+                      return
+                    }
+                    onSelectDate(d)
+                    if (onCellClick && !blocked && !occupied) {
+                      onCellClick(ds, room.id)
+                    }
+                  }}
                   className={cn(
                     'shrink-0 border-r border-b border-border/15 cursor-pointer',
                     today && 'bg-primary/[0.03]',

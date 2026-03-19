@@ -76,8 +76,8 @@
 /* Print styles */
 @page { size: A4; margin: 15mm 20mm; }
 @media print {
-  .no-print { display: none !important; }
-  nav, header, footer { display: none !important; }
-  body { background: white !important; color: black !important; font-size: 12px !important; }
+  .no-print, nav, .sticky { display: none !important; }
+  body { background: white !important; }
+  * { color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   main { max-width: none !important; padding: 0 !important; margin: 0 !important; }
 }

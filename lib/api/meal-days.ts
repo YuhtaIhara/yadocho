@@ -12,6 +12,8 @@ export type MealConfig = {
   breakfastCount: number
   lunchCount: number
   dinnerTime?: string
+  breakfastTime?: string
+  lunchTime?: string
   adults: number
   children: number
 }
@@ -46,10 +48,10 @@ export async function createMealDays(reservationId: string, config: MealConfig) 
       dinner_time: hasDinner ? config.dinnerTime ?? null : null,
       breakfast_adults: hasBreakfast ? b.adults : 0,
       breakfast_children: hasBreakfast ? b.children : 0,
-      breakfast_time: null,
+      breakfast_time: hasBreakfast ? config.breakfastTime ?? null : null,
       lunch_adults: hasLunch ? l.adults : 0,
       lunch_children: hasLunch ? l.children : 0,
-      lunch_time: null,
+      lunch_time: hasLunch ? config.lunchTime ?? null : null,
     }
   })
 

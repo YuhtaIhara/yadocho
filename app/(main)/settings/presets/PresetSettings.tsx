@@ -7,54 +7,61 @@ import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { useRooms } from '@/lib/hooks/useRooms'
-import { createRoom, updateRoom, deleteRoom } from '@/lib/api/rooms'
+import { useInvoicePresets } from '@/lib/hooks/useInvoicePresets'
+import { createPreset, updatePreset, deletePreset } from '@/lib/api/invoices'
+import { formatYen } from '@/lib/utils/format'
 
-export default function RoomSettings() {
+export default function PresetSettings() {
   const qc = useQueryClient()
-  const { data: rooms = [] } = useRooms()
+  const { data: presets = [] } = useInvoicePresets()
   const [newName, setNewName] = useState('')
+  const [newPrice, setNewPrice] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
+  const [editPrice, setEditPrice] = useState('')
 
   async function handleAdd() {
-    if (!newName.trim()) return
-    await createRoom({
-      name: newName.trim(),
-      capacity: 0,
-      sort_order: rooms.length,
-    })
-    qc.invalidateQueries({ queryKey: ['rooms'] })
+    if (!newName.trim() || !newPrice) return
+    await createPreset({ name: newName.trim(), price: parseInt(newPrice) || 0 })
+    qc.invalidateQueries({ queryKey: ['invoicePresets'] })
     setNewName('')
+    setNewPrice('')
   }
 
   async function handleUpdate(id: string) {
     if (!editName.trim()) return
-    await updateRoom(id, { name: editName.trim() })
-    qc.invalidateQueries({ queryKey: ['rooms'] })
+    await updatePreset(id, { name: editName.trim(), price: parseInt(editPrice) || 0 })
+    qc.invalidateQueries({ queryKey: ['invoicePresets'] })
     setEditingId(null)
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('この部屋を削除しますか？')) return
-    await deleteRoom(id)
-    qc.invalidateQueries({ queryKey: ['rooms'] })
+    if (!confirm('この費目を削除しますか？')) return
+    await deletePreset(id)
+    qc.invalidateQueries({ queryKey: ['invoicePresets'] })
   }
 
   return (
     <div>
-      <PageHeader title="部屋管理" />
+      <PageHeader title="追加費目" />
 
       <div className="px-4 py-4 space-y-4 pb-32">
         {/* Add new */}
         <Card>
-          <h3 className="text-sm font-bold text-text-2 mb-3">部屋を追加</h3>
+          <h3 className="text-sm font-bold text-text-2 mb-3">費目を追加</h3>
           <div className="flex gap-2">
             <Input
-              placeholder="部屋名 (例: 201)"
+              placeholder="品目名"
               value={newName}
               onChange={e => setNewName(e.target.value)}
               className="flex-1"
+            />
+            <Input
+              placeholder="単価"
+              type="number"
+              value={newPrice}
+              onChange={e => setNewPrice(e.target.value)}
+              className="w-24"
             />
             <Button onClick={handleAdd} size="md">
               <Plus size={16} />
@@ -62,20 +69,25 @@ export default function RoomSettings() {
           </div>
         </Card>
 
-        {/* Room list */}
+        {/* Preset list */}
         <div className="space-y-2">
-          {rooms.map(room => (
-            <Card key={room.id} className="flex items-center justify-between py-3">
-              {editingId === room.id ? (
+          {presets.map(preset => (
+            <Card key={preset.id} className="flex items-center justify-between py-3">
+              {editingId === preset.id ? (
                 <div className="flex gap-2 flex-1">
                   <input
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     className="flex-1 h-9 px-3 rounded-lg bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     autoFocus
-                    onKeyDown={e => e.key === 'Enter' && handleUpdate(room.id)}
                   />
-                  <Button size="sm" onClick={() => handleUpdate(room.id)}>
+                  <input
+                    value={editPrice}
+                    onChange={e => setEditPrice(e.target.value)}
+                    type="number"
+                    className="w-24 h-9 px-3 rounded-lg bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <Button size="sm" onClick={() => handleUpdate(preset.id)}>
                     保存
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
@@ -87,17 +99,18 @@ export default function RoomSettings() {
                   <button
                     type="button"
                     onClick={() => {
-                      setEditingId(room.id)
-                      setEditName(room.name)
+                      setEditingId(preset.id)
+                      setEditName(preset.name)
+                      setEditPrice(String(preset.price))
                     }}
                     className="text-left flex-1"
                   >
-                    <p className="text-sm font-bold">{room.name}</p>
-                    <p className="text-xs text-text-3">並び順 {room.sort_order}</p>
+                    <p className="text-sm font-bold">{preset.name}</p>
+                    <p className="text-xs text-text-3">{formatYen(preset.price)}</p>
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(room.id)}
+                    onClick={() => handleDelete(preset.id)}
                     className="w-10 h-10 flex items-center justify-center text-danger/50 active:text-danger"
                   >
                     <Trash2 size={16} />
@@ -107,6 +120,12 @@ export default function RoomSettings() {
             </Card>
           ))}
         </div>
+
+        {presets.length === 0 && (
+          <p className="text-sm text-text-3 text-center py-6">
+            追加費目が登録されていません
+          </p>
+        )}
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { getInnId } from '@/lib/auth'
 import type { InvoiceItem, InvoicePreset } from '@/lib/types'
 
 export async function fetchInvoiceItems(reservationId: string): Promise<InvoiceItem[]> {
@@ -38,6 +39,17 @@ export async function lockInvoice(reservationId: string): Promise<void> {
   if (error) throw error
 }
 
+export async function fetchSettledReservationIds(reservationIds: string[]): Promise<Set<string>> {
+  if (reservationIds.length === 0) return new Set()
+  const { data, error } = await supabase
+    .from('invoice_items')
+    .select('reservation_id')
+    .in('reservation_id', reservationIds)
+    .eq('locked', true)
+  if (error) throw error
+  return new Set((data ?? []).map(d => d.reservation_id))
+}
+
 export async function fetchPresets(innId: string): Promise<InvoicePreset[]> {
   const { data, error } = await supabase
     .from('invoice_presets')
@@ -47,4 +59,26 @@ export async function fetchPresets(innId: string): Promise<InvoicePreset[]> {
 
   if (error) throw error
   return data ?? []
+}
+
+export async function createPreset(input: { name: string; price: number }): Promise<InvoicePreset> {
+  const innId = await getInnId()
+  if (!innId) throw new Error('ログインが必要です')
+  const { data, error } = await supabase
+    .from('invoice_presets')
+    .insert({ ...input, inn_id: innId })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updatePreset(id: string, updates: { name?: string; price?: number }): Promise<void> {
+  const { error } = await supabase.from('invoice_presets').update(updates).eq('id', id)
+  if (error) throw error
+}
+
+export async function deletePreset(id: string): Promise<void> {
+  const { error } = await supabase.from('invoice_presets').delete().eq('id', id)
+  if (error) throw error
 }

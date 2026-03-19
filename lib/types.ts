@@ -32,21 +32,18 @@ export type Guest = {
   updated_at: string
 }
 
-export type ReservationStatus = 'scheduled' | 'checked_in' | 'checked_out' | 'cancelled'
+export type ReservationStatus = 'scheduled' | 'settled' | 'cancelled'
 
 export const STATUS_LABELS: Record<ReservationStatus, string> = {
   scheduled: '予約済み',
-  checked_in: 'チェックイン済み',
-  checked_out: 'チェックアウト済み',
+  settled: '済',
   cancelled: 'キャンセル',
 }
 
 export type Reservation = {
   id: string
   inn_id: string
-  room_id: string
   guest_id: string
-  group_id: string | null
   checkin: string
   checkout: string
   adults: number
@@ -59,9 +56,16 @@ export type Reservation = {
   notes: string | null
   created_at: string
   updated_at: string
-  // joined
-  room?: Room
+  // joined via reservation_rooms
+  rooms?: Room[]
   guest?: Guest
+}
+
+/** Helper: first room name for display */
+export function roomLabel(res: Reservation): string {
+  if (!res.rooms || res.rooms.length === 0) return '—'
+  if (res.rooms.length === 1) return res.rooms[0].name
+  return res.rooms.map(r => r.name).join(', ')
 }
 
 export type MealDay = {

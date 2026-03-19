@@ -1,28 +1,54 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { format, addDays, isToday as dateFnsIsToday } from 'date-fns'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { format, addDays, subDays, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { Printer, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, Printer, AlertTriangle } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { Textarea } from '@/components/ui/Textarea'
 import { useReservations } from '@/lib/hooks/useReservations'
 import { useMealDaysForDate } from '@/lib/hooks/useMealDays'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
+import { roomLabel } from '@/lib/types'
 import type { Reservation, MealDay } from '@/lib/types'
 
-type Tab = 'today' | 'tomorrow'
+function useKondate(dateStr: string) {
+  const storageKey = `yadocho-kondate-${dateStr}`
+  const [value, setValue] = useState('')
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey)
+    setValue(saved ?? '')
+  }, [storageKey])
+
+  const save = useCallback(
+    (text: string) => {
+      setValue(text)
+      if (text.trim()) {
+        localStorage.setItem(storageKey, text)
+      } else {
+        localStorage.removeItem(storageKey)
+      }
+    },
+    [storageKey],
+  )
+
+  return { value, save, expanded, setExpanded }
+}
 
 export default function MealBoard() {
-  const [tab, setTab] = useState<Tab>('today')
-  const today = new Date()
-  const targetDate = tab === 'today' ? today : addDays(today, 1)
-  const dateStr = toDateStr(targetDate)
+  const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const dateStr = toDateStr(selectedDate)
+  const isToday = isSameDay(selectedDate, new Date())
+  const kondate = useKondate(dateStr)
 
-  const from = toDateStr(today)
-  const to = toDateStr(addDays(today, 2))
+  // Fetch reservations covering the selected date
+  const from = toDateStr(subDays(selectedDate, 1))
+  const to = toDateStr(addDays(selectedDate, 1))
   const { data: reservations = [] } = useReservations(from, to)
 
   const activeRes = useMemo(
@@ -83,6 +109,14 @@ export default function MealBoard() {
     0,
   )
 
+  function goDay(dir: 1 | -1) {
+    setSelectedDate(d => (dir === 1 ? addDays(d, 1) : subDays(d, 1)))
+  }
+
+  function goToday() {
+    setSelectedDate(new Date())
+  }
+
   return (
     <div>
       <PageHeader
@@ -99,29 +133,84 @@ export default function MealBoard() {
         }
       />
 
-      {/* Tabs */}
-      <div className="flex gap-2 px-4 py-3">
-        {(['today', 'tomorrow'] as const).map(t => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={cn(
-              'px-4 py-2 rounded-xl text-sm font-semibold transition-all',
-              tab === t
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-surface border border-border text-text-2',
-            )}
-          >
-            {t === 'today' ? '今日' : '明日'}
-          </button>
-        ))}
-        <span className="self-center text-sm text-text-3 ml-2">
-          {format(targetDate, 'M/d（E）', { locale: ja })}
-        </span>
+      {/* Date navigation */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <button
+          type="button"
+          onClick={() => goDay(-1)}
+          className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
+        >
+          <ChevronLeft size={20} className="text-text-2" />
+        </button>
+
+        <button
+          type="button"
+          onClick={goToday}
+          className="flex items-center gap-2"
+        >
+          <span className="text-base font-bold">
+            {format(selectedDate, 'M/d（E）', { locale: ja })}
+          </span>
+          {isToday && <Badge>今日</Badge>}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => goDay(1)}
+          className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
+        >
+          <ChevronRight size={20} className="text-text-2" />
+        </button>
       </div>
 
+      {/* "今日" reset button when not today */}
+      {!isToday && (
+        <div className="flex justify-center pb-2">
+          <button
+            type="button"
+            onClick={goToday}
+            className="text-xs font-semibold text-primary bg-primary-soft px-2.5 py-1 rounded-full active:brightness-95 transition-all"
+          >
+            今日に戻る
+          </button>
+        </div>
+      )}
+
       <div className="px-4 pb-32 space-y-4">
+        {/* Kondate (menu) */}
+        <div className="print-visible">
+          <button
+            type="button"
+            onClick={() => kondate.setExpanded(!kondate.expanded)}
+            className="flex items-center gap-2 mb-2 w-full text-left"
+          >
+            <h2 className="text-sm font-bold text-text-2">献立</h2>
+            {kondate.value && <Badge>入力済</Badge>}
+            <ChevronDown
+              size={16}
+              className={cn(
+                'text-text-3 transition-transform ml-auto no-print',
+                kondate.expanded && 'rotate-180',
+              )}
+            />
+          </button>
+          {kondate.expanded && (
+            <Textarea
+              placeholder="今日の献立を入力…"
+              value={kondate.value}
+              onChange={e => kondate.save(e.target.value)}
+              rows={3}
+              className="no-print"
+            />
+          )}
+          {/* Print-only: always show kondate if there's content */}
+          {kondate.value && (
+            <div className="hidden print:block whitespace-pre-wrap text-sm border border-border rounded-xl p-3 mt-1">
+              {kondate.value}
+            </div>
+          )}
+        </div>
+
         {/* Breakfast */}
         <MealSection title="朝食" count={totalBreakfast}>
           {breakfastItems.length === 0 ? (
@@ -134,13 +223,15 @@ export default function MealBoard() {
         </MealSection>
 
         {/* Lunch */}
-        {totalLunch > 0 && (
-          <MealSection title="昼食" count={totalLunch}>
-            {lunchItems.map(m => (
+        <MealSection title="昼食" count={totalLunch}>
+          {lunchItems.length === 0 ? (
+            <p className="text-sm text-text-3">なし</p>
+          ) : (
+            lunchItems.map(m => (
               <MealCard key={m.id} meal={m} type="lunch" />
-            ))}
-          </MealSection>
-        )}
+            ))
+          )}
+        </MealSection>
 
         {/* Dinner */}
         <MealSection title="夕食" count={totalDinner}>
@@ -219,7 +310,7 @@ function MealCard({
     <Card className="py-2.5 px-3 flex items-center justify-between">
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-xs font-bold text-primary bg-primary-soft px-2 py-0.5 rounded">
-          {r?.room?.name ?? '—'}
+          {r ? roomLabel(r) : '—'}
         </span>
         <span className="text-sm font-medium truncate">{r?.guest?.name ?? '—'}</span>
       </div>

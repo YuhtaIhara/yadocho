@@ -13,7 +13,14 @@ export async function fetchGuests(search?: string): Promise<Guest[]> {
     .order('updated_at', { ascending: false })
 
   if (search) {
-    query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`)
+    const isDigitsOnly = /^\d+$/.test(search.replace(/[-\s]/g, ''))
+    if (isDigitsOnly) {
+      // Phone search: strip hyphens/spaces and search by phone
+      const cleaned = search.replace(/[-\s]/g, '')
+      query = query.ilike('phone', `%${cleaned}%`)
+    } else {
+      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`)
+    }
   }
 
   const { data, error } = await query
@@ -42,6 +49,19 @@ export async function createGuest(input: {
 }): Promise<Guest> {
   const innId = await getInnId()
   if (!innId) throw new Error('ログインが必要です')
+
+  // Duplicate phone check
+  if (input.phone) {
+    const { data: existing } = await supabase
+      .from('guests')
+      .select('id')
+      .eq('inn_id', innId)
+      .eq('phone', input.phone)
+      .limit(1)
+    if (existing && existing.length > 0) {
+      throw new Error('この電話番号は既に登録されています')
+    }
+  }
 
   const { data, error } = await supabase
     .from('guests')

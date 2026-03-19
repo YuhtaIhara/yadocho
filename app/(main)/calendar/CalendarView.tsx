@@ -1,29 +1,32 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
-  addMonths,
-  subMonths,
   addDays,
   subDays,
   isSameMonth,
   format,
 } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CalendarGrid from '@/components/calendar/CalendarGrid'
 import DayPanel from '@/components/calendar/DayPanel'
+import MonthPicker from '@/components/MonthPicker'
 import { useReservations } from '@/lib/hooks/useReservations'
 import { useRooms } from '@/lib/hooks/useRooms'
-import { useBlockedDates } from '@/lib/hooks/useBlockedDates'
+import { useBlockedDates, useCreateBlockedDate, useDeleteBlockedDate } from '@/lib/hooks/useBlockedDates'
 import { toDateStr } from '@/lib/utils/date'
+import { cn } from '@/lib/utils/cn'
 
 export default function CalendarView() {
+  const router = useRouter()
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [blockMode, setBlockMode] = useState(false)
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false)
 
   const monthEnd = endOfMonth(currentMonth)
   const from = toDateStr(currentMonth)
@@ -38,13 +41,8 @@ export default function CalendarView() {
   const { data: rooms = [], isLoading: roomsLoading } = useRooms()
   const { data: reservations = [] } = useReservations(from, to)
   const { data: blockedDates = [] } = useBlockedDates(from, to)
-
-  function goMonth(dir: 1 | -1) {
-    const next = dir === 1 ? addMonths(currentMonth, 1) : subMonths(currentMonth, 1)
-    setCurrentMonth(next)
-    const today = new Date()
-    setSelectedDate(isSameMonth(today, next) ? today : next)
-  }
+  const createBlocked = useCreateBlockedDate()
+  const deleteBlocked = useDeleteBlockedDate()
 
   function goToday() {
     const today = new Date()
@@ -52,10 +50,34 @@ export default function CalendarView() {
     setSelectedDate(today)
   }
 
+  /** Date header tap in block mode -> toggle all-room block */
   function handleSelectDate(d: Date) {
+    if (blockMode) {
+      const dateStr = toDateStr(d)
+      // Check if ANY blocks exist for this date
+      const existingBlocks = blockedDates.filter(b => b.date === dateStr)
+      if (existingBlocks.length > 0) {
+        // Remove ALL blocks for this date
+        existingBlocks.forEach(b => deleteBlocked.mutate(b.id))
+      } else {
+        // Block ALL rooms for this date
+        rooms.forEach(room => createBlocked.mutate({ date: dateStr, room_id: room.id }))
+      }
+      return
+    }
     setSelectedDate(d)
     if (!isSameMonth(d, currentMonth)) {
       setCurrentMonth(startOfMonth(d))
+    }
+  }
+
+  /** Cell tap in block mode -> toggle per-room block */
+  function handleBlockToggle(date: string, roomId: string) {
+    const existing = blockedDates.find(b => b.date === date && b.room_id === roomId)
+    if (existing) {
+      deleteBlocked.mutate(existing.id)
+    } else {
+      createBlocked.mutate({ date, room_id: roomId })
     }
   }
 
@@ -64,43 +86,73 @@ export default function CalendarView() {
     handleSelectDate(next)
   }
 
+  function handleCellClick(date: string, roomId: string) {
+    router.push(`/reservations/new?date=${date}&room=${roomId}`)
+  }
+
+  function handleMonthSelect(d: Date) {
+    setCurrentMonth(startOfMonth(d))
+    const today = new Date()
+    setSelectedDate(isSameMonth(today, d) ? today : d)
+  }
+
   const isCurrentMonth = isSameMonth(currentMonth, new Date())
+
+  // Blocked dates for selected day (for DayPanel)
+  const selectedDateStr = toDateStr(selectedDate)
+  const blockedForSelectedDay = useMemo(
+    () => blockedDates.filter(b => b.date === selectedDateStr),
+    [blockedDates, selectedDateStr],
+  )
 
   return (
     <div>
       {/* ── Month navigation ── */}
       <div className="flex items-center justify-between px-4 py-2 bg-background/90 backdrop-blur-lg border-b border-border/40">
-        <button
-          type="button"
-          onClick={() => goMonth(-1)}
-          className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
-        >
-          <ChevronLeft size={20} className="text-text-2" />
-        </button>
-
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold">
+          <button
+            type="button"
+            onClick={() => setMonthPickerOpen(true)}
+            className="text-lg font-bold active:opacity-70 transition-opacity"
+          >
             {format(currentMonth, 'yyyy年M月', { locale: ja })}
-          </h1>
-          {!isCurrentMonth && (
-            <button
-              type="button"
-              onClick={goToday}
-              className="text-xs font-semibold text-primary bg-primary-soft px-2.5 py-1 rounded-full active:brightness-95 transition-all"
-            >
-              今日
-            </button>
-          )}
+          </button>
+          <button
+            type="button"
+            onClick={goToday}
+            className={cn(
+              'text-xs font-semibold px-2.5 py-1 rounded-full transition-all',
+              isCurrentMonth
+                ? 'text-text-3 bg-surface border border-border active:bg-primary-soft'
+                : 'text-primary bg-primary-soft active:brightness-95',
+            )}
+          >
+            今日
+          </button>
         </div>
 
         <button
           type="button"
-          onClick={() => goMonth(1)}
-          className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
+          onClick={() => setBlockMode(v => !v)}
+          className={cn(
+            'text-xs font-semibold px-3 py-1.5 rounded-full transition-colors',
+            blockMode
+              ? 'bg-danger text-white'
+              : 'bg-surface border border-border text-text-2 active:bg-primary-soft',
+          )}
         >
-          <ChevronRight size={20} className="text-text-2" />
+          {blockMode ? '休業モード ON' : '休業設定'}
         </button>
       </div>
+
+      {/* Block mode banner */}
+      {blockMode && (
+        <div className="px-4 py-2 bg-danger/10 border-b border-danger/20 text-center">
+          <span className="text-xs font-semibold text-danger">
+            日付ヘッダー = 全室休業 ／ セル = 部屋別休業
+          </span>
+        </div>
+      )}
 
       {/* ── Calendar grid ── */}
       {roomsLoading ? (
@@ -115,6 +167,9 @@ export default function CalendarView() {
           dates={dates}
           selectedDate={selectedDate}
           onSelectDate={handleSelectDate}
+          onSelectReservation={(id) => router.push(`/reservations/${id}`)}
+          onCellClick={blockMode ? undefined : handleCellClick}
+          onBlockToggle={blockMode ? handleBlockToggle : undefined}
         />
       )}
 
@@ -122,9 +177,21 @@ export default function CalendarView() {
       <DayPanel
         date={selectedDate}
         reservations={reservations}
+        blockedDates={blockedForSelectedDay}
+        rooms={rooms}
         onPrevDay={() => handleDayNav(-1)}
         onNextDay={() => handleDayNav(1)}
         onToday={goToday}
+        onSelectDate={handleSelectDate}
+        onSelectReservation={(id) => router.push(`/reservations/${id}`)}
+      />
+
+      {/* ── Month picker ── */}
+      <MonthPicker
+        open={monthPickerOpen}
+        onClose={() => setMonthPickerOpen(false)}
+        onSelect={handleMonthSelect}
+        currentMonth={currentMonth}
       />
     </div>
   )

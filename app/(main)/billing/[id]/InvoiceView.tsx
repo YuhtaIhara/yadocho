@@ -11,10 +11,12 @@ import Stepper from '@/components/ui/Stepper'
 import { useReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
+import { useInvoicePresets } from '@/lib/hooks/useInvoicePresets'
 import { upsertInvoiceItems, lockInvoice } from '@/lib/api/invoices'
 import { formatDateFull, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
 import { calcLodgingTax } from '@/lib/utils/tax'
+import { roomLabel } from '@/lib/types'
 
 type ExtraItem = { name: string; unitPrice: number; quantity: number }
 
@@ -24,6 +26,7 @@ export default function InvoiceView() {
   const { data: mealDays = [] } = useMealDays(id)
   const { data: pricing } = usePricing()
   const updateRes = useUpdateReservation()
+  const { data: presets = [] } = useInvoicePresets()
   const [extras, setExtras] = useState<ExtraItem[]>([])
   const [newName, setNewName] = useState('')
   const [newPrice, setNewPrice] = useState('')
@@ -53,20 +56,27 @@ export default function InvoiceView() {
     const cdp = pricing?.child_dinner_price ?? 1500
     const bp = pricing?.breakfast_price ?? 800
     const cbp = pricing?.child_breakfast_price ?? 500
+    const lp = pricing?.lunch_price ?? 0
+    const clp = pricing?.child_lunch_price ?? 0
 
     let totalDinnerA = 0, totalDinnerC = 0
     let totalBreakA = 0, totalBreakC = 0
+    let totalLunchA = 0, totalLunchC = 0
     for (const md of mealDays) {
       totalDinnerA += md.dinner_adults
       totalDinnerC += md.dinner_children
       totalBreakA += md.breakfast_adults
       totalBreakC += md.breakfast_children
+      totalLunchA += md.lunch_adults
+      totalLunchC += md.lunch_children
     }
 
     if (totalDinnerA > 0) items.push({ name: '夕食（大人）', unitPrice: dp, quantity: totalDinnerA, amount: dp * totalDinnerA })
     if (totalDinnerC > 0) items.push({ name: '夕食（子供）', unitPrice: cdp, quantity: totalDinnerC, amount: cdp * totalDinnerC })
     if (totalBreakA > 0) items.push({ name: '朝食（大人）', unitPrice: bp, quantity: totalBreakA, amount: bp * totalBreakA })
     if (totalBreakC > 0) items.push({ name: '朝食（子供）', unitPrice: cbp, quantity: totalBreakC, amount: cbp * totalBreakC })
+    if (totalLunchA > 0) items.push({ name: '昼食（大人）', unitPrice: lp, quantity: totalLunchA, amount: lp * totalLunchA })
+    if (totalLunchC > 0) items.push({ name: '昼食（子供）', unitPrice: clp, quantity: totalLunchC, amount: clp * totalLunchC })
 
     const subtotal = items.reduce((s, i) => s + i.amount, 0)
     const extrasTotal = extras.reduce((s, e) => s + e.unitPrice * e.quantity, 0)
@@ -135,8 +145,8 @@ export default function InvoiceView() {
       }
       await upsertInvoiceItems(res.id, allItems)
       await lockInvoice(res.id)
-      if (res.status !== 'checked_out') {
-        updateRes.mutate({ id: res.id, status: 'checked_out' })
+      if (res.status !== 'settled') {
+        updateRes.mutate({ id: res.id, status: 'settled' })
       }
       alert('精算が完了しました')
     } catch (err) {
@@ -174,6 +184,20 @@ export default function InvoiceView() {
       {/* Extra items input — no-print */}
       <div className="no-print px-4 py-3 border-b border-border/40">
         <h3 className="text-sm font-bold text-text-2 mb-2">追加費目</h3>
+        {presets.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-2 -mx-1 px-1 scrollbar-hide">
+            {presets.map(p => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setExtras(prev => [...prev, { name: p.name, unitPrice: p.price, quantity: 1 }])}
+                className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-full bg-primary-soft text-primary active:bg-primary/20 transition-colors"
+              >
+                {p.name} {formatYen(p.price)}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
           <Input
             placeholder="品目"
@@ -227,10 +251,10 @@ export default function InvoiceView() {
 
         <p className="text-lg font-bold mb-1">{res.guest?.name ?? '—'} 様</p>
         <div className="text-sm text-text-2 space-y-0.5 mb-4">
-          <p>CI: {formatDateFull(res.checkin)}</p>
-          <p>CO: {formatDateFull(res.checkout)}（{computed.nights}泊）</p>
+          <p>チェックイン: {formatDateFull(res.checkin)}</p>
+          <p>チェックアウト: {formatDateFull(res.checkout)}（{computed.nights}泊）</p>
           <p>
-            部屋: {res.room?.name} 人数: 大人{res.adults}名
+            部屋: {roomLabel(res)} 人数: 大人{res.adults}名
             {res.children > 0 && ` 子供${res.children}名`}
           </p>
         </div>

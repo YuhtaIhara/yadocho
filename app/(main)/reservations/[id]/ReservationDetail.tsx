@@ -8,19 +8,22 @@ import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { useQueryClient } from '@tanstack/react-query'
 import { useReservation, useUpdateReservation, useDeleteReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
+import { usePricing } from '@/lib/hooks/usePricing'
+import MealEditor from '@/components/MealEditor'
 import { formatDateJP, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
 import { calcLodgingTax } from '@/lib/utils/tax'
+import { calcMealCost } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils/cn'
-import { STATUS_LABELS, type ReservationStatus } from '@/lib/types'
+import { roomLabel, STATUS_LABELS, type ReservationStatus } from '@/lib/types'
 
-const STATUS_OPTIONS: ReservationStatus[] = ['scheduled', 'checked_in', 'checked_out', 'cancelled']
+const STATUS_OPTIONS: ReservationStatus[] = ['scheduled', 'settled', 'cancelled']
 const STATUS_BADGE: Record<string, 'default' | 'accent' | 'warning' | 'danger' | 'outline'> = {
   scheduled: 'default',
-  checked_in: 'accent',
-  checked_out: 'outline',
+  settled: 'accent',
   cancelled: 'danger',
 }
 
@@ -29,9 +32,12 @@ export default function ReservationDetail() {
   const router = useRouter()
   const { data: res, isLoading } = useReservation(id)
   const { data: mealDays = [] } = useMealDays(id)
+  const { data: pricing } = usePricing()
+  const queryClient = useQueryClient()
   const updateRes = useUpdateReservation()
   const deleteRes = useDeleteReservation()
   const [showStatusMenu, setShowStatusMenu] = useState(false)
+  const [showMealEditor, setShowMealEditor] = useState(false)
 
   if (isLoading) {
     return (
@@ -53,7 +59,7 @@ export default function ReservationDetail() {
 
   const nights = nightCount(res.checkin, res.checkout)
   const stayCost = (res.adult_price * res.adults + res.child_price * res.children) * nights
-  const mealCost = 0 // TODO: calculate from meal_days + pricing
+  const mealCost = calcMealCost(mealDays, pricing)
   const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin)
   const total = stayCost + mealCost + tax.taxAmount
 
@@ -72,14 +78,22 @@ export default function ReservationDetail() {
       <PageHeader
         title="予約詳細"
         rightSlot={
-          <div className="relative">
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowStatusMenu(v => !v)}
-              className="flex items-center gap-1"
+              onClick={() => router.push(`/reservations/${id}/edit`)}
+              className="w-9 h-9 flex items-center justify-center rounded-full active:bg-primary-soft"
             >
-              <Badge variant={STATUS_BADGE[res.status]}>{STATUS_LABELS[res.status]}</Badge>
+              <Pencil size={16} className="text-text-2" />
             </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowStatusMenu(v => !v)}
+                className="flex items-center gap-1"
+              >
+                <Badge variant={STATUS_BADGE[res.status]}>{STATUS_LABELS[res.status]}</Badge>
+              </button>
             {showStatusMenu && (
               <div className="absolute right-0 top-full mt-1 bg-surface border border-border rounded-xl shadow-elevated z-20 min-w-[140px] py-1">
                 {STATUS_OPTIONS.map(s => (
@@ -97,6 +111,7 @@ export default function ReservationDetail() {
                 ))}
               </div>
             )}
+            </div>
           </div>
         }
       />
@@ -123,7 +138,15 @@ export default function ReservationDetail() {
           <div className="grid grid-cols-2 gap-y-3 text-sm">
             <div>
               <span className="text-text-3">部屋</span>
-              <p className="font-semibold">{res.room?.name ?? '—'}</p>
+              {res.rooms && res.rooms.length > 1 ? (
+                <div className="flex flex-wrap gap-1 mt-0.5">
+                  {res.rooms.map(room => (
+                    <Badge key={room.id} variant="default">{room.name}</Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-semibold">{roomLabel(res)}</p>
+              )}
             </div>
             <div>
               <span className="text-text-3">人数</span>
@@ -155,7 +178,9 @@ export default function ReservationDetail() {
         <Card>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-text-2">食事</h3>
-            <Pencil size={14} className="text-text-3" />
+            <button type="button" onClick={() => setShowMealEditor(true)} className="p-1 rounded-full active:bg-primary-soft">
+              <Pencil size={14} className="text-text-3" />
+            </button>
           </div>
           {mealDays.length > 0 ? (
             <div className="space-y-1.5 text-sm">
@@ -202,6 +227,60 @@ export default function ReservationDetail() {
                 <span className="font-medium">{formatYen(res.child_price * res.children * nights)}</span>
               </div>
             )}
+            {mealCost > 0 && (() => {
+              const dp = pricing?.dinner_price ?? 2000
+              const cdp = pricing?.child_dinner_price ?? 1500
+              const bp = pricing?.breakfast_price ?? 800
+              const cbp = pricing?.child_breakfast_price ?? 500
+              const lp = pricing?.lunch_price ?? 0
+              const clp = pricing?.child_lunch_price ?? 0
+              let dinnerA = 0, dinnerC = 0, breakA = 0, breakC = 0, lunchA = 0, lunchC = 0
+              for (const md of mealDays) {
+                dinnerA += md.dinner_adults; dinnerC += md.dinner_children
+                breakA += md.breakfast_adults; breakC += md.breakfast_children
+                lunchA += md.lunch_adults; lunchC += md.lunch_children
+              }
+              return (
+                <>
+                  {dinnerA > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-text-2">夕食（大人）{formatYen(dp)}×{dinnerA}</span>
+                      <span className="font-medium">{formatYen(dp * dinnerA)}</span>
+                    </div>
+                  )}
+                  {dinnerC > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-text-2">夕食（子供）{formatYen(cdp)}×{dinnerC}</span>
+                      <span className="font-medium">{formatYen(cdp * dinnerC)}</span>
+                    </div>
+                  )}
+                  {breakA > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-text-2">朝食（大人）{formatYen(bp)}×{breakA}</span>
+                      <span className="font-medium">{formatYen(bp * breakA)}</span>
+                    </div>
+                  )}
+                  {breakC > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-text-2">朝食（子供）{formatYen(cbp)}×{breakC}</span>
+                      <span className="font-medium">{formatYen(cbp * breakC)}</span>
+                    </div>
+                  )}
+                  {lunchA > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-text-2">昼食（大人）{formatYen(lp)}×{lunchA}</span>
+                      <span className="font-medium">{formatYen(lp * lunchA)}</span>
+                    </div>
+                  )}
+                  {lunchC > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-text-2">昼食（子供）{formatYen(clp)}×{lunchC}</span>
+                      <span className="font-medium">{formatYen(clp * lunchC)}</span>
+                    </div>
+                  )}
+                </>
+              )
+            })()}
             {tax.taxable && (
               <div className="flex justify-between">
                 <span className="text-text-2">宿泊税({tax.ratePercent}%)</span>
@@ -252,6 +331,16 @@ export default function ReservationDetail() {
           </button>
         </div>
       </div>
+
+      <MealEditor
+        reservationId={id}
+        mealDays={mealDays}
+        open={showMealEditor}
+        onClose={() => setShowMealEditor(false)}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ['mealDays', id] })
+        }}
+      />
     </div>
   )
 }
