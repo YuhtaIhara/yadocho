@@ -27,16 +27,23 @@ const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
 export default function DatePicker({ open, onClose, onSelect, selectedDate }: Props) {
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(selectedDate))
-  const ref = useRef<HTMLDialogElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (open) {
-      setViewMonth(startOfMonth(selectedDate))
-      ref.current?.showModal()
-    } else {
-      ref.current?.close()
-    }
+    if (open) setViewMonth(startOfMonth(selectedDate))
   }, [open, selectedDate])
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open, onClose])
+
+  if (!open) return null
 
   const monthStart = startOfMonth(viewMonth)
   const monthEnd = endOfMonth(viewMonth)
@@ -51,15 +58,9 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
   }
 
   return (
-    <dialog
-      ref={ref}
-      onClose={onClose}
-      className={cn(
-        'backdrop:bg-black/40 bg-transparent p-0 max-w-xs w-[calc(100%-2rem)] mx-auto rounded-2xl',
-        'open:animate-in open:fade-in open:zoom-in-95',
-      )}
-    >
-      <div className="bg-surface rounded-2xl shadow-elevated">
+    <>
+      <div className="fixed inset-0 bg-black/20 z-40" />
+      <div ref={ref} className="absolute left-1/2 -translate-x-1/2 z-50 mt-1 w-[300px] bg-surface rounded-2xl shadow-elevated animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
           <button
@@ -139,6 +140,6 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
           })}
         </div>
       </div>
-    </dialog>
+    </>
   )
 }

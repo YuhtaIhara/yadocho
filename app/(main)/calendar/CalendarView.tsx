@@ -118,13 +118,21 @@ export default function CalendarView() {
           今日
         </button>
 
-        <button
-          type="button"
-          onClick={() => setMonthPickerOpen(true)}
-          className="flex items-center gap-1 text-lg font-bold active:opacity-70 transition-opacity"
-        >
-          {format(currentMonth, 'yyyy年M月', { locale: ja })} <span className="text-text-2">▼</span>
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setMonthPickerOpen(true)}
+            className="flex items-center gap-1 text-lg font-bold active:opacity-70 transition-opacity"
+          >
+            {format(currentMonth, 'yyyy年M月', { locale: ja })} <span className="text-text-2">▼</span>
+          </button>
+          <MonthPicker
+            open={monthPickerOpen}
+            onClose={() => setMonthPickerOpen(false)}
+            onSelect={handleMonthSelect}
+            currentMonth={currentMonth}
+          />
+        </div>
 
         <button
           type="button"
@@ -182,13 +190,6 @@ export default function CalendarView() {
         onSelectReservation={(id) => router.push(`/reservations/${id}`)}
       />
 
-      {/* ── Month picker ── */}
-      <MonthPicker
-        open={monthPickerOpen}
-        onClose={() => setMonthPickerOpen(false)}
-        onSelect={handleMonthSelect}
-        currentMonth={currentMonth}
-      />
     </div>
   )
 }
