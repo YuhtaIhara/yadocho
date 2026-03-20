@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, UtensilsCrossed, Plus, Receipt, Menu } from 'lucide-react'
+import { Calendar, UtensilsCrossed, Plus, Receipt, Menu } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/calendar', label: '予定', icon: CalendarDays },
+  { href: '/calendar', label: 'カレンダー', icon: Calendar },
   { href: '/meals', label: '食事', icon: UtensilsCrossed },
-  { href: '/reservations/new', label: '', icon: Plus, isCenter: true },
+  { href: '/reservations/new', label: '新規予約', icon: Plus, isCenter: true },
   { href: '/billing', label: '請求', icon: Receipt },
-  { href: '/menu', label: 'その他', icon: Menu },
+  { href: '/menu', label: 'メニュー', icon: Menu },
 ] as const
 
 export default function BottomNav() {
@@ -51,7 +51,7 @@ export default function BottomNav() {
                 strokeWidth={1.75}
                 className={`relative z-10 ${active ? 'text-primary' : 'text-text-3'}`}
               />
-              <span className={`relative z-10 leading-tight text-[12px] tracking-wide ${active ? 'font-semibold text-primary' : 'font-medium text-text-3'}`}>
+              <span className={`relative z-10 leading-tight text-[10px] tracking-wide ${active ? 'font-semibold text-primary' : 'font-medium text-text-3'}`}>
                 {label}
               </span>
             </Link>

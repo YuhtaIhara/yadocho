@@ -137,20 +137,20 @@ export default function CalendarGrid({
                 type="button"
                 onClick={() => onSelectDate(d)}
                 className={cn(
-                  'shrink-0 flex flex-col items-center justify-center py-1.5',
-                  selected && 'bg-primary-soft',
+                  'shrink-0 flex flex-col items-center justify-center py-1',
+                  selected && !today && 'bg-primary/[0.06]',
                 )}
                 style={{ width: COL_W, minWidth: COL_W }}
               >
                 <span
                   className={cn(
-                    'text-[11px] leading-none',
+                    'text-[11px] leading-none w-6 h-6 flex items-center justify-center rounded-full',
                     today
-                      ? 'font-bold text-primary'
-                      : dow === 0
-                        ? 'text-danger/70'
-                        : dow === 6
-                          ? 'text-primary/60'
+                      ? 'font-bold text-white bg-primary'
+                      : selected
+                        ? 'font-bold text-primary'
+                        : (dow === 0 || dow === 6)
+                          ? 'text-danger font-medium'
                           : 'text-text-2',
                   )}
                 >
@@ -158,13 +158,12 @@ export default function CalendarGrid({
                 </span>
                 <span
                   className={cn(
-                    'text-[10px] leading-none mt-0.5',
-                    today ? 'font-bold text-primary' : 'text-text-3',
+                    'text-[9px] leading-none mt-0.5',
+                    today ? 'font-bold text-primary' : (dow === 0 || dow === 6) ? 'text-danger/70' : 'text-text-3',
                   )}
                 >
-                  {format(d, 'E', { locale: ja })}
+                  ({format(d, 'E', { locale: ja })})
                 </span>
-                {today && <span className="w-1 h-1 rounded-full bg-primary mt-0.5" />}
               </button>
             )
           })}

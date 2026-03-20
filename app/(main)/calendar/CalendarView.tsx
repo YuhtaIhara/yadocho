@@ -20,6 +20,7 @@ import { useRooms } from '@/lib/hooks/useRooms'
 import { useBlockedDates, useCreateBlockedDate, useDeleteBlockedDate } from '@/lib/hooks/useBlockedDates'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
+import { ChevronDown, Palmtree } from 'lucide-react'
 
 export default function CalendarView() {
   const router = useRouter()
@@ -108,40 +109,41 @@ export default function CalendarView() {
   return (
     <div>
       {/* ── Month navigation ── */}
-      <div className="flex items-center justify-between px-4 py-2 bg-background/90 backdrop-blur-lg border-b border-border/40">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setMonthPickerOpen(true)}
-            className="text-lg font-bold active:opacity-70 transition-opacity"
-          >
-            {format(currentMonth, 'yyyy年M月', { locale: ja })}
-          </button>
-          <button
-            type="button"
-            onClick={goToday}
-            className={cn(
-              'text-xs font-semibold px-2.5 py-1 rounded-full transition-all',
-              isCurrentMonth
-                ? 'text-text-3 bg-surface border border-border active:bg-primary-soft'
-                : 'text-primary bg-primary-soft active:brightness-95',
-            )}
-          >
-            今日
-          </button>
-        </div>
+      <div className="flex items-center justify-between px-4 py-2.5 bg-background/90 backdrop-blur-lg border-b border-border/40">
+        <button
+          type="button"
+          onClick={goToday}
+          className={cn(
+            'text-xs font-bold px-3 py-1.5 rounded-full transition-all',
+            isCurrentMonth
+              ? 'text-text-3 bg-surface border border-border active:bg-primary-soft'
+              : 'text-white bg-primary active:brightness-95',
+          )}
+        >
+          今日
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMonthPickerOpen(true)}
+          className="flex items-center gap-1 text-base font-bold active:opacity-70 transition-opacity"
+        >
+          {format(currentMonth, 'yyyy年M月', { locale: ja })}
+          <ChevronDown size={16} className="text-text-3" />
+        </button>
 
         <button
           type="button"
           onClick={() => setBlockMode(v => !v)}
           className={cn(
-            'text-xs font-semibold px-3 py-1.5 rounded-full transition-colors',
+            'flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors',
             blockMode
               ? 'bg-danger text-white'
               : 'bg-surface border border-border text-text-2 active:bg-primary-soft',
           )}
         >
-          {blockMode ? '休業モード ON' : '休業設定'}
+          <Palmtree size={14} />
+          {blockMode ? 'ON' : '休設定'}
         </button>
       </div>
 
