@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Building2, DoorOpen, Coins, ListPlus, ChevronRight } from 'lucide-react'
+import { Building2, DoorOpen, Coins, ListPlus, Receipt, ChevronRight } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 
@@ -10,6 +10,7 @@ const ITEMS = [
   { href: '/settings/rooms', icon: DoorOpen, label: '部屋管理' },
   { href: '/settings/pricing', icon: Coins, label: '料金設定' },
   { href: '/settings/presets', icon: ListPlus, label: '追加費目' },
+  { href: '/settings/tax', icon: Receipt, label: '宿泊税' },
 ] as const
 
 export default function SettingsView() {

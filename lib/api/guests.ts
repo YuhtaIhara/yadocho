@@ -87,3 +87,8 @@ export async function updateGuest(
   if (error) throw error
   return data
 }
+
+export async function deleteGuest(id: string): Promise<void> {
+  const { error } = await supabase.from('guests').delete().eq('id', id)
+  if (error) throw error
+}

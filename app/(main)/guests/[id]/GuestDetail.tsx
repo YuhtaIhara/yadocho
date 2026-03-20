@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Phone, Mail, MapPin, AlertTriangle, Pencil, Save, X } from 'lucide-react'
+import { Phone, Mail, MapPin, AlertTriangle, Pencil, Save, X, Trash2 } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Badge } from '@/components/ui/Badge'
 import { useGuest } from '@/lib/hooks/useGuests'
 import { useReservations } from '@/lib/hooks/useReservations'
-import { updateGuest } from '@/lib/api/guests'
+import { updateGuest, deleteGuest } from '@/lib/api/guests'
 import { roomLabel } from '@/lib/types'
 import { formatDateJP, nightCount, toDateStr } from '@/lib/utils/date'
 import { useQueryClient } from '@tanstack/react-query'
@@ -61,6 +61,16 @@ export default function GuestDetail() {
     })
     qc.invalidateQueries({ queryKey: ['guest', id] })
     setEditing(false)
+  }
+
+  async function handleDelete() {
+    const msg = history.length > 0
+      ? `${guest!.name} を削除しますか？関連する予約 ${history.length} 件も削除されます。`
+      : `${guest!.name} を削除しますか？`
+    if (!confirm(msg)) return
+    await deleteGuest(id)
+    qc.invalidateQueries({ queryKey: ['guests'] })
+    router.push('/guests')
   }
 
   if (isLoading || !guest) {
@@ -186,6 +196,10 @@ export default function GuestDetail() {
             </div>
           )}
         </section>
+
+        <Button variant="danger" size="lg" className="w-full" onClick={handleDelete}>
+          <Trash2 size={16} className="mr-1" />ゲストを削除
+        </Button>
       </div>
     </div>
   )
