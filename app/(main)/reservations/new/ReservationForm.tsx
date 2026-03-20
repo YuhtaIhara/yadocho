@@ -576,15 +576,16 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
             </div>
           )}
 
-          {/* New guest section */}
-          {!selectedGuest && showNewGuest && (
+          {/* Guest info form — new or existing */}
+          {showNewGuest && (
             <div className="mt-3 space-y-3 border border-border rounded-xl p-4">
-              <p className="text-xs text-text-2">この電話番号は未登録です。ゲスト情報を入力してください。</p>
+              {!selectedGuest && (
+                <p className="text-xs text-text-2">この電話番号は未登録です。ゲスト情報を入力してください。</p>
+              )}
               <Input
                 label="名前"
                 placeholder="山田 太郎"
                 {...register('guest_name')}
-                error={!selectedGuest && errors.guest_name?.message}
               />
               <Input
                 label="住所"
