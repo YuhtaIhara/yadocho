@@ -25,9 +25,9 @@ export default function MenuView() {
     <div>
       <PageHeader title="メニュー" showBack={false} />
 
-      <div className="px-4 py-4 space-y-4 pb-32">
+      <div className="px-4 py-4 flex flex-col gap-4 pb-32">
         {MENU_ITEMS.map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href}>
+          <Link key={href} href={href} className="block">
             <Card className="flex items-center justify-between py-4 active:scale-[0.98] transition-transform">
               <div className="flex items-center gap-3">
                 <Icon size={18} className="text-primary" />

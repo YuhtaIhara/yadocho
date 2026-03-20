@@ -289,7 +289,7 @@ function MealSection({
         <h2 className="text-sm font-bold text-text-2">{title}</h2>
         <Badge>{count}名</Badge>
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="flex flex-col gap-4">{children}</div>
     </div>
   )
 }

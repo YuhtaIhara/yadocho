@@ -41,7 +41,7 @@ export default function GuestList() {
             {search ? '該当するゲストが見つかりません' : 'ゲストが登録されていません'}
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {guests.map(g => (
               <Card
                 key={g.id}

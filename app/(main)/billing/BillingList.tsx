@@ -132,7 +132,7 @@ export default function BillingList() {
           {unsettled.length === 0 && !isLoading && (
             <p className="text-sm text-text-3 text-center py-6">未精算の予約はありません</p>
           )}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {unsettled.map(r => {
               const nights = nightCount(r.checkin, r.checkout)
               const amount = (r.adult_price * r.adults + r.child_price * r.children) * nights
@@ -175,7 +175,7 @@ export default function BillingList() {
               <span className="w-2 h-2 rounded-full bg-primary/60" />
               精算済み（{settled.length}件 · {formatYen(settledTotal)}）
             </h2>
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               {settled.map(r => {
                 const nights = nightCount(r.checkin, r.checkout)
                 const amount = (r.adult_price * r.adults + r.child_price * r.children) * nights
