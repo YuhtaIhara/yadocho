@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { format, isSameDay, parseISO } from 'date-fns'
+import { useState } from 'react'
+import { format, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, LogIn, LogOut, Ban, Check, X, CalendarPlus } from 'lucide-react'
+import { LogIn, LogOut, Ban, Check, X, CalendarPlus } from 'lucide-react'
+import DatePicker from '@/components/DatePicker'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils/cn'
@@ -37,7 +38,7 @@ export default function DayPanel({
 }: Props) {
   const dateStr = format(date, 'yyyy-MM-dd')
   const isToday = isSameDay(date, new Date())
-  const dateInputRef = useRef<HTMLInputElement>(null)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
 
   const checkIns = reservations.filter(r => r.checkin === dateStr)
   const checkOuts = reservations.filter(r => r.checkout === dateStr)
@@ -46,12 +47,6 @@ export default function DayPanel({
   )
 
   const empty = checkIns.length === 0 && checkOuts.length === 0 && staying.length === 0
-
-  function handleDatePick(e: React.ChangeEvent<HTMLInputElement>) {
-    const val = e.target.value
-    if (!val) return
-    onSelectDate?.(parseISO(val))
-  }
 
   return (
     <div className="px-4 pt-3 pb-4">
@@ -65,26 +60,16 @@ export default function DayPanel({
           <span className="text-lg text-text-2">◀</span>
         </button>
 
-        <div className="flex items-center gap-2 relative">
-          <button
-            type="button"
-            onClick={() => dateInputRef.current?.showPicker()}
-            className="flex items-center gap-2"
-          >
-            <span className="text-base font-bold">
-              {format(date, 'yyyy年M月d日（E）', { locale: ja })}
-            </span>
-            {isToday && <Badge>今日</Badge>}
-          </button>
-          <input
-            ref={dateInputRef}
-            type="date"
-            value={dateStr}
-            onChange={handleDatePick}
-            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-            tabIndex={-1}
-          />
-        </div>
+        <button
+          type="button"
+          onClick={() => setDatePickerOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <span className="text-base font-bold">
+            {format(date, 'yyyy年M月d日（E）', { locale: ja })}
+          </span>
+          {isToday && <Badge>今日</Badge>}
+        </button>
 
         <button
           type="button"
@@ -168,6 +153,13 @@ export default function DayPanel({
           </Link>
         </div>
       )}
+
+      <DatePicker
+        open={datePickerOpen}
+        onClose={() => setDatePickerOpen(false)}
+        onSelect={(d) => { onSelectDate?.(d); setDatePickerOpen(false) }}
+        selectedDate={date}
+      />
     </div>
   )
 }
