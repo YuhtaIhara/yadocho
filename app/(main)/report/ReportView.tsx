@@ -21,6 +21,8 @@ import { usePricing } from '@/lib/hooks/usePricing'
 import { calcMealCost } from '@/lib/utils/pricing'
 import { toDateStr } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
+import Link from 'next/link'
+import { FileText } from 'lucide-react'
 import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
 import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { supabase } from '@/lib/supabase'
@@ -219,6 +221,17 @@ export default function ReportView() {
             </div>
           </div>
         </Card>
+
+        {/* Tax report link */}
+        <Link href="/report/tax">
+          <Card className="!bg-primary/[0.04] border border-primary/10 flex flex-row items-center gap-3">
+            <FileText size={20} className="text-primary shrink-0" />
+            <div>
+              <p className="text-sm font-bold">税申告書を出力</p>
+              <p className="text-xs text-text-3">月計表・納入申告書をPDFで生成</p>
+            </div>
+          </Card>
+        </Link>
 
         {/* Print button */}
         <Button size="lg" className="w-full print:hidden" onClick={() => window.print()}>
