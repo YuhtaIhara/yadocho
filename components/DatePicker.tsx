@@ -72,13 +72,22 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
           <span className="text-base font-bold">
             {format(viewMonth, 'yyyy年M月', { locale: ja })}
           </span>
-          <button
-            type="button"
-            onClick={() => setViewMonth(m => addMonths(m, 1))}
-            className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
-          >
-            <span className="text-text-2">▶</span>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setViewMonth(m => addMonths(m, 1))}
+              className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+            >
+              <span className="text-text-2">▶</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+            >
+              <span className="text-text-2">✕</span>
+            </button>
+          </div>
         </div>
 
         {/* Weekday header */}
