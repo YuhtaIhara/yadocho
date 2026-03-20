@@ -2,7 +2,7 @@ import type { NextConfig } from 'next'
 
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline';
+  script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob:;
   font-src 'self' fonts.gstatic.com cdn.jsdelivr.net;
