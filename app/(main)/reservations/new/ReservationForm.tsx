@@ -21,8 +21,8 @@ import { createMealDays } from '@/lib/api/meal-days'
 import { upsertMealDays } from '@/lib/api/meals'
 import { nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
-import { calcLodgingTax } from '@/lib/utils/tax'
-import { useTaxPeriods } from '@/lib/hooks/useTaxPeriods'
+import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
+import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { cn } from '@/lib/utils/cn'
 import type { Guest, MealDay } from '@/lib/types'
 
@@ -154,7 +154,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
 
   const { data: rooms = [] } = useRooms()
   const { data: pricing } = usePricing()
-  const { data: taxPeriods = [] } = useTaxPeriods()
+  const { taxRules, taxRuleRates } = useTaxData()
   const createRes = useCreateReservation()
   const updateRes = useUpdateReservation()
 
@@ -279,13 +279,17 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       (lunch ? lA * lp + lC * clp : 0)
     const meal = mealPerNight * nights
 
-    const tax = calcLodgingTax(adultPrice, adults, nights, checkin, taxExempt, taxPeriods)
+    const taxResults = calcAllTaxes(
+      adultPrice, adults, nights, checkin,
+      taxExempt, false, taxRules, taxRuleRates,
+    )
+    const taxTotal = sumTaxResults(taxResults)
 
-    return { stay, meal, tax: tax.taxAmount, total: stay + meal + tax.taxAmount, roomCount }
+    return { stay, meal, taxResults, taxTotal, total: stay + meal + taxTotal, roomCount }
   }, [
     nights, adultPrice, adults, childPrice, children,
     dinner, breakfast, lunch, dinnerCount, breakfastCount, lunchCount,
-    pricing, checkin, roomCount, taxExempt, taxPeriods,
+    pricing, checkin, roomCount, taxExempt, taxRules, taxRuleRates,
   ])
 
   async function handleGuestSearch(input: string) {
@@ -823,12 +827,12 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
                   <span className="font-medium">{formatYen(estimate.meal)}</span>
                 </div>
               )}
-              {estimate.tax > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-text-2">宿泊税</span>
-                  <span className="font-medium">{formatYen(estimate.tax)}</span>
+              {estimate.taxResults.filter(t => t.taxable).map(t => (
+                <div key={t.taxRuleId} className="flex justify-between">
+                  <span className="text-text-2">{t.taxName}({t.displayRate})</span>
+                  <span className="font-medium">{formatYen(t.taxAmount)}</span>
                 </div>
-              )}
+              ))}
               <div className="flex justify-between pt-2 border-t border-primary/10">
                 <span className="font-bold">概算合計</span>
                 <span className="font-bold text-lg">{formatYen(estimate.total)}</span>

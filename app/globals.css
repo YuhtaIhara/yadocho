@@ -4,9 +4,9 @@
   --color-background: #FDFBF9;
   --color-foreground: #3D3935;
   --color-surface: #FFFFFF;
-  --color-primary: #E2725B;
+  --color-primary: #BF5040;
   --color-primary-foreground: #FFFFFF;
-  --color-primary-soft: rgba(226, 114, 91, 0.10);
+  --color-primary-soft: rgba(191, 80, 64, 0.10);
   --color-accent: #4A9B7F;
   --color-accent-foreground: #FFFFFF;
   --color-warning: #D4944A;
@@ -14,10 +14,10 @@
   --color-danger-soft: rgba(217, 48, 37, 0.06);
   --color-border: #E8E2DA;
   --color-input: #E8E2DA;
-  --color-ring: rgba(226, 114, 91, 0.3);
+  --color-ring: rgba(191, 80, 64, 0.3);
   --color-text-1: #3D3935;
   --color-text-2: #7A7470;
-  --color-text-3: #A8A29E;
+  --color-text-3: #78716C;
   --font-sans: var(--font-sans);
   --radius-sm: 8px;
   --radius-md: 12px;

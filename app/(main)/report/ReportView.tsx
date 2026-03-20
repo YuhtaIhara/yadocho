@@ -21,8 +21,8 @@ import { usePricing } from '@/lib/hooks/usePricing'
 import { calcMealCost } from '@/lib/utils/pricing'
 import { toDateStr } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
-import { calcLodgingTax } from '@/lib/utils/tax'
-import { useTaxPeriods } from '@/lib/hooks/useTaxPeriods'
+import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
+import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { supabase } from '@/lib/supabase'
 import type { MealDay, InvoiceItem } from '@/lib/types'
 
@@ -34,7 +34,7 @@ export default function ReportView() {
 
   const { data: reservations = [] } = useReservations(from, to)
   const { data: pricing } = usePricing()
-  const { data: taxPeriods = [] } = useTaxPeriods()
+  const { taxRules, taxRuleRates } = useTaxData()
 
   const reservationIds = useMemo(
     () => reservations.map(r => r.id),
@@ -87,8 +87,11 @@ export default function ReportView() {
       totalNights += nights
       stayRevenue += (res.adult_price * res.adults + res.child_price * res.children) * nights
 
-      const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin, res.tax_exempt, taxPeriods)
-      taxCollected += tax.taxAmount
+      const taxResults = calcAllTaxes(
+        res.adult_price, res.adults, nights, res.checkin,
+        res.tax_exempt, false, taxRules, taxRuleRates,
+      )
+      taxCollected += sumTaxResults(taxResults)
     }
 
     // Meal revenue from meal_days + pricing
@@ -116,7 +119,7 @@ export default function ReportView() {
       taxCollected,
       grandTotal,
     }
-  }, [reservations, allMealDays, allInvoiceItems, pricing])
+  }, [reservations, allMealDays, allInvoiceItems, pricing, taxRules, taxRuleRates])
 
   function goMonth(dir: 1 | -1) {
     setMonth(prev => (dir === 1 ? addMonths(prev, 1) : subMonths(prev, 1)))

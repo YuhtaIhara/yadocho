@@ -33,7 +33,7 @@ export default function BottomNav() {
           if (isCenter) {
             return (
               <Link key={href} href={href} className="flex flex-col items-center -mt-5 relative">
-                <span className="flex items-center justify-center w-[56px] h-[56px] rounded-full bg-primary active:scale-95 transition-transform" style={{ boxShadow: '0 4px 12px rgba(226,114,91,0.4)' }}>
+                <span className="flex items-center justify-center w-[56px] h-[56px] rounded-full bg-primary active:scale-95 transition-transform" style={{ boxShadow: '0 4px 12px rgba(191,80,64,0.4)' }}>
                   <Icon size={26} strokeWidth={2.2} className="text-primary-foreground" />
                 </span>
                 {label && <span className="text-[10px] font-medium text-primary mt-0.5">{label}</span>}
@@ -42,7 +42,7 @@ export default function BottomNav() {
           }
 
           return (
-            <Link key={href} href={href} className="flex flex-col items-center gap-0.5 min-w-[56px] py-1 relative">
+            <Link key={href} href={href} className="flex flex-col items-center gap-0.5 min-w-[56px] min-h-[44px] py-1 relative justify-center">
               {active && (
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 w-11 h-8 rounded-full bg-primary-soft transition-all duration-300" />
               )}

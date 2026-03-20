@@ -50,7 +50,7 @@ export default function MonthPicker({ open, onClose, onSelect, currentMonth }: P
           <button
             type="button"
             onClick={() => setYear(y => y - 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
           >
             <span className="text-text-2">◀</span>
           </button>
@@ -59,14 +59,14 @@ export default function MonthPicker({ open, onClose, onSelect, currentMonth }: P
             <button
               type="button"
               onClick={() => setYear(y => y + 1)}
-              className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
             >
               <span className="text-text-2">▶</span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
             >
               <span className="text-text-2">✕</span>
             </button>
@@ -85,7 +85,7 @@ export default function MonthPicker({ open, onClose, onSelect, currentMonth }: P
                 type="button"
                 onClick={() => handleSelect(i)}
                 className={cn(
-                  'py-2.5 rounded-xl text-sm font-semibold transition-colors',
+                  'py-2.5 min-h-[44px] rounded-xl text-sm font-semibold transition-colors flex items-center justify-center',
                   isSelected
                     ? 'bg-primary text-primary-foreground'
                     : isCurrent

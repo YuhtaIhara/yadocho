@@ -55,7 +55,7 @@ export default function DayPanel({
         <button
           type="button"
           onClick={onPrevDay}
-          className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
         >
           <span className="text-lg text-text-2">◀</span>
         </button>
@@ -63,7 +63,7 @@ export default function DayPanel({
         <button
           type="button"
           onClick={() => setDatePickerOpen(true)}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 min-h-[44px]"
         >
           <span className="text-base font-bold">
             {format(date, 'yyyy年M月d日（E）', { locale: ja })}
@@ -74,7 +74,7 @@ export default function DayPanel({
         <button
           type="button"
           onClick={onNextDay}
-          className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
         >
           <span className="text-lg text-text-2">▶</span>
         </button>
@@ -192,7 +192,7 @@ function ResCard({ reservation: r, onClick }: { reservation: Reservation; onClic
 
   return (
     <Card
-      className="flex items-center justify-between py-3 active:scale-[0.98] transition-transform cursor-pointer"
+      className="flex items-center justify-between py-3 min-h-[44px] active:scale-[0.98] transition-transform cursor-pointer"
       onClick={onClick}
     >
       <div className="min-w-0 flex-1">
@@ -249,7 +249,7 @@ function DailyReasonEditor({ blockedDates }: { blockedDates: BlockedDate[] }) {
               value={reason}
               onChange={e => setReason(e.target.value)}
               placeholder="定休日、改装工事 など"
-              className="flex-1 text-sm px-2.5 py-1.5 rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1 text-sm px-2.5 py-2 min-h-[44px] rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-ring"
               autoFocus
               onKeyDown={e => {
                 if (e.key === 'Enter') handleSave()
@@ -259,14 +259,14 @@ function DailyReasonEditor({ blockedDates }: { blockedDates: BlockedDate[] }) {
             <button
               type="button"
               onClick={handleSave}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white active:brightness-90"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-primary text-white active:brightness-90"
             >
               <Check size={14} />
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-border active:bg-primary-soft"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-surface border border-border active:bg-primary-soft"
             >
               <X size={14} className="text-text-2" />
             </button>
@@ -321,7 +321,7 @@ function BlockedCard({ block, rooms }: { block: BlockedDate; rooms: Room[] }) {
             value={reason}
             onChange={e => setReason(e.target.value)}
             placeholder="理由（任意）"
-            className="flex-1 text-sm px-2.5 py-1.5 rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-ring"
+            className="flex-1 text-sm px-2.5 py-2 min-h-[44px] rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-ring"
             autoFocus
             onKeyDown={e => {
               if (e.key === 'Enter') handleSave()
@@ -339,7 +339,7 @@ function BlockedCard({ block, rooms }: { block: BlockedDate; rooms: Room[] }) {
           <button
             type="button"
             onClick={handleCancel}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-border active:bg-primary-soft"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-surface border border-border active:bg-primary-soft"
           >
             <X size={14} className="text-text-2" />
           </button>

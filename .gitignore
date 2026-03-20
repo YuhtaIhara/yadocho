@@ -39,4 +39,12 @@ next-env.d.ts
 # test
 test-results/
 
+# dev notes
+TEST_REPORT.md
+SITE_AUDIT.md
+TAX_FORM_LAYOUT.md
+GUIDE_DRAFT.md
+TEST_PLAN.md
+DESIGN_DIFF.md
+
 .vercel

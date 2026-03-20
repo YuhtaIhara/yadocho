@@ -20,7 +20,7 @@ const BAR_Y = 6
 const BAR_H = ROW_H - BAR_Y * 2
 
 const BAR_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  scheduled: { bg: '#E2725B', text: '#FFFFFF', border: '#D0614A' },
+  scheduled: { bg: '#BF5040', text: '#FFFFFF', border: '#A8432F' },
   settled:   { bg: '#4A9B7F', text: '#FFFFFF', border: '#3D8A6E' },
 }
 
@@ -144,7 +144,7 @@ export default function CalendarGrid({
               >
                 <span
                   className={cn(
-                    'text-[11px] leading-none w-6 h-6 flex items-center justify-center rounded-full',
+                    'text-[14px] leading-none w-7 h-7 flex items-center justify-center rounded-full',
                     today
                       ? 'font-bold text-white bg-primary'
                       : selected
@@ -160,7 +160,7 @@ export default function CalendarGrid({
                 </span>
                 <span
                   className={cn(
-                    'text-[9px] leading-none mt-0.5',
+                    'text-[12px] leading-none mt-0.5',
                     today ? 'font-bold text-primary' : dow === 0 ? 'text-danger/70' : dow === 6 ? 'text-blue-400' : 'text-text-3',
                   )}
                 >
@@ -241,7 +241,7 @@ export default function CalendarGrid({
                     e.stopPropagation()
                     onSelectReservation?.(res.id)
                   }}
-                  className="absolute flex items-center gap-0.5 px-1.5 text-[11px] font-semibold truncate active:brightness-90 transition-all"
+                  className="absolute flex items-center gap-0.5 px-1.5 text-[12px] font-semibold truncate active:brightness-90 transition-all"
                   style={{
                     left: pos.left,
                     width: pos.width,

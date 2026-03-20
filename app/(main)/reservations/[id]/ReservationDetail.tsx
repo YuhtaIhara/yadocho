@@ -12,11 +12,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useReservation, useUpdateReservation, useDeleteReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
-import { useTaxPeriods } from '@/lib/hooks/useTaxPeriods'
+import { useTaxData } from '@/lib/hooks/useTaxRules'
 import MealEditor from '@/components/MealEditor'
 import { formatDateJP, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
-import { calcLodgingTax } from '@/lib/utils/tax'
+import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
 import { calcMealCost } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils/cn'
 import { roomLabel, STATUS_LABELS, type ReservationStatus } from '@/lib/types'
@@ -34,7 +34,7 @@ export default function ReservationDetail() {
   const { data: res, isLoading } = useReservation(id)
   const { data: mealDays = [] } = useMealDays(id)
   const { data: pricing } = usePricing()
-  const { data: taxPeriods = [] } = useTaxPeriods()
+  const { taxRules, taxRuleRates } = useTaxData()
   const queryClient = useQueryClient()
   const updateRes = useUpdateReservation()
   const deleteRes = useDeleteReservation()
@@ -62,8 +62,12 @@ export default function ReservationDetail() {
   const nights = nightCount(res.checkin, res.checkout)
   const stayCost = (res.adult_price * res.adults + res.child_price * res.children) * nights
   const mealCost = calcMealCost(mealDays, pricing)
-  const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin, res.tax_exempt, taxPeriods)
-  const total = stayCost + mealCost + tax.taxAmount
+  const taxResults = calcAllTaxes(
+    res.adult_price, res.adults, nights, res.checkin,
+    res.tax_exempt, false, taxRules, taxRuleRates,
+  )
+  const taxTotal = sumTaxResults(taxResults)
+  const total = stayCost + mealCost + taxTotal
 
   function handleStatusChange(status: ReservationStatus) {
     setShowStatusMenu(false)
@@ -283,17 +287,17 @@ export default function ReservationDetail() {
                 </>
               )
             })()}
-            {tax.taxable && (
-              <div className="flex justify-between">
-                <span className="text-text-2">宿泊税({tax.ratePercent}%)</span>
-                <span className="font-medium">{formatYen(tax.taxAmount)}</span>
+            {taxResults.filter(t => t.taxable).map(t => (
+              <div key={t.taxRuleId} className="flex justify-between">
+                <span className="text-text-2">{t.taxName}({t.displayRate})</span>
+                <span className="font-medium">{formatYen(t.taxAmount)}</span>
               </div>
-            )}
-            {tax.exemptReason && (
-              <p className="text-text-3 text-xs">
-                宿泊税: {tax.exemptReason}{res.tax_exempt_reason ? `（${res.tax_exempt_reason}）` : ''}
+            ))}
+            {taxResults.filter(t => t.exemptReason).map(t => (
+              <p key={`ex-${t.taxRuleId}`} className="text-text-3 text-xs">
+                {t.taxName}: {t.exemptReason}{res.tax_exempt_reason ? `（${res.tax_exempt_reason}）` : ''}
               </p>
-            )}
+            ))}
             <div className="flex justify-between pt-2 border-t border-border/40">
               <span className="font-bold">合計</span>
               <span className="font-bold text-lg">{formatYen(total)}</span>

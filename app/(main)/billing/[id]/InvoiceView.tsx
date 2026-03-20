@@ -8,16 +8,18 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import Stepper from '@/components/ui/Stepper'
+import Modal from '@/components/ui/Modal'
 import { useReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
 import { useInvoicePresets } from '@/lib/hooks/useInvoicePresets'
 import { useInn } from '@/lib/hooks/useInn'
 import { upsertInvoiceItems, lockInvoice } from '@/lib/api/invoices'
+import { verifyTax } from '@/lib/api/verifyTax'
 import { formatDateFull, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
-import { calcLodgingTax } from '@/lib/utils/tax'
-import { useTaxPeriods } from '@/lib/hooks/useTaxPeriods'
+import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
+import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { roomLabel } from '@/lib/types'
 
 type ExtraItem = { name: string; unitPrice: number; quantity: number }
@@ -27,7 +29,7 @@ export default function InvoiceView() {
   const { data: res } = useReservation(id)
   const { data: mealDays = [] } = useMealDays(id)
   const { data: pricing } = usePricing()
-  const { data: taxPeriods = [] } = useTaxPeriods()
+  const { taxRules, taxRuleRates } = useTaxData()
   const updateRes = useUpdateReservation()
   const { data: presets = [] } = useInvoicePresets()
   const { data: inn } = useInn()
@@ -35,6 +37,9 @@ export default function InvoiceView() {
   const [newName, setNewName] = useState('')
   const [newPrice, setNewPrice] = useState('')
   const [settling, setSettling] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [settleSuccess, setSettleSuccess] = useState(false)
+  const [settleError, setSettleError] = useState('')
 
   const computed = useMemo(() => {
     if (!res) return null
@@ -84,17 +89,22 @@ export default function InvoiceView() {
 
     const subtotal = items.reduce((s, i) => s + i.amount, 0)
     const extrasTotal = extras.reduce((s, e) => s + e.unitPrice * e.quantity, 0)
-    const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin, res.tax_exempt, taxPeriods)
+    const taxResults = calcAllTaxes(
+      res.adult_price, res.adults, nights, res.checkin,
+      res.tax_exempt, false, taxRules, taxRuleRates,
+    )
+    const taxTotal = sumTaxResults(taxResults)
 
     return {
       items,
       subtotal,
       extrasTotal,
-      tax,
-      total: subtotal + extrasTotal + tax.taxAmount,
+      taxResults,
+      taxTotal,
+      total: subtotal + extrasTotal + taxTotal,
       nights,
     }
-  }, [res, mealDays, pricing, extras, taxPeriods])
+  }, [res, mealDays, pricing, extras, taxRules, taxRuleRates])
 
   function addExtra() {
     if (!newName || !newPrice) return
@@ -106,7 +116,19 @@ export default function InvoiceView() {
   async function handleSettle() {
     if (!res || !computed) return
     setSettling(true)
+    setSettleError('')
     try {
+      // サーバーサイド税額検証: 精算前にクライアントの税額が正しいか検証
+      const verification = await verifyTax(res.id, computed.taxTotal)
+      if (!verification.valid) {
+        const diff = verification.discrepancy ?? 0
+        setSettleError(
+          `税額の検証に失敗しました。サーバー計算: ${formatYen(verification.serverTaxTotal)}, ` +
+          `差額: ${formatYen(Math.abs(diff))}。ページを再読み込みしてください。`,
+        )
+        return
+      }
+
       type ItemCategory = 'stay' | 'meal' | 'tax' | 'extra'
       const allItems: {
         reservation_id: string
@@ -136,26 +158,32 @@ export default function InvoiceView() {
           locked: false,
         })),
       ]
-      if (computed.tax.taxable) {
-        allItems.push({
-          reservation_id: res.id,
-          category: 'tax',
-          name: `宿泊税(${computed.tax.ratePercent}%)`,
-          unit_price: computed.tax.taxAmount,
-          quantity: 1,
-          sort_order: allItems.length,
-          locked: false,
-        })
+
+      // サーバーサイドで検証済みの税額を使用して invoice_items を構成
+      for (const taxResult of verification.serverTaxResults) {
+        if (taxResult.taxable && taxResult.taxAmount > 0) {
+          allItems.push({
+            reservation_id: res.id,
+            category: 'tax',
+            name: `${taxResult.taxName}(${taxResult.displayRate})`,
+            unit_price: taxResult.taxAmount,
+            quantity: 1,
+            sort_order: allItems.length,
+            locked: false,
+          })
+        }
       }
+
       await upsertInvoiceItems(res.id, allItems)
       await lockInvoice(res.id)
       if (res.status !== 'settled') {
         updateRes.mutate({ id: res.id, status: 'settled' })
       }
-      alert('精算が完了しました')
+      setConfirmOpen(false)
+      setSettleSuccess(true)
     } catch (err) {
       console.error(err)
-      alert('精算に失敗しました')
+      setSettleError('精算に失敗しました。もう一度お試しください。')
     } finally {
       setSettling(false)
     }
@@ -309,12 +337,12 @@ export default function InvoiceView() {
             <span className="text-text-2">小計</span>
             <span>{formatYen(computed.subtotal + computed.extrasTotal)}</span>
           </div>
-          {computed.tax.taxable && (
-            <div className="flex justify-between">
-              <span className="text-text-2">宿泊税({computed.tax.ratePercent}%)</span>
-              <span>{formatYen(computed.tax.taxAmount)}</span>
+          {computed.taxResults.filter(t => t.taxable).map(t => (
+            <div key={t.taxRuleId} className="flex justify-between">
+              <span className="text-text-2">{t.taxName}({t.displayRate})</span>
+              <span>{formatYen(t.taxAmount)}</span>
             </div>
-          )}
+          ))}
           <div className="flex justify-between pt-2 border-t border-border font-bold text-base">
             <span>合計</span>
             <span>{formatYen(computed.total)}</span>
@@ -324,15 +352,57 @@ export default function InvoiceView() {
 
       {/* Settle button — no-print */}
       <div className="no-print px-4 pb-32">
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={handleSettle}
-          disabled={settling}
-        >
-          {settling ? '精算中…' : '精算する'}
-        </Button>
+        {settleSuccess ? (
+          <div className="text-center py-6 space-y-2">
+            <p className="text-lg font-bold text-accent">精算が完了しました</p>
+            <p className="text-sm text-text-2">{formatYen(computed.total)}</p>
+          </div>
+        ) : (
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={() => setConfirmOpen(true)}
+            disabled={settling}
+          >
+            精算する
+          </Button>
+        )}
       </div>
+
+      {/* Confirmation modal */}
+      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="精算の確認">
+        <div className="space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-text-2 mb-1">ご請求金額（税込）</p>
+            <p className="text-2xl font-bold">{formatYen(computed.total)}</p>
+          </div>
+          <p className="text-sm text-text-2 text-center">
+            この金額で精算します。よろしいですか？
+          </p>
+          {settleError && (
+            <p className="text-sm text-danger text-center">{settleError}</p>
+          )}
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              size="lg"
+              className="flex-1"
+              onClick={() => { setConfirmOpen(false); setSettleError('') }}
+              disabled={settling}
+            >
+              キャンセル
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1"
+              onClick={handleSettle}
+              disabled={settling}
+            >
+              {settling ? '精算中…' : '精算する'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

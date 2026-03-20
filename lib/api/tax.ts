@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { getInnId } from '@/lib/auth'
-import type { TaxPeriod } from '@/lib/types'
+import type { TaxPeriod, TaxRule, TaxRuleRate } from '@/lib/types'
 
 export async function fetchTaxPeriods(): Promise<TaxPeriod[]> {
   const innId = await getInnId()
@@ -53,5 +53,50 @@ export async function updateTaxPeriod(
 
 export async function deleteTaxPeriod(id: string): Promise<void> {
   const { error } = await supabase.from('tax_periods').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ── New tax system API ──
+
+export async function fetchTaxRules(): Promise<TaxRule[]> {
+  const innId = await getInnId()
+  if (!innId) return []
+
+  const { data, error } = await supabase
+    .from('tax_rules')
+    .select('*')
+    .eq('inn_id', innId)
+    .order('sort_order', { ascending: true })
+
+  if (error) throw error
+  return data ?? []
+}
+
+export async function fetchTaxRuleRates(ruleIds: string[]): Promise<TaxRuleRate[]> {
+  if (ruleIds.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('tax_rule_rates')
+    .select('*')
+    .in('tax_rule_id', ruleIds)
+    .order('bracket_min', { ascending: true })
+
+  if (error) throw error
+  return data ?? []
+}
+
+export type MunicipalityCode =
+  | 'nozawa' | 'hakuba' | 'karuizawa' | 'matsumoto'
+  | 'achi' | 'nagano_other' | 'tokyo' | 'kutchan'
+
+export async function setupMunicipalityTaxRules(municipality: MunicipalityCode): Promise<void> {
+  const innId = await getInnId()
+  if (!innId) throw new Error('ログインが必要です')
+
+  const { error } = await supabase.rpc('setup_municipality_tax_rules', {
+    p_inn_id: innId,
+    p_municipality: municipality,
+  })
+
   if (error) throw error
 }

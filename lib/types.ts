@@ -138,6 +138,7 @@ export type Kondate = {
   updated_at: string
 }
 
+/** @deprecated Use TaxRule + TaxRuleRate instead */
 export type TaxPeriod = {
   id: string
   inn_id: string
@@ -147,4 +148,44 @@ export type TaxPeriod = {
   effective_to: string | null
   notes: string | null
   created_at: string
+}
+
+// ── New tax system types ──
+
+export type CalcMethod = 'flat' | 'tiered' | 'percentage' | 'inclusive_percentage'
+
+export type TaxRule = {
+  id: string
+  inn_id: string
+  tax_name: string
+  tax_type: 'prefecture' | 'municipal'
+  calc_method: CalcMethod
+  effective_from: string
+  effective_to: string | null
+  threshold: number
+  exempt_school_trips: boolean
+  rounding_unit: number          // 端数処理の丸め単位（1=1円未満切捨, 100=100円未満切捨）
+  inclusive_pref_tax_rule_id: string | null  // 県税込みpercentage方式: 県税ルールのIDを指定
+  notes: string | null
+  sort_order: number
+  created_at: string
+}
+
+export type TaxRuleRate = {
+  id: string
+  tax_rule_id: string
+  bracket_min: number
+  bracket_max: number | null
+  rate_percent: number | null
+  flat_amount: number | null
+}
+
+export type TaxResult = {
+  taxRuleId: string
+  taxName: string
+  taxType: 'prefecture' | 'municipal'
+  taxable: boolean
+  taxAmount: number
+  displayRate: string
+  exemptReason: string | null
 }

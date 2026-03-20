@@ -66,7 +66,7 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
           <button
             type="button"
             onClick={() => setViewMonth(m => subMonths(m, 1))}
-            className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
           >
             <span className="text-text-2">◀</span>
           </button>
@@ -77,14 +77,14 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
             <button
               type="button"
               onClick={() => setViewMonth(m => addMonths(m, 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
             >
               <span className="text-text-2">▶</span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
             >
               <span className="text-text-2">✕</span>
             </button>
@@ -120,7 +120,7 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
                 onClick={() => handleSelect(d)}
                 disabled={!inMonth}
                 className={cn(
-                  'w-10 h-10 mx-auto flex items-center justify-center rounded-full text-sm transition-colors',
+                  'w-11 h-11 min-w-[44px] min-h-[44px] mx-auto flex items-center justify-center rounded-full text-sm transition-colors',
                   !inMonth && 'invisible',
                   isSelected
                     ? 'bg-primary text-white font-bold'
