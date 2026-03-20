@@ -222,7 +222,7 @@ export default function CalendarGrid({
                   }}
                 >
                   {!blocked && !occupied && (
-                    <span className="flex flex-col items-center justify-center w-full h-full text-[8px] text-text-3/40 select-none leading-tight">
+                    <span className="flex flex-col items-center justify-center w-full h-full text-[10px] text-text-3/50 select-none leading-tight">
                       <span>+</span>
                       <span>予約作成</span>
                     </span>
