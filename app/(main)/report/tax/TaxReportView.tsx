@@ -8,35 +8,71 @@ import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { getSupabase } from '@/lib/supabase'
+import { buildMonthlyTaxData, type MonthlyTaxSummary } from '@/lib/utils/tax-report'
+import type { Reservation } from '@/lib/types'
 
 type ReportType = 'village-monthly' | 'village-form' | 'pref-monthly' | 'pref-form'
 
-const REPORT_TYPES: { type: ReportType; label: string; desc: string; group: string }[] = [
+const REPORT_TYPES: { type: ReportType; label: string; desc: string }[] = [
   {
     type: 'village-monthly',
     label: '村 月計表',
     desc: '日別の宿泊者数・課税標準額・税額',
-    group: '野沢温泉村',
   },
   {
     type: 'village-form',
     label: '村 納入申告書（様式第2号）',
     desc: '3ヶ月分の申告書。村に提出',
-    group: '野沢温泉村',
   },
   {
     type: 'pref-monthly',
     label: '県 月計表',
     desc: '日別の課税対象・対象外の宿泊数',
-    group: '長野県',
   },
   {
     type: 'pref-form',
     label: '県 納入申告書（様式第2号）',
     desc: '3ヶ月分の申告書。県税事務所に提出',
-    group: '長野県',
   },
 ]
+
+async function fetchReservationsForMonth(year: number, month: number) {
+  const supabase = getSupabase()
+  const from = `${year}-${String(month).padStart(2, '0')}-01`
+  const lastDay = new Date(year, month, 0).getDate()
+  const to = `${year}-${String(month).padStart(2, '0')}-${lastDay}`
+
+  const { data } = await supabase
+    .from('reservations')
+    .select('*')
+    .gte('checkin', from)
+    .lte('checkin', to)
+    .neq('status', 'cancelled')
+
+  return (data ?? []) as Reservation[]
+}
+
+async function fetchInnInfo() {
+  const supabase = getSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('inn_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.inn_id) return null
+
+  const { data: inn } = await supabase
+    .from('inns')
+    .select('name, representative, address, phone')
+    .eq('id', profile.inn_id)
+    .single()
+
+  return inn
+}
 
 export default function TaxReportView() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
@@ -46,39 +82,82 @@ export default function TaxReportView() {
   const year = month.getFullYear()
   const monthNum = month.getMonth() + 1
 
-  async function downloadPDF(type: ReportType) {
+  async function generatePDF(type: ReportType) {
     setLoading(type)
     setError('')
     try {
-      const supabase = getSupabase()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        setError('ログインが必要です')
+      // Dynamic import to avoid SSR issues
+      const { pdf } = await import('@react-pdf/renderer')
+      const React = (await import('react')).default
+
+      const inn = await fetchInnInfo()
+      if (!inn) {
+        setError('宿の情報が取得できません')
         return
       }
 
-      const params = new URLSearchParams({
-        type,
-        year: String(year),
-        month: String(monthNum),
-      })
+      let element: React.ReactElement
 
-      const res = await fetch(`/api/tax-report?${params}`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      })
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        setError(body.error || 'PDF生成に失敗しました')
-        return
+      if (type === 'village-monthly') {
+        const { VillageMonthlyReport } = await import('@/lib/pdf/VillageMonthlyReport')
+        const reservations = await fetchReservationsForMonth(year, monthNum)
+        const data = buildMonthlyTaxData(reservations, year, monthNum, 6000, 3.5)
+        element = React.createElement(VillageMonthlyReport, {
+          data,
+          innName: inn.name ?? '',
+          representative: inn.representative ?? '',
+        })
+      } else if (type === 'village-form') {
+        const { VillageDeclarationForm } = await import('@/lib/pdf/VillageDeclarationForm')
+        const monthsData: MonthlyTaxSummary[] = []
+        for (let m = 0; m < 3; m++) {
+          const tMonth = ((monthNum - 1 + m) % 12) + 1
+          const tYear = monthNum + m > 12 ? year + 1 : year
+          const res = await fetchReservationsForMonth(tYear, tMonth)
+          monthsData.push(buildMonthlyTaxData(res, tYear, tMonth, 6000, 3.5))
+        }
+        const today = new Date()
+        element = React.createElement(VillageDeclarationForm, {
+          months: monthsData,
+          innName: inn.name ?? '',
+          innAddress: inn.address ?? '',
+          representative: inn.representative ?? '',
+          phone: inn.phone ?? '',
+          filingDate: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
+          taxRatePercent: 3.5,
+        })
+      } else if (type === 'pref-monthly') {
+        const { PrefMonthlyReport } = await import('@/lib/pdf/PrefMonthlyReport')
+        const reservations = await fetchReservationsForMonth(year, monthNum)
+        const data = buildMonthlyTaxData(reservations, year, monthNum, 6000, 3.5)
+        element = React.createElement(PrefMonthlyReport, {
+          data,
+          innName: inn.name ?? '',
+        })
+      } else {
+        const { PrefDeclarationForm } = await import('@/lib/pdf/PrefDeclarationForm')
+        const monthsData: MonthlyTaxSummary[] = []
+        for (let m = 0; m < 3; m++) {
+          const tMonth = ((monthNum - 1 + m) % 12) + 1
+          const tYear = monthNum + m > 12 ? year + 1 : year
+          const res = await fetchReservationsForMonth(tYear, tMonth)
+          monthsData.push(buildMonthlyTaxData(res, tYear, tMonth, 6000, 3.5))
+        }
+        const today = new Date()
+        element = React.createElement(PrefDeclarationForm, {
+          months: monthsData,
+          innName: inn.name ?? '',
+          innAddress: inn.address ?? '',
+          representative: inn.representative ?? '',
+          phone: inn.phone ?? '',
+          filingDate: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
+          prefFlatAmount: 100,
+        })
       }
 
-      const blob = await res.blob()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const blob = await pdf(element as any).toBlob()
       const url = URL.createObjectURL(blob)
-
-      // Open in new tab for preview
       window.open(url, '_blank')
     } catch (err) {
       console.error(err)
@@ -131,7 +210,7 @@ export default function TaxReportView() {
               </div>
               <Button
                 size="sm"
-                onClick={() => downloadPDF(r.type)}
+                onClick={() => generatePDF(r.type)}
                 disabled={loading !== null}
               >
                 {loading === r.type ? (
