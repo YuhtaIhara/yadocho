@@ -20,29 +20,37 @@ type EditableMealDay = {
   date: string
   breakfast_adults: number
   breakfast_children: number
+  breakfast_time: string | null
   lunch_adults: number
   lunch_children: number
+  lunch_time: string | null
   dinner_adults: number
   dinner_children: number
   dinner_time: string | null
 }
 
-const DINNER_TIMES = (() => {
+function generateTimes(startH: number, endH: number) {
   const times: string[] = []
-  for (let h = 17; h <= 20; h++) {
+  for (let h = startH; h <= endH; h++) {
     times.push(`${String(h).padStart(2, '0')}:00`)
-    if (h < 20) times.push(`${String(h).padStart(2, '0')}:30`)
+    if (h < endH) times.push(`${String(h).padStart(2, '0')}:30`)
   }
   return times
-})()
+}
+
+const BREAKFAST_TIMES = generateTimes(6, 9)
+const LUNCH_TIMES = generateTimes(11, 14)
+const DINNER_TIMES = generateTimes(17, 20)
 
 function toEditable(md: MealDay): EditableMealDay {
   return {
     date: md.date,
     breakfast_adults: md.breakfast_adults,
     breakfast_children: md.breakfast_children,
+    breakfast_time: md.breakfast_time,
     lunch_adults: md.lunch_adults,
     lunch_children: md.lunch_children,
+    lunch_time: md.lunch_time,
     dinner_adults: md.dinner_adults,
     dinner_children: md.dinner_children,
     dinner_time: md.dinner_time,
@@ -77,10 +85,10 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
         dinner_time: d.dinner_time,
         breakfast_adults: d.breakfast_adults,
         breakfast_children: d.breakfast_children,
-        breakfast_time: null,
+        breakfast_time: d.breakfast_time,
         lunch_adults: d.lunch_adults,
         lunch_children: d.lunch_children,
-        lunch_time: null,
+        lunch_time: d.lunch_time,
         notes: null,
       }))
       await upsertMealDays(inputs)
@@ -112,6 +120,17 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
                 value={day.breakfast_children}
                 onChange={v => updateDay(idx, { breakfast_children: v })}
               />
+              <span className="text-xs text-text-2">朝食時間</span>
+              <select
+                value={day.breakfast_time ?? ''}
+                onChange={e => updateDay(idx, { breakfast_time: e.target.value || null })}
+                className="h-8 rounded-lg border border-border bg-surface px-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">未設定</option>
+                {BREAKFAST_TIMES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             </div>
 
             {/* Lunch */}
@@ -126,6 +145,17 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
                 value={day.lunch_children}
                 onChange={v => updateDay(idx, { lunch_children: v })}
               />
+              <span className="text-xs text-text-2">昼食時間</span>
+              <select
+                value={day.lunch_time ?? ''}
+                onChange={e => updateDay(idx, { lunch_time: e.target.value || null })}
+                className="h-8 rounded-lg border border-border bg-surface px-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="">未設定</option>
+                {LUNCH_TIMES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             </div>
 
             {/* Dinner */}
