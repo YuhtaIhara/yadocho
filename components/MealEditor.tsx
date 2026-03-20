@@ -50,12 +50,16 @@ function toEditable(md: MealDay): EditableMealDay {
 }
 
 export default function MealEditor({ reservationId, mealDays, open, onClose, onSaved }: Props) {
-  const [days, setDays] = useState<EditableMealDay[]>(() => mealDays.map(toEditable))
+  const [days, setDays] = useState<EditableMealDay[]>([])
   const [saving, setSaving] = useState(false)
+  const [prevOpen, setPrevOpen] = useState(false)
 
-  // Reset state when modal opens with new data
-  function handleOpen() {
+  // Sync state when modal opens with latest data
+  if (open && !prevOpen) {
     setDays(mealDays.map(toEditable))
+  }
+  if (open !== prevOpen) {
+    setPrevOpen(open)
   }
 
   function updateDay(idx: number, patch: Partial<EditableMealDay>) {

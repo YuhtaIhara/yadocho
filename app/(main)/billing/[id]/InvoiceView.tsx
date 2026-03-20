@@ -198,21 +198,25 @@ export default function InvoiceView() {
             ))}
           </div>
         )}
-        <div className="flex gap-2">
-          <Input
-            placeholder="品目"
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            className="flex-1 !h-10"
-          />
-          <Input
-            placeholder="単価"
-            type="number"
-            value={newPrice}
-            onChange={e => setNewPrice(e.target.value)}
-            className="w-24 !h-10"
-          />
-          <Button variant="secondary" size="sm" onClick={addExtra}>
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <Input
+              placeholder="品目"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              className="!h-10"
+            />
+          </div>
+          <div className="w-24">
+            <Input
+              placeholder="単価"
+              type="number"
+              value={newPrice}
+              onChange={e => setNewPrice(e.target.value)}
+              className="!h-10"
+            />
+          </div>
+          <Button variant="secondary" size="sm" onClick={addExtra} className="shrink-0">
             追加
           </Button>
         </div>
