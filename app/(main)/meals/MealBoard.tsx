@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { format, addDays, subDays, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { ChevronDown, Printer, AlertTriangle } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -16,6 +16,7 @@ import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
 import { roomLabel } from '@/lib/types'
 import DatePicker from '@/components/DatePicker'
+import MealEditor from '@/components/MealEditor'
 import type { Reservation, MealDay } from '@/lib/types'
 
 function useKondateDB(dateStr: string) {
@@ -48,6 +49,7 @@ function useKondateDB(dateStr: string) {
 }
 
 export default function MealBoard() {
+  const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const dateStr = toDateStr(selectedDate)
   const isToday = isSameDay(selectedDate, new Date())
@@ -125,6 +127,11 @@ export default function MealBoard() {
   }
 
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [editingReservationId, setEditingReservationId] = useState<string | null>(null)
+  const editingMealDays = useMemo(
+    () => editingReservationId ? mealDays.filter(m => m.reservation_id === editingReservationId) : [],
+    [editingReservationId, mealDays],
+  )
 
   return (
     <div>
@@ -225,7 +232,7 @@ export default function MealBoard() {
         {totalBreakfast > 0 && (
           <MealSection title="朝食" count={totalBreakfast}>
             {breakfastItems.map(m => (
-              <MealCard key={m.id} meal={m} type="breakfast" />
+              <MealCard key={m.id} meal={m} type="breakfast" onEdit={() => setEditingReservationId(m.reservation_id)} />
             ))}
           </MealSection>
         )}
@@ -234,7 +241,7 @@ export default function MealBoard() {
         {totalLunch > 0 && (
           <MealSection title="昼食" count={totalLunch}>
             {lunchItems.map(m => (
-              <MealCard key={m.id} meal={m} type="lunch" />
+              <MealCard key={m.id} meal={m} type="lunch" onEdit={() => setEditingReservationId(m.reservation_id)} />
             ))}
           </MealSection>
         )}
@@ -248,7 +255,7 @@ export default function MealBoard() {
                   {time} — {items.reduce((s, m) => s + m.dinner_adults + m.dinner_children, 0)}名
                 </p>
                 {items.map(m => (
-                  <MealCard key={m.id} meal={m} type="dinner" />
+                  <MealCard key={m.id} meal={m} type="dinner" onEdit={() => setEditingReservationId(m.reservation_id)} />
                 ))}
               </div>
             ))}
@@ -274,6 +281,18 @@ export default function MealBoard() {
           <p className="text-sm text-text-3 text-center py-8">この日の食事はありません</p>
         )}
       </div>
+
+      {editingReservationId && (
+        <MealEditor
+          reservationId={editingReservationId}
+          mealDays={editingMealDays}
+          open={!!editingReservationId}
+          onClose={() => setEditingReservationId(null)}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ['mealDaysForDate'] })
+          }}
+        />
+      )}
 
       <DatePicker
         open={datePickerOpen}
@@ -308,9 +327,11 @@ function MealSection({
 function MealCard({
   meal,
   type,
+  onEdit,
 }: {
   meal: MealDay & { reservation?: Reservation }
   type: 'breakfast' | 'lunch' | 'dinner'
+  onEdit?: () => void
 }) {
   const r = meal.reservation
   const adults = type === 'breakfast' ? meal.breakfast_adults : type === 'lunch' ? meal.lunch_adults : meal.dinner_adults
@@ -318,7 +339,7 @@ function MealCard({
   const total = adults + children
 
   return (
-    <Card className="py-3.5 px-3 flex items-center justify-between">
+    <Card className="py-3.5 px-3 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform" onClick={onEdit}>
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-xs font-bold text-primary bg-primary-soft px-2 py-0.5 rounded">
           {r ? roomLabel(r) : '—'}

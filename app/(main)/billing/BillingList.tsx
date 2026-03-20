@@ -4,8 +4,8 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { format, addDays, subDays, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import DatePicker from '@/components/DatePicker'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -20,6 +20,7 @@ import type { Reservation } from '@/lib/types'
 export default function BillingList() {
   const router = useRouter()
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const dateStr = toDateStr(selectedDate)
   const isToday = isSameDay(selectedDate, new Date())
 
@@ -82,12 +83,12 @@ export default function BillingList() {
           onClick={() => goDay(-1)}
           className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
         >
-          <ChevronLeft size={20} className="text-text-2" />
+          <span className="text-lg text-text-2">◀</span>
         </button>
 
         <button
           type="button"
-          onClick={goToday}
+          onClick={() => setDatePickerOpen(true)}
           className="flex items-center gap-2"
         >
           <span className="text-base font-bold">
@@ -101,7 +102,7 @@ export default function BillingList() {
           onClick={() => goDay(1)}
           className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
         >
-          <ChevronRight size={20} className="text-text-2" />
+          <span className="text-lg text-text-2">▶</span>
         </button>
       </div>
 
@@ -208,6 +209,13 @@ export default function BillingList() {
           <p className="text-sm text-text-3 text-center py-8">読み込み中…</p>
         )}
       </div>
+
+      <DatePicker
+        open={datePickerOpen}
+        onClose={() => setDatePickerOpen(false)}
+        onSelect={(d) => { setSelectedDate(d); setDatePickerOpen(false) }}
+        selectedDate={selectedDate}
+      />
     </div>
   )
 }

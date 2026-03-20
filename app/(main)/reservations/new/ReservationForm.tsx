@@ -608,15 +608,15 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
 
         {/* ── 日程 ── */}
         <Section title="日程">
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Input
-              label="チェックイン"
+              label="IN"
               type="date"
               {...register('checkin')}
               error={errors.checkin?.message}
             />
             <Input
-              label="チェックアウト"
+              label="OUT"
               type="date"
               {...register('checkout')}
               error={errors.checkout?.message}

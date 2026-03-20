@@ -123,7 +123,7 @@ export default function CalendarView() {
           onClick={() => setMonthPickerOpen(true)}
           className="flex items-center gap-1 text-lg font-bold active:opacity-70 transition-opacity"
         >
-          {format(currentMonth, 'yyyy年M月', { locale: ja })} ▼
+          {format(currentMonth, 'yyyy年M月', { locale: ja })} <span className="text-text-3">▼</span>
         </button>
 
         <button

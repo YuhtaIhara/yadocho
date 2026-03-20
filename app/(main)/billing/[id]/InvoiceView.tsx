@@ -12,6 +12,7 @@ import { useReservation, useUpdateReservation } from '@/lib/hooks/useReservation
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
 import { useInvoicePresets } from '@/lib/hooks/useInvoicePresets'
+import { useInn } from '@/lib/hooks/useInn'
 import { upsertInvoiceItems, lockInvoice } from '@/lib/api/invoices'
 import { formatDateFull, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
@@ -29,6 +30,7 @@ export default function InvoiceView() {
   const { data: taxPeriods = [] } = useTaxPeriods()
   const updateRes = useUpdateReservation()
   const { data: presets = [] } = useInvoicePresets()
+  const { data: inn } = useInn()
   const [extras, setExtras] = useState<ExtraItem[]>([])
   const [newName, setNewName] = useState('')
   const [newPrice, setNewPrice] = useState('')
@@ -176,9 +178,10 @@ export default function InvoiceView() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-surface border border-border text-text-2 active:bg-primary-soft transition-colors"
           >
-            <Printer size={18} className="text-text-2" />
+            <Printer size={14} />
+            印刷
           </button>
         }
       />
@@ -253,7 +256,16 @@ export default function InvoiceView() {
 
       {/* Invoice — printable */}
       <div className="px-4 py-6 max-w-md mx-auto">
-        <h2 className="text-center text-xl font-bold tracking-widest mb-6">ご 請 求 書</h2>
+        <h2 className="text-center text-xl font-bold tracking-widest mb-4">ご 請 求 書</h2>
+
+        {inn && (
+          <div className="text-right text-xs text-text-2 mb-4 space-y-0.5">
+            <p className="text-sm font-bold text-text-1">{inn.name}</p>
+            {inn.address && <p>{inn.address}</p>}
+            {inn.phone && <p>TEL: {inn.phone}</p>}
+            {inn.representative && <p>代表: {inn.representative}</p>}
+          </div>
+        )}
 
         <p className="text-lg font-bold mb-1">{res.guest?.name ?? '—'} 様</p>
         <div className="text-sm text-text-2 space-y-0.5 mb-4">
