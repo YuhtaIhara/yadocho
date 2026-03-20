@@ -16,7 +16,7 @@ import { useRooms } from '@/lib/hooks/useRooms'
 import { useReservations } from '@/lib/hooks/useReservations'
 import { usePricing } from '@/lib/hooks/usePricing'
 import { useCreateReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
-import { fetchGuests, createGuest } from '@/lib/api/guests'
+import { fetchGuests, createGuest, updateGuest } from '@/lib/api/guests'
 import { createMealDays } from '@/lib/api/meal-days'
 import { upsertMealDays } from '@/lib/api/meals'
 import { nightCount } from '@/lib/utils/date'
@@ -326,7 +326,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
     setValue('guest_allergy', guest.allergy ?? '')
     setValue('guest_notes', guest.notes ?? '')
     setShowSuggestions(false)
-    setShowNewGuest(false)
+    setShowNewGuest(true)
     setGuestLoaded(true)
   }
 
@@ -428,7 +428,17 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
         }
 
         let guestId = selectedGuest?.id
-        if (!guestId) {
+        if (guestId) {
+          // 既存ゲスト — 変更があれば更新
+          const updates: Record<string, string | undefined> = {}
+          if (data.guest_name && data.guest_name !== selectedGuest!.name) updates.name = data.guest_name
+          if ((data.guest_address || '') !== (selectedGuest!.address || '')) updates.address = data.guest_address || undefined
+          if ((data.guest_allergy || '') !== (selectedGuest!.allergy || '')) updates.allergy = data.guest_allergy || undefined
+          if ((data.guest_notes || '') !== (selectedGuest!.notes || '')) updates.notes = data.guest_notes || undefined
+          if (Object.keys(updates).length > 0) {
+            await updateGuest(guestId, updates)
+          }
+        } else {
           const guest = await createGuest({
             name: data.guest_name!,
             phone: data.guest_phone || undefined,
@@ -550,23 +560,19 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
             )}
           </div>
 
-          {/* Guest loaded confirmation */}
+          {/* Guest loaded indicator */}
           {guestLoaded && selectedGuest && (
-            <div className="mt-3 bg-primary-soft rounded-xl px-4 py-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-primary">{selectedGuest.name}</p>
-                  {selectedGuest.address && <p className="text-xs text-text-2 mt-0.5">{selectedGuest.address}</p>}
-                  {selectedGuest.allergy && <p className="text-xs text-danger mt-0.5">アレルギー: {selectedGuest.allergy}</p>}
-                </div>
-                <button
-                  type="button"
-                  className="text-xs text-text-3 underline shrink-0"
-                  onClick={clearGuest}
-                >
-                  変更
-                </button>
-              </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-xs font-medium text-accent bg-accent/10 px-2.5 py-1 rounded-full">
+                既存ゲスト: {selectedGuest.name}
+              </span>
+              <button
+                type="button"
+                className="text-xs text-text-3 underline shrink-0"
+                onClick={clearGuest}
+              >
+                解除
+              </button>
             </div>
           )}
 
