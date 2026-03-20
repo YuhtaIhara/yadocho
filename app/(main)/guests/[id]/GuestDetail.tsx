@@ -28,6 +28,7 @@ export default function GuestDetail() {
   const history = allRes.filter(r => r.guest_id === id).sort((a, b) => b.checkin.localeCompare(a.checkin))
 
   const [editing, setEditing] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -63,6 +64,8 @@ export default function GuestDetail() {
       qc.invalidateQueries({ queryKey: ['guest', id] })
       qc.invalidateQueries({ queryKey: ['guests'] })
       setEditing(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
     } catch (e) {
       alert(e instanceof Error ? e.message : '保存に失敗しました')
     }
@@ -110,6 +113,12 @@ export default function GuestDetail() {
           )
         }
       />
+
+      {saved && (
+        <div className="mx-4 mt-3 animate-fade-in-up text-center py-2 px-4 rounded-xl bg-accent/10 text-accent text-sm font-medium">
+          保存しました ✓
+        </div>
+      )}
 
       <div className="px-4 py-4 space-y-4 pb-32">
         {editing ? (

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Plus } from 'lucide-react'
+import { Search, UserPlus } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
@@ -60,7 +60,7 @@ export default function GuestList() {
             onClick={() => setAdding(true)}
             className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft"
           >
-            <Plus size={20} className="text-primary" />
+            <UserPlus size={20} className="text-primary" />
           </button>
         }
       />
