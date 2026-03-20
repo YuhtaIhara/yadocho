@@ -17,7 +17,7 @@ import MealEditor from '@/components/MealEditor'
 import { formatDateJP, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
 import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
-import { calcMealCost } from '@/lib/utils/pricing'
+import { calcMealCost, getMealPrices } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils/cn'
 import { roomLabel, STATUS_LABELS, type ReservationStatus } from '@/lib/types'
 
@@ -234,10 +234,7 @@ export default function ReservationDetail() {
               </div>
             )}
             {mealCost > 0 && (() => {
-              const dp = pricing?.dinner_price ?? 2000
-              const cdp = pricing?.child_dinner_price ?? 1500
-              const bp = pricing?.breakfast_price ?? 800
-              const cbp = pricing?.child_breakfast_price ?? 500
+              const { dp, cdp, bp, cbp } = getMealPrices(pricing)
               const lp = pricing?.lunch_price ?? 0
               const clp = pricing?.child_lunch_price ?? 0
               let dinnerA = 0, dinnerC = 0, breakA = 0, breakC = 0, lunchA = 0, lunchC = 0

@@ -19,6 +19,7 @@ export async function fetchBlockedDates(from: string, to: string): Promise<Block
 
 export async function createBlockedDate(input: { date: string; room_id?: string; reason?: string }): Promise<BlockedDate> {
   const innId = await getInnId()
+  if (!innId) throw new Error('ログインが必要です')
   const { data, error } = await supabase
     .from('blocked_dates')
     .insert({ ...input, inn_id: innId })

@@ -21,6 +21,7 @@ import { createMealDays } from '@/lib/api/meal-days'
 import { upsertMealDays } from '@/lib/api/meals'
 import { nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
+import { getMealPrices } from '@/lib/utils/pricing'
 import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
 import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { cn } from '@/lib/utils/cn'
@@ -259,12 +260,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   const estimate = useMemo(() => {
     if (nights <= 0) return null
     const stay = (adultPrice * adults + childPrice * children) * nights
-    const dp = pricing?.dinner_price ?? 2000
-    const cdp = pricing?.child_dinner_price ?? 1500
-    const bp = pricing?.breakfast_price ?? 800
-    const cbp = pricing?.child_breakfast_price ?? 500
-    const lp = pricing?.lunch_price ?? 0
-    const clp = pricing?.child_lunch_price ?? 0
+    const { dp, cdp, bp, cbp, lp, clp } = getMealPrices(pricing)
 
     const dA = Math.min(dinnerCount, adults)
     const dC = dinnerCount - dA

@@ -18,6 +18,7 @@ import { upsertInvoiceItems, lockInvoice } from '@/lib/api/invoices'
 import { verifyTax } from '@/lib/api/verifyTax'
 import { formatDateFull, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
+import { getMealPrices } from '@/lib/utils/pricing'
 import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
 import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { roomLabel } from '@/lib/types'
@@ -61,12 +62,7 @@ export default function InvoiceView() {
       })
     }
 
-    const dp = pricing?.dinner_price ?? 2000
-    const cdp = pricing?.child_dinner_price ?? 1500
-    const bp = pricing?.breakfast_price ?? 800
-    const cbp = pricing?.child_breakfast_price ?? 500
-    const lp = pricing?.lunch_price ?? 0
-    const clp = pricing?.child_lunch_price ?? 0
+    const { dp, cdp, bp, cbp, lp, clp } = getMealPrices(pricing)
 
     let totalDinnerA = 0, totalDinnerC = 0
     let totalBreakA = 0, totalBreakC = 0
