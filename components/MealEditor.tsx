@@ -47,13 +47,13 @@ function toEditable(md: MealDay): EditableMealDay {
     date: md.date,
     breakfast_adults: md.breakfast_adults,
     breakfast_children: md.breakfast_children,
-    breakfast_time: md.breakfast_time,
+    breakfast_time: md.breakfast_time?.slice(0, 5) ?? null,
     lunch_adults: md.lunch_adults,
     lunch_children: md.lunch_children,
-    lunch_time: md.lunch_time,
+    lunch_time: md.lunch_time?.slice(0, 5) ?? null,
     dinner_adults: md.dinner_adults,
     dinner_children: md.dinner_children,
-    dinner_time: md.dinner_time,
+    dinner_time: md.dinner_time?.slice(0, 5) ?? null,
   }
 }
 

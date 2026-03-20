@@ -91,15 +91,19 @@ export default function CalendarGrid({
     const ci = parseISO(res.checkin)
     const co = parseISO(res.checkout)
     const rawStart = differenceInCalendarDays(ci, firstDate)
-    const rawEnd = differenceInCalendarDays(co, firstDate) - 1
-    const s = Math.max(0, rawStart)
-    const e = Math.min(totalDays - 1, rawEnd)
-    if (s > totalDays - 1 || e < 0) return null
+    const rawEnd = differenceInCalendarDays(co, firstDate)
+    // Half-day offset: bar starts at 50% of checkin day, ends at 50% of checkout day
+    const HALF = COL_W / 2
+    const pxStart = ROOM_W + rawStart * COL_W + HALF
+    const pxEnd = ROOM_W + rawEnd * COL_W + HALF
+    const visStart = Math.max(ROOM_W, pxStart)
+    const visEnd = Math.min(ROOM_W + totalDays * COL_W, pxEnd)
+    if (visStart >= visEnd) return null
     return {
-      left: ROOM_W + s * COL_W + 2,
-      width: (e - s + 1) * COL_W - 4,
-      clipL: rawStart < 0,
-      clipR: rawEnd >= totalDays,
+      left: visStart + 2,
+      width: visEnd - visStart - 4,
+      clipL: pxStart < ROOM_W,
+      clipR: pxEnd > ROOM_W + totalDays * COL_W,
     }
   }
 
