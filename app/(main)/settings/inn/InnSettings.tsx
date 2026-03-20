@@ -6,9 +6,11 @@ import PageHeader from '@/components/layout/PageHeader'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { fetchInn, updateInn } from '@/lib/api/inn'
+import { useToast } from '@/components/ui/Toast'
 
 export default function InnSettings() {
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const { data: inn } = useQuery({ queryKey: ['inn'], queryFn: fetchInn })
   const [form, setForm] = useState({ name: '', address: '', phone: '', representative: '' })
   const [saving, setSaving] = useState(false)
@@ -39,7 +41,7 @@ export default function InnSettings() {
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
       console.error(err)
-      alert('保存に失敗しました')
+      showToast('保存に失敗しました')
     } finally {
       setSaving(false)
     }

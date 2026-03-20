@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/Button'
 import { usePricing } from '@/lib/hooks/usePricing'
 import { upsertPricing } from '@/lib/api/pricing'
 import { getInnId } from '@/lib/auth'
+import { useToast } from '@/components/ui/Toast'
 
 export default function PricingSettings() {
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const { data: pricing } = usePricing()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -55,7 +57,7 @@ export default function PricingSettings() {
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
       console.error(err)
-      alert('保存に失敗しました')
+      showToast('保存に失敗しました')
     } finally {
       setSaving(false)
     }

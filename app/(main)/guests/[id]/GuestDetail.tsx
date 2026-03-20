@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+import { useToast } from '@/components/ui/Toast'
 import { Badge } from '@/components/ui/Badge'
 import { useGuest } from '@/lib/hooks/useGuests'
 import { useReservations } from '@/lib/hooks/useReservations'
@@ -21,6 +22,7 @@ export default function GuestDetail() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const { data: guest, isLoading } = useGuest(id)
   const from = toDateStr(subYears(new Date(), 3))
   const to = toDateStr(new Date())
@@ -67,7 +69,7 @@ export default function GuestDetail() {
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (e) {
-      alert(e instanceof Error ? e.message : '保存に失敗しました')
+      showToast('保存に失敗しました')
     }
   }
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, UserPlus } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
@@ -14,6 +15,7 @@ import { createGuest } from '@/lib/api/guests'
 export default function GuestList() {
   const router = useRouter()
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const [search, setSearch] = useState('')
   const { data: guests = [], isLoading } = useGuests(search || undefined)
   const [adding, setAdding] = useState(false)
@@ -44,7 +46,7 @@ export default function GuestList() {
       setNotes('')
       router.push(`/guests/${guest.id}`)
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'ゲスト登録に失敗しました')
+      showToast('ゲスト登録に失敗しました')
     } finally {
       setSaving(false)
     }
