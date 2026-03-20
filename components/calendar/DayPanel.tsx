@@ -72,7 +72,7 @@ export default function DayPanel({
             className="flex items-center gap-2"
           >
             <span className="text-base font-bold">
-              {format(date, 'M/d（E）', { locale: ja })}
+              {format(date, 'yyyy年M月d日（E）', { locale: ja })}
             </span>
             {isToday && <Badge>今日</Badge>}
           </button>
@@ -99,7 +99,7 @@ export default function DayPanel({
       {checkIns.length > 0 && (
         <Section
           icon={<LogIn size={14} className="text-accent" />}
-          title={`チェックイン — ${checkIns.length}件`}
+          title={`チェックイン（${checkIns.length}件）`}
           dotColor="bg-accent"
         >
           {checkIns.map(r => (
@@ -114,7 +114,7 @@ export default function DayPanel({
       {checkOuts.length > 0 && (
         <Section
           icon={<LogOut size={14} className="text-warning" />}
-          title={`チェックアウト — ${checkOuts.length}件`}
+          title={`チェックアウト（${checkOuts.length}件）`}
           dotColor="bg-warning"
         >
           {checkOuts.map(r => (

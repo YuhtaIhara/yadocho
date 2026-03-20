@@ -149,9 +149,11 @@ export default function CalendarGrid({
                       ? 'font-bold text-white bg-primary'
                       : selected
                         ? 'font-bold text-primary'
-                        : (dow === 0 || dow === 6)
+                        : dow === 0
                           ? 'text-danger font-medium'
-                          : 'text-text-2',
+                          : dow === 6
+                            ? 'text-blue-500 font-medium'
+                            : 'text-text-2',
                   )}
                 >
                   {format(d, 'd')}
@@ -159,7 +161,7 @@ export default function CalendarGrid({
                 <span
                   className={cn(
                     'text-[9px] leading-none mt-0.5',
-                    today ? 'font-bold text-primary' : (dow === 0 || dow === 6) ? 'text-danger/70' : 'text-text-3',
+                    today ? 'font-bold text-primary' : dow === 0 ? 'text-danger/70' : dow === 6 ? 'text-blue-400' : 'text-text-3',
                   )}
                 >
                   ({format(d, 'E', { locale: ja })})
@@ -203,7 +205,7 @@ export default function CalendarGrid({
                     }
                   }}
                   className={cn(
-                    'shrink-0 border-r border-b border-border/15 cursor-pointer hover:bg-primary/[0.05] transition-colors',
+                    'shrink-0 border-r border-b border-border/30 cursor-pointer hover:bg-primary/[0.05] transition-colors',
                     today && 'bg-primary/[0.03]',
                     selected && !today && 'bg-primary/[0.06]',
                   )}
@@ -220,7 +222,10 @@ export default function CalendarGrid({
                   }}
                 >
                   {!blocked && !occupied && (
-                    <span className="flex items-center justify-center w-full h-full text-[10px] text-text-3/40 select-none">＋</span>
+                    <span className="flex flex-col items-center justify-center w-full h-full text-[8px] text-text-3/40 select-none leading-tight">
+                      <span>+</span>
+                      <span>予約作成</span>
+                    </span>
                   )}
                 </div>
               )
