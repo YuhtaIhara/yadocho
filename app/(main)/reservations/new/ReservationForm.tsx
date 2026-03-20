@@ -577,7 +577,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
 
         {/* ── 日程 ── */}
         <Section title="日程">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <Input
               label="チェックイン"
               type="date"

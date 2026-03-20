@@ -179,7 +179,7 @@ function Section({
         {icon ?? <span className={cn('w-2 h-2 rounded-full', dotColor)} />}
         <span className="text-sm font-semibold text-text-2">{title}</span>
       </div>
-      <div className="space-y-3">{children}</div>
+      <div className="space-y-4">{children}</div>
     </div>
   )
 }
