@@ -60,24 +60,16 @@ export default function DayPanel({
           <span className="text-lg text-text-2">◀</span>
         </button>
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setDatePickerOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <span className="text-base font-bold">
-              {format(date, 'yyyy年M月d日（E）', { locale: ja })}
-            </span>
-            {isToday && <Badge>今日</Badge>}
-          </button>
-          <DatePicker
-            open={datePickerOpen}
-            onClose={() => setDatePickerOpen(false)}
-            onSelect={(d) => { onSelectDate?.(d); setDatePickerOpen(false) }}
-            selectedDate={date}
-          />
-        </div>
+        <button
+          type="button"
+          onClick={() => setDatePickerOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <span className="text-base font-bold">
+            {format(date, 'yyyy年M月d日（E）', { locale: ja })}
+          </span>
+          {isToday && <Badge>今日</Badge>}
+        </button>
 
         <button
           type="button"
@@ -162,6 +154,12 @@ export default function DayPanel({
         </div>
       )}
 
+      <DatePicker
+        open={datePickerOpen}
+        onClose={() => setDatePickerOpen(false)}
+        onSelect={(d) => { onSelectDate?.(d); setDatePickerOpen(false) }}
+        selectedDate={date}
+      />
     </div>
   )
 }
