@@ -20,7 +20,7 @@ import { useRooms } from '@/lib/hooks/useRooms'
 import { useBlockedDates, useCreateBlockedDate, useDeleteBlockedDate } from '@/lib/hooks/useBlockedDates'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
-import { ChevronDown, Settings } from 'lucide-react'
+import { Palmtree } from 'lucide-react'
 
 export default function CalendarView() {
   const router = useRouter()
@@ -123,8 +123,7 @@ export default function CalendarView() {
           onClick={() => setMonthPickerOpen(true)}
           className="flex items-center gap-1 text-lg font-bold active:opacity-70 transition-opacity"
         >
-          {format(currentMonth, 'yyyy年M月', { locale: ja })}
-          <ChevronDown size={16} className="text-text-3" />
+          {format(currentMonth, 'yyyy年M月', { locale: ja })} ▼
         </button>
 
         <button
@@ -137,7 +136,7 @@ export default function CalendarView() {
               : 'bg-surface border border-border text-text-2 active:bg-primary-soft',
           )}
         >
-          <Settings size={14} />
+          <Palmtree size={14} />
           休設定
         </button>
       </div>

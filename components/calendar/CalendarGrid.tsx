@@ -20,8 +20,8 @@ const BAR_Y = 6
 const BAR_H = ROW_H - BAR_Y * 2
 
 const BAR_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  scheduled: { bg: 'rgba(226,114,91,0.15)', text: '#C4503A', border: 'rgba(226,114,91,0.25)' },
-  settled:   { bg: 'rgba(74,155,127,0.15)', text: '#3A7D63', border: 'rgba(74,155,127,0.25)' },
+  scheduled: { bg: '#E2725B', text: '#FFFFFF', border: '#D0614A' },
+  settled:   { bg: '#4A9B7F', text: '#FFFFFF', border: '#3D8A6E' },
 }
 
 type Props = {
@@ -222,10 +222,7 @@ export default function CalendarGrid({
                   }}
                 >
                   {!blocked && !occupied && (
-                    <span className="flex flex-col items-center justify-center w-full h-full text-[10px] text-text-3/50 select-none leading-tight">
-                      <span>+</span>
-                      <span>予約作成</span>
-                    </span>
+                    <span className="flex items-center justify-center w-full h-full text-[10px] text-text-3/40 select-none">＋</span>
                   )}
                 </div>
               )
@@ -257,9 +254,7 @@ export default function CalendarGrid({
                     zIndex: 5,
                   }}
                 >
-                  {res.status === 'settled' && <span className="shrink-0">✓</span>}
                   {(res.guest?.name ?? '—').split(/[\s　]/)[0]}
-                  {(res.adults + res.children) > 0 ? `(${res.adults + res.children})` : ''}
                 </button>
               )
             })}

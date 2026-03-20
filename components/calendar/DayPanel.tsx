@@ -62,7 +62,7 @@ export default function DayPanel({
           onClick={onPrevDay}
           className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
         >
-          <ChevronLeft size={20} className="text-text-2" />
+          <span className="text-lg text-text-2">◀</span>
         </button>
 
         <div className="flex items-center gap-2 relative">
@@ -91,7 +91,7 @@ export default function DayPanel({
           onClick={onNextDay}
           className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
         >
-          <ChevronRight size={20} className="text-text-2" />
+          <span className="text-lg text-text-2">▶</span>
         </button>
       </div>
 
