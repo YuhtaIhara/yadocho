@@ -53,6 +53,7 @@ export type Reservation = {
   checkin_time: string | null
   status: ReservationStatus
   tax_exempt: boolean
+  tax_exempt_reason: string | null
   notes: string | null
   created_at: string
   updated_at: string

@@ -62,6 +62,8 @@ const schema = z
     breakfast_time: z.string().optional(),
     lunch_time: z.string().optional(),
     checkin_time: z.string().optional(),
+    tax_exempt: z.boolean(),
+    tax_exempt_reason: z.string().optional(),
     notes: z.string().optional(),
   })
   .refine(d => d.checkout > d.checkin, {
@@ -84,6 +86,8 @@ type Props = {
     adult_price: number
     child_price: number
     checkin_time: string | null
+    tax_exempt: boolean
+    tax_exempt_reason: string | null
     notes: string | null
     mealDays: MealDay[]
   }
@@ -191,6 +195,8 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       breakfast_time: mealDefaults?.breakfast_time ?? '07:30',
       lunch_time: mealDefaults?.lunch_time ?? '12:00',
       checkin_time: initialData?.checkin_time?.slice(0, 5) ?? '',
+      tax_exempt: initialData?.tax_exempt ?? false,
+      tax_exempt_reason: initialData?.tax_exempt_reason ?? '',
       notes: initialData?.notes ?? '',
     },
   })
@@ -217,6 +223,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   const dinnerTime = watch('dinner_time')
   const breakfastTime = watch('breakfast_time')
   const lunchTime = watch('lunch_time')
+  const taxExempt = watch('tax_exempt')
 
   const { data: existingRes = [] } = useReservations(checkin, checkout)
 
@@ -262,13 +269,13 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       (lunch ? lA * lp + lC * clp : 0)
     const meal = mealPerNight * nights
 
-    const tax = calcLodgingTax(adultPrice, adults, nights, checkin, false, taxPeriods)
+    const tax = calcLodgingTax(adultPrice, adults, nights, checkin, taxExempt, taxPeriods)
 
     return { stay, meal, tax: tax.taxAmount, total: stay + meal + tax.taxAmount, roomCount }
   }, [
     nights, adultPrice, adults, childPrice, children,
     dinner, breakfast, lunch, dinnerCount, breakfastCount, lunchCount,
-    pricing, checkin, roomCount, taxPeriods,
+    pricing, checkin, roomCount, taxExempt, taxPeriods,
   ])
 
   async function handleGuestSearch(input: string) {
@@ -354,6 +361,8 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
           adult_price: data.adult_price,
           child_price: data.child_price,
           checkin_time: data.checkin_time || null,
+          tax_exempt: data.tax_exempt,
+          tax_exempt_reason: data.tax_exempt_reason || null,
           notes: data.notes || null,
         })
 
@@ -430,6 +439,8 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
           adult_price: data.adult_price,
           child_price: data.child_price,
           checkin_time: data.checkin_time || undefined,
+          tax_exempt: data.tax_exempt,
+          tax_exempt_reason: data.tax_exempt_reason || undefined,
           notes: data.notes || undefined,
         })
 
@@ -754,6 +765,26 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
         {/* ── メモ ── */}
         <Section title="メモ">
           <Textarea placeholder="備考・連絡事項" {...register('notes')} />
+        </Section>
+
+        {/* ── 宿泊税 ── */}
+        <Section title="宿泊税">
+          <label className="flex items-center gap-3 min-h-[44px]">
+            <input
+              type="checkbox"
+              {...register('tax_exempt')}
+              className="w-5 h-5 rounded border-border text-primary focus:ring-primary"
+            />
+            <span className="text-sm font-medium">非課税にする</span>
+          </label>
+          {taxExempt && (
+            <Input
+              label="免税理由（任意）"
+              placeholder="例: 修学旅行"
+              {...register('tax_exempt_reason')}
+              className="mt-2"
+            />
+          )}
         </Section>
 
         {/* ── 概算 ── */}

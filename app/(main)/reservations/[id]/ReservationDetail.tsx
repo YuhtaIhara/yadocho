@@ -289,6 +289,11 @@ export default function ReservationDetail() {
                 <span className="font-medium">{formatYen(tax.taxAmount)}</span>
               </div>
             )}
+            {tax.exemptReason && (
+              <p className="text-text-3 text-xs">
+                宿泊税: {tax.exemptReason}{res.tax_exempt_reason ? `（${res.tax_exempt_reason}）` : ''}
+              </p>
+            )}
             <div className="flex justify-between pt-2 border-t border-border/40">
               <span className="font-bold">合計</span>
               <span className="font-bold text-lg">{formatYen(total)}</span>

@@ -52,6 +52,7 @@ export async function createReservation(input: {
   checkin_time?: string
   notes?: string
   tax_exempt?: boolean
+  tax_exempt_reason?: string
 }): Promise<Reservation> {
   const innId = await getInnId()
   if (!innId) throw new Error('ログインが必要です')
