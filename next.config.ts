@@ -6,7 +6,7 @@ const ContentSecurityPolicy = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob:;
   font-src 'self' fonts.gstatic.com cdn.jsdelivr.net;
-  connect-src 'self' *.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com cdn.jsdelivr.net;
+  connect-src 'self' data: *.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com cdn.jsdelivr.net;
   frame-ancestors 'none';
   base-uri 'self';
   form-action 'self';
