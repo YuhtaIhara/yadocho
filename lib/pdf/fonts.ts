@@ -3,8 +3,8 @@ import { Font } from '@react-pdf/renderer'
 let registered = false
 
 /**
- * Noto Sans JP フォントを登録
- * Google Fonts の static TTF を URL から読み込む
+ * Noto Sans CJK JP フォントを登録
+ * public/fonts/ に配置した OTF ファイルを参照
  */
 export function registerFonts() {
   if (registered) return
@@ -14,11 +14,11 @@ export function registerFonts() {
     family: 'NotoSansJP',
     fonts: [
       {
-        src: 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansjp/NotoSansJP-Regular.ttf',
+        src: '/fonts/NotoSansJP-Regular.otf',
         fontWeight: 400,
       },
       {
-        src: 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansjp/NotoSansJP-Bold.ttf',
+        src: '/fonts/NotoSansJP-Bold.otf',
         fontWeight: 700,
       },
     ],

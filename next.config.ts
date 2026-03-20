@@ -5,8 +5,8 @@ const ContentSecurityPolicy = `
   script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob:;
-  font-src 'self' fonts.gstatic.com cdn.jsdelivr.net;
-  connect-src 'self' data: *.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com cdn.jsdelivr.net;
+  font-src 'self' fonts.gstatic.com;
+  connect-src 'self' data: blob: *.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com;
   frame-ancestors 'none';
   base-uri 'self';
   form-action 'self';
