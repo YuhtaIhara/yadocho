@@ -25,6 +25,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               'w-full h-12 px-3 rounded-xl bg-surface border border-border/60 text-sm placeholder:text-text-3 transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary/50',
               error && 'border-danger focus:ring-danger/30',
               suffix && 'pr-12',
+              props.type === 'date' && 'text-xs px-2',
               className,
             )}
             {...props}

@@ -289,7 +289,7 @@ function MealSection({
         <h2 className="text-sm font-bold text-text-2">{title}</h2>
         <Badge>{count}名</Badge>
       </div>
-      <div className="space-y-1.5">{children}</div>
+      <div className="space-y-3">{children}</div>
     </div>
   )
 }
@@ -307,7 +307,7 @@ function MealCard({
   const total = adults + children
 
   return (
-    <Card className="py-2.5 px-3 flex items-center justify-between">
+    <Card className="py-3.5 px-3 flex items-center justify-between">
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-xs font-bold text-primary bg-primary-soft px-2 py-0.5 rounded">
           {r ? roomLabel(r) : '—'}

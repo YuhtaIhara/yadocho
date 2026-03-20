@@ -183,7 +183,7 @@ export default function ReservationDetail() {
             </button>
           </div>
           {mealDays.length > 0 ? (
-            <div className="space-y-1.5 text-sm">
+            <div className="space-y-2.5 text-sm">
               {mealDays.map(md => {
                 const parts: string[] = []
                 if (md.breakfast_adults + md.breakfast_children > 0)

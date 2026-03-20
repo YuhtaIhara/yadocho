@@ -102,6 +102,15 @@
 .shadow-card { box-shadow: var(--shadow-card); }
 .shadow-elevated { box-shadow: var(--shadow-elevated); }
 
+/* Date input: compact calendar icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin: 0;
+  opacity: 0.5;
+}
+
 /* Touch-first: hide scrollbars */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
