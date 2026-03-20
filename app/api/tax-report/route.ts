@@ -5,6 +5,8 @@ import { createServiceClient, getInnIdFromToken } from '@/lib/supabase/server'
 import { buildMonthlyTaxData, type MonthlyTaxSummary } from '@/lib/utils/tax-report'
 import { VillageMonthlyReport } from '@/lib/pdf/VillageMonthlyReport'
 import { VillageDeclarationForm } from '@/lib/pdf/VillageDeclarationForm'
+import { PrefMonthlyReport } from '@/lib/pdf/PrefMonthlyReport'
+import { PrefDeclarationForm } from '@/lib/pdf/PrefDeclarationForm'
 import type { Reservation } from '@/lib/types'
 
 /**
@@ -127,7 +129,72 @@ export async function GET(req: Request) {
         })
       }
 
-      // TODO: pref-monthly, pref-form
+      case 'pref-monthly': {
+        const prefData = buildMonthlyTaxData(
+          reservations as Reservation[],
+          year, month, 6000, 3.5,
+        )
+
+        const prefMonthlyEl = React.createElement(PrefMonthlyReport, {
+          data: prefData,
+          innName: inn.name ?? '',
+        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const prefMonthlyBuf = await renderToBuffer(prefMonthlyEl as any)
+
+        return new Response(Buffer.from(prefMonthlyBuf), {
+          headers: {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `inline; filename="pref-monthly-${year}-${month}.pdf"`,
+          },
+        })
+      }
+
+      case 'pref-form': {
+        const prefMonthsData: MonthlyTaxSummary[] = []
+        for (let m = 0; m < 3; m++) {
+          const targetMonth = ((month - 1 + m) % 12) + 1
+          const targetYear = month + m > 12 ? year + 1 : year
+          const mFrom = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`
+          const mLastDay = new Date(targetYear, targetMonth, 0).getDate()
+          const mTo = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${mLastDay}`
+
+          const { data: mRes = [] } = await supabase
+            .from('reservations')
+            .select('*')
+            .eq('inn_id', innId)
+            .gte('checkin', mFrom)
+            .lte('checkin', mTo)
+            .neq('status', 'cancelled')
+
+          prefMonthsData.push(
+            buildMonthlyTaxData(mRes as Reservation[], targetYear, targetMonth, 6000, 3.5),
+          )
+        }
+
+        const prefToday = new Date()
+        const prefFilingDate = `${prefToday.getFullYear()}-${String(prefToday.getMonth() + 1).padStart(2, '0')}-${String(prefToday.getDate()).padStart(2, '0')}`
+
+        const prefFormEl = React.createElement(PrefDeclarationForm, {
+          months: prefMonthsData,
+          innName: inn.name ?? '',
+          innAddress: inn.address ?? '',
+          representative: inn.representative ?? '',
+          phone: inn.phone ?? '',
+          filingDate: prefFilingDate,
+          prefFlatAmount: 100,
+        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const prefFormBuf = await renderToBuffer(prefFormEl as any)
+
+        return new Response(Buffer.from(prefFormBuf), {
+          headers: {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `inline; filename="pref-form-${year}-${month}.pdf"`,
+          },
+        })
+      }
+
       default:
         return NextResponse.json({ error: `Unknown type: ${type}` }, { status: 400 })
     }

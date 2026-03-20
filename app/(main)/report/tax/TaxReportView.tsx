@@ -9,18 +9,32 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { getSupabase } from '@/lib/supabase'
 
-type ReportType = 'village-monthly' | 'village-form'
+type ReportType = 'village-monthly' | 'village-form' | 'pref-monthly' | 'pref-form'
 
-const REPORT_TYPES: { type: ReportType; label: string; desc: string }[] = [
+const REPORT_TYPES: { type: ReportType; label: string; desc: string; group: string }[] = [
   {
     type: 'village-monthly',
-    label: '月計表',
+    label: '村 月計表',
     desc: '日別の宿泊者数・課税標準額・税額',
+    group: '野沢温泉村',
   },
   {
     type: 'village-form',
-    label: '納入申告書（様式第2号）',
+    label: '村 納入申告書（様式第2号）',
     desc: '3ヶ月分の申告書。村に提出',
+    group: '野沢温泉村',
+  },
+  {
+    type: 'pref-monthly',
+    label: '県 月計表',
+    desc: '日別の課税対象・対象外の宿泊数',
+    group: '長野県',
+  },
+  {
+    type: 'pref-form',
+    label: '県 納入申告書（様式第2号）',
+    desc: '3ヶ月分の申告書。県税事務所に提出',
+    group: '長野県',
   },
 ]
 
