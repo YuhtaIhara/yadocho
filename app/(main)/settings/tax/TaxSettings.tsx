@@ -36,8 +36,9 @@ function rateDescription(rule: TaxRule, rates: TaxRuleRate[]): string {
     case 'flat':
       return ruleRates[0]?.flat_amount != null ? `¥${ruleRates[0].flat_amount}/人泊` : '—'
     case 'percentage':
-    case 'inclusive_percentage':
       return ruleRates[0]?.rate_percent != null ? `${ruleRates[0].rate_percent}%` : '—'
+    case 'inclusive_percentage':
+      return ruleRates[0]?.rate_percent != null ? `${ruleRates[0].rate_percent}%（県税込み）` : '—'
     case 'tiered':
       return ruleRates
         .map(r => {
@@ -124,9 +125,9 @@ export default function TaxSettings() {
                     </div>
                   ))}
                 </div>
-                {rules[0].notes && (
-                  <p className="text-xs text-text-3 mt-2 bg-primary-soft/30 rounded-lg px-3 py-1.5">
-                    {rules[0].notes}
+                {rules.some(r => r.calc_method === 'inclusive_percentage') && (
+                  <p className="text-xs text-text-2 mt-2 bg-primary-soft/30 rounded-lg px-3 py-1.5">
+                    宿泊者が払う税額は合計{rules.find(r => r.calc_method === 'inclusive_percentage') && rateDescription(rules.find(r => r.calc_method === 'inclusive_percentage')!, taxRuleRates).replace('（県税込み）', '')}。そのうち県税は定額、残りが村税になります。二重取りではありません。
                   </p>
                 )}
               </Card>
