@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Users, BarChart3, Settings, ChevronRight, LogOut } from 'lucide-react'
+import { Users, BarChart3, Settings, HelpCircle, ChevronRight, LogOut } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { signOut } from '@/lib/auth'
@@ -11,6 +11,7 @@ const MENU_ITEMS = [
   { href: '/settings', icon: Settings, label: '設定' },
   { href: '/guests', icon: Users, label: 'ゲスト管理' },
   { href: '/report', icon: BarChart3, label: '月次レポート' },
+  { href: '/guide', icon: HelpCircle, label: '使い方ガイド' },
 ] as const
 
 export default function MenuView() {
