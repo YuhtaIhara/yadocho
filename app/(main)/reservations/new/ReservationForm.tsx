@@ -134,9 +134,10 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   const searchParams = useSearchParams()
   const isEdit = mode === 'edit'
 
-  // URL params for calendar cell direct booking
+  // URL params for calendar cell direct booking / guest detail link
   const paramDate = searchParams.get('date')
   const paramRoom = searchParams.get('room')
+  const paramPhone = searchParams.get('phone')
 
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(
     initialData ? { id: initialData.guest.id, name: initialData.guest.name, phone: initialData.guest.phone } as Guest : null,
@@ -174,7 +175,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      guest_phone: initialData?.guest.phone ?? '',
+      guest_phone: initialData?.guest.phone ?? paramPhone ?? '',
       guest_name: initialData?.guest.name ?? '',
       guest_address: '',
       guest_allergy: '',
@@ -207,6 +208,15 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       setValue('child_price', pricing.child_price)
     }
   }, [pricing, setValue, initialData])
+
+  // Auto-search guest when phone param is provided
+  useEffect(() => {
+    if (paramPhone && !initialData && !selectedGuest) {
+      setValue('guest_phone', paramPhone)
+      handleGuestSearch(paramPhone)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramPhone])
 
   const checkin = watch('checkin')
   const checkout = watch('checkout')

@@ -152,7 +152,7 @@ export default function GuestDetail() {
             <Button
               size="lg"
               className="w-full"
-              onClick={() => router.push('/reservations/new')}
+              onClick={() => router.push(`/reservations/new?phone=${encodeURIComponent(guest.phone ?? '')}`)}
             >
               この人で新規予約
             </Button>
