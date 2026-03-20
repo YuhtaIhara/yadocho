@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { format, addDays, subDays, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, ChevronDown, Printer, AlertTriangle } from 'lucide-react'
+import { ChevronDown, Printer, AlertTriangle } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
@@ -15,6 +15,7 @@ import { fetchKondate, upsertKondate } from '@/lib/api/kondate'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
 import { roomLabel } from '@/lib/types'
+import DatePicker from '@/components/DatePicker'
 import type { Reservation, MealDay } from '@/lib/types'
 
 function useKondateDB(dateStr: string) {
@@ -123,6 +124,8 @@ export default function MealBoard() {
     setSelectedDate(new Date())
   }
 
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
+
   return (
     <div>
       <PageHeader
@@ -132,9 +135,10 @@ export default function MealBoard() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-surface border border-border text-text-2 active:bg-primary-soft transition-colors"
           >
-            <Printer size={18} className="text-text-2" />
+            <Printer size={14} />
+            印刷
           </button>
         }
       />
@@ -146,12 +150,12 @@ export default function MealBoard() {
           onClick={() => goDay(-1)}
           className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
         >
-          <ChevronLeft size={20} className="text-text-2" />
+          <span className="text-lg text-text-2">◀</span>
         </button>
 
         <button
           type="button"
-          onClick={goToday}
+          onClick={() => setDatePickerOpen(true)}
           className="flex items-center gap-2"
         >
           <span className="text-base font-bold">
@@ -165,7 +169,7 @@ export default function MealBoard() {
           onClick={() => goDay(1)}
           className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
         >
-          <ChevronRight size={20} className="text-text-2" />
+          <span className="text-lg text-text-2">▶</span>
         </button>
       </div>
 
@@ -270,6 +274,13 @@ export default function MealBoard() {
           <p className="text-sm text-text-3 text-center py-8">この日の食事はありません</p>
         )}
       </div>
+
+      <DatePicker
+        open={datePickerOpen}
+        onClose={() => setDatePickerOpen(false)}
+        onSelect={(d) => { setSelectedDate(d); setDatePickerOpen(false) }}
+        selectedDate={selectedDate}
+      />
     </div>
   )
 }
