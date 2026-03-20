@@ -3,7 +3,8 @@
 import { useState, useRef } from 'react'
 import { format, isSameDay, parseISO } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, LogIn, LogOut, Ban, Check, X } from 'lucide-react'
+import Link from 'next/link'
+import { ChevronLeft, ChevronRight, LogIn, LogOut, Ban, Check, X, CalendarPlus } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils/cn'
@@ -156,7 +157,16 @@ export default function DayPanel({
 
       {/* ── Empty state ── */}
       {empty && blockedDates.length === 0 && (
-        <p className="text-sm text-text-3 text-center py-8">この日の予約はありません</p>
+        <div className="flex flex-col items-center py-8 gap-3">
+          <CalendarPlus size={32} className="text-text-3/40" />
+          <p className="text-sm text-text-3">この日の予約はありません</p>
+          <Link
+            href={`/reservations/new?date=${dateStr}`}
+            className="text-sm text-primary font-medium active:opacity-70"
+          >
+            ＋ 新規予約を作成
+          </Link>
+        </div>
       )}
     </div>
   )

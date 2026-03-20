@@ -12,7 +12,7 @@ export async function fetchPricing(): Promise<PricingConfig | null> {
     .eq('inn_id', innId)
     .single()
 
-  if (error) return null
+  if (error) throw error
   return data
 }
 

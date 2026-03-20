@@ -16,6 +16,7 @@ import { upsertInvoiceItems, lockInvoice } from '@/lib/api/invoices'
 import { formatDateFull, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
 import { calcLodgingTax } from '@/lib/utils/tax'
+import { useTaxPeriods } from '@/lib/hooks/useTaxPeriods'
 import { roomLabel } from '@/lib/types'
 
 type ExtraItem = { name: string; unitPrice: number; quantity: number }
@@ -25,6 +26,7 @@ export default function InvoiceView() {
   const { data: res } = useReservation(id)
   const { data: mealDays = [] } = useMealDays(id)
   const { data: pricing } = usePricing()
+  const { data: taxPeriods = [] } = useTaxPeriods()
   const updateRes = useUpdateReservation()
   const { data: presets = [] } = useInvoicePresets()
   const [extras, setExtras] = useState<ExtraItem[]>([])
@@ -80,7 +82,7 @@ export default function InvoiceView() {
 
     const subtotal = items.reduce((s, i) => s + i.amount, 0)
     const extrasTotal = extras.reduce((s, e) => s + e.unitPrice * e.quantity, 0)
-    const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin)
+    const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin, res.tax_exempt, taxPeriods)
 
     return {
       items,
@@ -90,7 +92,7 @@ export default function InvoiceView() {
       total: subtotal + extrasTotal + tax.taxAmount,
       nights,
     }
-  }, [res, mealDays, pricing, extras])
+  }, [res, mealDays, pricing, extras, taxPeriods])
 
   function addExtra() {
     if (!newName || !newPrice) return
@@ -269,36 +271,26 @@ export default function InvoiceView() {
         </Card>
 
         {/* Items table */}
-        <table className="w-full text-sm mb-4">
-          <thead>
-            <tr className="border-b border-border text-left text-text-3">
-              <th className="py-1.5 font-medium">項目</th>
-              <th className="py-1.5 font-medium text-right">単価</th>
-              <th className="py-1.5 font-medium text-right">数量</th>
-              <th className="py-1.5 font-medium text-right">金額</th>
-            </tr>
-          </thead>
-          <tbody>
-            {computed.items.map((item, i) => (
-              <tr key={i} className="border-b border-border/30">
-                <td className="py-1.5">{item.name}</td>
-                <td className="py-1.5 text-right">{item.unitPrice.toLocaleString()}</td>
-                <td className="py-1.5 text-right">{item.quantity}</td>
-                <td className="py-1.5 text-right font-medium">{item.amount.toLocaleString()}</td>
-              </tr>
-            ))}
-            {extras.map((e, i) => (
-              <tr key={`e${i}`} className="border-b border-border/30">
-                <td className="py-1.5">{e.name}</td>
-                <td className="py-1.5 text-right">{e.unitPrice.toLocaleString()}</td>
-                <td className="py-1.5 text-right">{e.quantity}</td>
-                <td className="py-1.5 text-right font-medium">
-                  {(e.unitPrice * e.quantity).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="space-y-2 mb-4">
+          {computed.items.map((item, i) => (
+            <div key={i} className="flex items-baseline justify-between text-sm border-b border-border/20 pb-1.5">
+              <div className="min-w-0 mr-3">
+                <p className="truncate">{item.name}</p>
+                <p className="text-xs text-text-3">{item.unitPrice.toLocaleString()} × {item.quantity}</p>
+              </div>
+              <span className="font-medium shrink-0">¥{item.amount.toLocaleString()}</span>
+            </div>
+          ))}
+          {extras.map((e, i) => (
+            <div key={`e${i}`} className="flex items-baseline justify-between text-sm border-b border-border/20 pb-1.5">
+              <div className="min-w-0 mr-3">
+                <p className="truncate">{e.name}</p>
+                <p className="text-xs text-text-3">{e.unitPrice.toLocaleString()} × {e.quantity}</p>
+              </div>
+              <span className="font-medium shrink-0">¥{(e.unitPrice * e.quantity).toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
 
         <div className="text-sm space-y-1 mb-6">
           <div className="flex justify-between">

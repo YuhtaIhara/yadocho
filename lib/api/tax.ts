@@ -36,6 +36,21 @@ export async function createTaxPeriod(input: {
   return data
 }
 
+export async function updateTaxPeriod(
+  id: string,
+  updates: Partial<Pick<TaxPeriod, 'rate_percent' | 'threshold' | 'effective_from' | 'effective_to' | 'notes'>>,
+): Promise<TaxPeriod> {
+  const { data, error } = await supabase
+    .from('tax_periods')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
 export async function deleteTaxPeriod(id: string): Promise<void> {
   const { error } = await supabase.from('tax_periods').delete().eq('id', id)
   if (error) throw error

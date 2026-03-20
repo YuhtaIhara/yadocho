@@ -18,7 +18,7 @@ import type { Reservation, MealDay } from '@/lib/types'
 function useKondate(dateStr: string) {
   const storageKey = `yadocho-kondate-${dateStr}`
   const [value, setValue] = useState('')
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey)

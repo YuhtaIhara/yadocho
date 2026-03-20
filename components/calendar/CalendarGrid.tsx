@@ -250,8 +250,8 @@ export default function CalendarGrid({
                   }}
                 >
                   {res.status === 'settled' && <span className="shrink-0">✓</span>}
-                  {res.guest?.name ?? '—'}
-                  {(res.adults + res.children) > 0 ? ` (${res.adults + res.children}名)` : ''}
+                  {(res.guest?.name ?? '—').split(/\s/)[0]}
+                  {(res.adults + res.children) > 0 ? `(${res.adults + res.children})` : ''}
                 </button>
               )
             })}

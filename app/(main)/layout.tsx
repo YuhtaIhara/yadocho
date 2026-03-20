@@ -20,6 +20,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       } else {
         setReady(true)
       }
+    }).catch(() => {
+      if (mounted) routerRef.current.replace('/login')
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

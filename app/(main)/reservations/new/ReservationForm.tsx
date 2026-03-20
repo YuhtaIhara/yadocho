@@ -22,6 +22,7 @@ import { upsertMealDays } from '@/lib/api/meals'
 import { nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
 import { calcLodgingTax } from '@/lib/utils/tax'
+import { useTaxPeriods } from '@/lib/hooks/useTaxPeriods'
 import { cn } from '@/lib/utils/cn'
 import type { Guest, MealDay } from '@/lib/types'
 
@@ -148,6 +149,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
 
   const { data: rooms = [] } = useRooms()
   const { data: pricing } = usePricing()
+  const { data: taxPeriods = [] } = useTaxPeriods()
   const createRes = useCreateReservation()
   const updateRes = useUpdateReservation()
 
@@ -260,13 +262,13 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       (lunch ? lA * lp + lC * clp : 0)
     const meal = mealPerNight * nights
 
-    const tax = calcLodgingTax(adultPrice, adults, nights, checkin)
+    const tax = calcLodgingTax(adultPrice, adults, nights, checkin, false, taxPeriods)
 
     return { stay, meal, tax: tax.taxAmount, total: stay + meal + tax.taxAmount, roomCount }
   }, [
     nights, adultPrice, adults, childPrice, children,
     dinner, breakfast, lunch, dinnerCount, breakfastCount, lunchCount,
-    pricing, checkin, roomCount,
+    pricing, checkin, roomCount, taxPeriods,
   ])
 
   async function handleGuestSearch(input: string) {
@@ -293,7 +295,8 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       if (guests.length === 0 && !isDigitsOnly) {
         setShowNewGuest(true)
       }
-    } catch {
+    } catch (err) {
+      console.error('ゲスト検索に失敗:', err)
       setSuggestions([])
     }
   }
@@ -577,7 +580,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
 
         {/* ── 日程 ── */}
         <Section title="日程">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-3">
             <Input
               label="チェックイン"
               type="date"
@@ -591,6 +594,9 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
               error={errors.checkout?.message}
             />
           </div>
+          {checkin && checkout && checkout <= checkin && (
+            <p className="text-sm text-danger mt-2">チェックアウトはチェックインより後の日付にしてください</p>
+          )}
           {nights > 0 && (
             <p className="text-sm text-text-2 mt-2">
               {nights}泊 · 空き{' '}

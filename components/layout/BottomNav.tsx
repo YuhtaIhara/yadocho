@@ -5,11 +5,11 @@ import { usePathname } from 'next/navigation'
 import { CalendarDays, UtensilsCrossed, Plus, Receipt, Menu } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/calendar', label: 'カレンダー', icon: CalendarDays },
+  { href: '/calendar', label: '予定', icon: CalendarDays },
   { href: '/meals', label: '食事', icon: UtensilsCrossed },
-  { href: '/reservations/new', label: '新規予約', icon: Plus, isCenter: true },
+  { href: '/reservations/new', label: '', icon: Plus, isCenter: true },
   { href: '/billing', label: '請求', icon: Receipt },
-  { href: '/menu', label: 'メニュー', icon: Menu },
+  { href: '/menu', label: 'その他', icon: Menu },
 ] as const
 
 export default function BottomNav() {
@@ -36,7 +36,7 @@ export default function BottomNav() {
                 <span className="flex items-center justify-center w-[52px] h-[52px] rounded-full shadow-elevated bg-primary active:scale-95 transition-transform">
                   <Icon size={26} strokeWidth={2.2} className="text-primary-foreground" />
                 </span>
-                <span className="text-[11px] font-medium text-primary mt-0.5">{label}</span>
+                {label && <span className="text-[11px] font-medium text-primary mt-0.5">{label}</span>}
               </Link>
             )
           }

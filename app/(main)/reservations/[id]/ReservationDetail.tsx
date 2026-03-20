@@ -12,6 +12,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useReservation, useUpdateReservation, useDeleteReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
+import { useTaxPeriods } from '@/lib/hooks/useTaxPeriods'
 import MealEditor from '@/components/MealEditor'
 import { formatDateJP, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
@@ -33,6 +34,7 @@ export default function ReservationDetail() {
   const { data: res, isLoading } = useReservation(id)
   const { data: mealDays = [] } = useMealDays(id)
   const { data: pricing } = usePricing()
+  const { data: taxPeriods = [] } = useTaxPeriods()
   const queryClient = useQueryClient()
   const updateRes = useUpdateReservation()
   const deleteRes = useDeleteReservation()
@@ -60,7 +62,7 @@ export default function ReservationDetail() {
   const nights = nightCount(res.checkin, res.checkout)
   const stayCost = (res.adult_price * res.adults + res.child_price * res.children) * nights
   const mealCost = calcMealCost(mealDays, pricing)
-  const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin)
+  const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin, res.tax_exempt, taxPeriods)
   const total = stayCost + mealCost + tax.taxAmount
 
   function handleStatusChange(status: ReservationStatus) {

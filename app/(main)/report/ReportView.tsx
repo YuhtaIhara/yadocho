@@ -22,6 +22,7 @@ import { calcMealCost } from '@/lib/utils/pricing'
 import { toDateStr } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
 import { calcLodgingTax } from '@/lib/utils/tax'
+import { useTaxPeriods } from '@/lib/hooks/useTaxPeriods'
 import { supabase } from '@/lib/supabase'
 import type { MealDay, InvoiceItem } from '@/lib/types'
 
@@ -33,6 +34,7 @@ export default function ReportView() {
 
   const { data: reservations = [] } = useReservations(from, to)
   const { data: pricing } = usePricing()
+  const { data: taxPeriods = [] } = useTaxPeriods()
 
   const reservationIds = useMemo(
     () => reservations.map(r => r.id),
@@ -85,7 +87,7 @@ export default function ReportView() {
       totalNights += nights
       stayRevenue += (res.adult_price * res.adults + res.child_price * res.children) * nights
 
-      const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin, res.tax_exempt)
+      const tax = calcLodgingTax(res.adult_price, res.adults, nights, res.checkin, res.tax_exempt, taxPeriods)
       taxCollected += tax.taxAmount
     }
 
@@ -160,15 +162,15 @@ export default function ReportView() {
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3">
           <Card className="text-center py-3">
-            <p className="text-2xl font-bold">{report.totalReservations}</p>
+            <p className="text-2xl font-bold text-primary">{report.totalReservations}</p>
             <p className="text-xs text-text-3 mt-1">予約数</p>
           </Card>
           <Card className="text-center py-3">
-            <p className="text-2xl font-bold">{report.totalGuests}</p>
+            <p className="text-2xl font-bold text-primary">{report.totalGuests}</p>
             <p className="text-xs text-text-3 mt-1">ゲスト数</p>
           </Card>
           <Card className="text-center py-3">
-            <p className="text-2xl font-bold">{report.totalNights}</p>
+            <p className="text-2xl font-bold text-primary">{report.totalNights}</p>
             <p className="text-xs text-text-3 mt-1">延べ泊数</p>
           </Card>
         </div>

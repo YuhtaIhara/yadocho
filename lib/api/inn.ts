@@ -12,7 +12,7 @@ export async function fetchInn(): Promise<Inn | null> {
     .eq('id', innId)
     .single()
 
-  if (error) return null
+  if (error) throw error
   return data
 }
 

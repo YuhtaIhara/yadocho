@@ -51,12 +51,12 @@ export default function GuestList() {
                 <div className="flex items-center justify-between">
                   <div className="min-w-0">
                     <p className="text-sm font-bold truncate">{g.name}</p>
-                    <p className="text-xs text-text-2 mt-0.5">
-                      {g.phone ?? '電話番号なし'}
-                      {g.allergy && (
-                        <span className="text-danger ml-2">⚠ {g.allergy}</span>
-                      )}
-                    </p>
+                    <p className="text-xs text-text-2 mt-0.5">{g.phone ?? '電話番号なし'}</p>
+                    {g.allergy && (
+                      <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-danger-soft text-danger text-xs font-medium">
+                        ⚠ {g.allergy}
+                      </span>
+                    )}
                   </div>
                 </div>
               </Card>

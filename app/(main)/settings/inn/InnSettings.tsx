@@ -70,8 +70,13 @@ export default function InnSettings() {
           onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
         />
         <Button size="lg" className="w-full" onClick={handleSave} disabled={saving}>
-          {saved ? '保存しました ✓' : saving ? '保存中…' : '保存'}
+          {saving ? '保存中…' : '保存'}
         </Button>
+        {saved && (
+          <div className="animate-fade-in-up text-center py-2 px-4 rounded-xl bg-accent/10 text-accent text-sm font-medium">
+            保存しました ✓
+          </div>
+        )}
       </div>
     </div>
   )
