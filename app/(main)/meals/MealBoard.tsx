@@ -1,41 +1,47 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { format, addDays, subDays, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, ChevronDown, Printer, AlertTriangle } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Textarea } from '@/components/ui/Textarea'
 import { useReservations } from '@/lib/hooks/useReservations'
 import { useMealDaysForDate } from '@/lib/hooks/useMealDays'
+import { fetchKondate, upsertKondate } from '@/lib/api/kondate'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
 import { roomLabel } from '@/lib/types'
 import type { Reservation, MealDay } from '@/lib/types'
 
-function useKondate(dateStr: string) {
-  const storageKey = `yadocho-kondate-${dateStr}`
-  const [value, setValue] = useState('')
+function useKondateDB(dateStr: string) {
+  const qc = useQueryClient()
+  const { data } = useQuery({
+    queryKey: ['kondate', dateStr],
+    queryFn: () => fetchKondate(dateStr),
+  })
   const [expanded, setExpanded] = useState(true)
+  const [localValue, setLocalValue] = useState<string | null>(null)
 
-  useEffect(() => {
-    const saved = localStorage.getItem(storageKey)
-    setValue(saved ?? '')
-  }, [storageKey])
+  const value = localValue ?? data?.content ?? ''
 
   const save = useCallback(
     (text: string) => {
-      setValue(text)
-      if (text.trim()) {
-        localStorage.setItem(storageKey, text)
-      } else {
-        localStorage.removeItem(storageKey)
-      }
+      setLocalValue(text)
+      upsertKondate(dateStr, text).then(() => {
+        qc.invalidateQueries({ queryKey: ['kondate', dateStr] })
+      })
     },
-    [storageKey],
+    [dateStr, qc],
   )
+
+  // Reset local value when date changes
+  if (localValue !== null && data?.content === localValue) {
+    setLocalValue(null)
+  }
 
   return { value, save, expanded, setExpanded }
 }
@@ -44,7 +50,7 @@ export default function MealBoard() {
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const dateStr = toDateStr(selectedDate)
   const isToday = isSameDay(selectedDate, new Date())
-  const kondate = useKondate(dateStr)
+  const kondate = useKondateDB(dateStr)
 
   // Fetch reservations covering the selected date
   const from = toDateStr(subDays(selectedDate, 1))
@@ -211,34 +217,28 @@ export default function MealBoard() {
           )}
         </div>
 
-        {/* Breakfast */}
-        <MealSection title="朝食" count={totalBreakfast}>
-          {breakfastItems.length === 0 ? (
-            <p className="text-sm text-text-3">なし</p>
-          ) : (
-            breakfastItems.map(m => (
+        {/* Breakfast — 1名以上のみ表示 */}
+        {totalBreakfast > 0 && (
+          <MealSection title="朝食" count={totalBreakfast}>
+            {breakfastItems.map(m => (
               <MealCard key={m.id} meal={m} type="breakfast" />
-            ))
-          )}
-        </MealSection>
+            ))}
+          </MealSection>
+        )}
 
-        {/* Lunch */}
-        <MealSection title="昼食" count={totalLunch}>
-          {lunchItems.length === 0 ? (
-            <p className="text-sm text-text-3">なし</p>
-          ) : (
-            lunchItems.map(m => (
+        {/* Lunch — 1名以上のみ表示 */}
+        {totalLunch > 0 && (
+          <MealSection title="昼食" count={totalLunch}>
+            {lunchItems.map(m => (
               <MealCard key={m.id} meal={m} type="lunch" />
-            ))
-          )}
-        </MealSection>
+            ))}
+          </MealSection>
+        )}
 
-        {/* Dinner */}
-        <MealSection title="夕食" count={totalDinner}>
-          {dinnerItems.length === 0 ? (
-            <p className="text-sm text-text-3">なし</p>
-          ) : (
-            dinnerByTime.map(([time, items]) => (
+        {/* Dinner — 1名以上のみ表示 */}
+        {totalDinner > 0 && (
+          <MealSection title="夕食" count={totalDinner}>
+            {dinnerByTime.map(([time, items]) => (
               <div key={time}>
                 <p className="text-xs font-semibold text-text-3 mb-1 mt-2">
                   {time} — {items.reduce((s, m) => s + m.dinner_adults + m.dinner_children, 0)}名
@@ -247,9 +247,9 @@ export default function MealBoard() {
                   <MealCard key={m.id} meal={m} type="dinner" />
                 ))}
               </div>
-            ))
-          )}
-        </MealSection>
+            ))}
+          </MealSection>
+        )}
 
         {/* Allergies */}
         {allergies.length > 0 && (

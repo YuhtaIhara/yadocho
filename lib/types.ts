@@ -130,6 +130,14 @@ export type PricingConfig = {
   updated_at: string
 }
 
+export type Kondate = {
+  id: string
+  inn_id: string
+  date: string
+  content: string
+  updated_at: string
+}
+
 export type TaxPeriod = {
   id: string
   inn_id: string
