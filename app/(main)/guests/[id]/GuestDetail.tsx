@@ -51,16 +51,21 @@ export default function GuestDetail() {
   }
 
   async function saveEdit() {
-    await updateGuest(id, {
-      name: form.name,
-      phone: form.phone || undefined,
-      email: form.email || undefined,
-      address: form.address || undefined,
-      allergy: form.allergy || undefined,
-      notes: form.notes || undefined,
-    })
-    qc.invalidateQueries({ queryKey: ['guest', id] })
-    setEditing(false)
+    try {
+      await updateGuest(id, {
+        name: form.name,
+        phone: form.phone || null,
+        email: form.email || null,
+        address: form.address || null,
+        allergy: form.allergy || null,
+        notes: form.notes || null,
+      })
+      qc.invalidateQueries({ queryKey: ['guest', id] })
+      qc.invalidateQueries({ queryKey: ['guests'] })
+      setEditing(false)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '保存に失敗しました')
+    }
   }
 
   async function handleDelete() {
