@@ -161,6 +161,22 @@ export async function updateReservation(
     if (error) throw error
   }
 
+  // Clean up orphaned meal_days if dates changed
+  if (fields.checkin || fields.checkout) {
+    const { data: updated } = await supabase
+      .from('reservations')
+      .select('checkin, checkout')
+      .eq('id', id)
+      .single()
+    if (updated) {
+      await supabase
+        .from('meal_days')
+        .delete()
+        .eq('reservation_id', id)
+        .or(`date.lt.${updated.checkin},date.gte.${updated.checkout}`)
+    }
+  }
+
   // Update room links if provided
   if (room_ids) {
     await supabase.from('reservation_rooms').delete().eq('reservation_id', id)
