@@ -24,8 +24,8 @@ import { roomLabel, STATUS_LABELS, type ReservationStatus } from '@/lib/types'
 const STATUS_OPTIONS: ReservationStatus[] = ['scheduled', 'checked_in', 'settled', 'cancelled']
 const STATUS_BADGE: Record<string, 'default' | 'accent' | 'warning' | 'danger' | 'outline'> = {
   scheduled: 'default',
-  checked_in: 'warning',
-  settled: 'accent',
+  checked_in: 'accent',
+  settled: 'outline',
   cancelled: 'danger',
 }
 

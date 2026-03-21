@@ -21,8 +21,8 @@ const STATUS_FILTERS: { value: ReservationStatus | 'all'; label: string }[] = [
 
 const STATUS_BADGE: Record<string, 'default' | 'accent' | 'warning' | 'danger' | 'outline'> = {
   scheduled: 'default',
-  checked_in: 'warning',
-  settled: 'accent',
+  checked_in: 'accent',
+  settled: 'outline',
   cancelled: 'danger',
 }
 

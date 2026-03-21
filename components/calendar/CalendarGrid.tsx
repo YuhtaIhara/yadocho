@@ -21,8 +21,8 @@ const BAR_H = ROW_H - BAR_Y * 2
 
 const BAR_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   scheduled:  { bg: '#E8A65D', text: '#FFFFFF', border: '#D49548' },
-  checked_in: { bg: '#8B7EB8', text: '#FFFFFF', border: '#7A6DA7' },
-  settled:    { bg: '#5B9A6E', text: '#FFFFFF', border: '#4A8A5D' },
+  checked_in: { bg: '#5B9A6E', text: '#FFFFFF', border: '#4A8A5D' },
+  settled:    { bg: '#9B9490', text: '#FFFFFF', border: '#8A8380' },
 }
 
 type Props = {
