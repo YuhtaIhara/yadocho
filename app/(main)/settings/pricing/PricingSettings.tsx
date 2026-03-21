@@ -14,39 +14,53 @@ import type { PricingPlan } from '@/lib/types'
 
 type FormState = {
   name: string
-  adult_price: number
-  child_price: number
-  dinner_price: number
-  child_dinner_price: number
-  breakfast_price: number
-  child_breakfast_price: number
-  lunch_price: number
-  child_lunch_price: number
+  adult_price: string
+  child_price: string
+  dinner_price: string
+  child_dinner_price: string
+  breakfast_price: string
+  child_breakfast_price: string
+  lunch_price: string
+  child_lunch_price: string
 }
 
 const EMPTY_FORM: FormState = {
   name: '',
-  adult_price: 8500,
-  child_price: 5000,
-  dinner_price: 2000,
-  child_dinner_price: 1500,
-  breakfast_price: 800,
-  child_breakfast_price: 500,
-  lunch_price: 0,
-  child_lunch_price: 0,
+  adult_price: '8500',
+  child_price: '5000',
+  dinner_price: '2000',
+  child_dinner_price: '1500',
+  breakfast_price: '800',
+  child_breakfast_price: '500',
+  lunch_price: '0',
+  child_lunch_price: '0',
 }
 
 function planToForm(plan: PricingPlan): FormState {
   return {
     name: plan.name,
-    adult_price: plan.adult_price,
-    child_price: plan.child_price,
-    dinner_price: plan.dinner_price,
-    child_dinner_price: plan.child_dinner_price,
-    breakfast_price: plan.breakfast_price,
-    child_breakfast_price: plan.child_breakfast_price,
-    lunch_price: plan.lunch_price,
-    child_lunch_price: plan.child_lunch_price,
+    adult_price: String(plan.adult_price),
+    child_price: String(plan.child_price),
+    dinner_price: String(plan.dinner_price),
+    child_dinner_price: String(plan.child_dinner_price),
+    breakfast_price: String(plan.breakfast_price),
+    child_breakfast_price: String(plan.child_breakfast_price),
+    lunch_price: String(plan.lunch_price),
+    child_lunch_price: String(plan.child_lunch_price),
+  }
+}
+
+function formToNumbers(form: FormState) {
+  return {
+    name: form.name,
+    adult_price: Math.max(0, parseInt(form.adult_price) || 0),
+    child_price: Math.max(0, parseInt(form.child_price) || 0),
+    dinner_price: Math.max(0, parseInt(form.dinner_price) || 0),
+    child_dinner_price: Math.max(0, parseInt(form.child_dinner_price) || 0),
+    breakfast_price: Math.max(0, parseInt(form.breakfast_price) || 0),
+    child_breakfast_price: Math.max(0, parseInt(form.child_breakfast_price) || 0),
+    lunch_price: Math.max(0, parseInt(form.lunch_price) || 0),
+    child_lunch_price: Math.max(0, parseInt(form.child_lunch_price) || 0),
   }
 }
 
@@ -62,8 +76,7 @@ export default function PricingSettings() {
   const [saving, setSaving] = useState(false)
 
   function set(key: keyof FormState, val: string) {
-    if (key === 'name') setForm(f => ({ ...f, name: val }))
-    else setForm(f => ({ ...f, [key]: Math.max(0, parseInt(val) || 0) }))
+    setForm(f => ({ ...f, [key]: val }))
   }
 
   function startNew() {
@@ -90,16 +103,17 @@ export default function PricingSettings() {
       const innId = await getInnId()
       if (!innId) throw new Error('ログインが必要です')
 
+      const numbers = formToNumbers(form)
       if (editing === 'new') {
         await createPlan.mutateAsync({
           inn_id: innId,
-          ...form,
+          ...numbers,
           is_default: plans.length === 0,
           sort_order: plans.length,
         })
         showToast('プランを追加しました')
       } else if (editing) {
-        await updatePlan.mutateAsync({ id: editing, ...form })
+        await updatePlan.mutateAsync({ id: editing, ...numbers })
         showToast('プランを更新しました')
       }
       setEditing(null)
