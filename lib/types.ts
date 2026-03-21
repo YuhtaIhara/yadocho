@@ -44,11 +44,12 @@ export type Guest = {
   updated_at: string
 }
 
-export type ReservationStatus = 'scheduled' | 'settled' | 'cancelled'
+export type ReservationStatus = 'scheduled' | 'checked_in' | 'settled' | 'cancelled'
 
 export const STATUS_LABELS: Record<ReservationStatus, string> = {
   scheduled: '予約済み',
-  settled: '済',
+  checked_in: 'チェックイン',
+  settled: '精算済み',
   cancelled: 'キャンセル',
 }
 

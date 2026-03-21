@@ -21,11 +21,18 @@ import { calcMealCost, getMealPrices } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils/cn'
 import { roomLabel, STATUS_LABELS, type ReservationStatus } from '@/lib/types'
 
-const STATUS_OPTIONS: ReservationStatus[] = ['scheduled', 'settled', 'cancelled']
+const STATUS_OPTIONS: ReservationStatus[] = ['scheduled', 'checked_in', 'settled', 'cancelled']
 const STATUS_BADGE: Record<string, 'default' | 'accent' | 'warning' | 'danger' | 'outline'> = {
   scheduled: 'default',
+  checked_in: 'warning',
   settled: 'accent',
   cancelled: 'danger',
+}
+
+/** Next forward status in the lifecycle */
+const NEXT_STATUS: Partial<Record<ReservationStatus, { status: ReservationStatus; label: string }>> = {
+  scheduled: { status: 'checked_in', label: 'チェックインする' },
+  checked_in: { status: 'settled', label: '精算する' },
 }
 
 export default function ReservationDetail() {
@@ -300,9 +307,21 @@ export default function ReservationDetail() {
           </div>
         </Card>
 
+        {/* Status transition */}
+        {NEXT_STATUS[res.status] && (
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={() => handleStatusChange(NEXT_STATUS[res.status]!.status)}
+          >
+            {NEXT_STATUS[res.status]!.label}
+          </Button>
+        )}
+
         {/* Actions */}
         <div className="space-y-2">
           <Button
+            variant={NEXT_STATUS[res.status] ? 'secondary' : 'primary'}
             size="lg"
             className="w-full"
             onClick={() => router.push(`/billing/${id}`)}
