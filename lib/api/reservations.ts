@@ -39,6 +39,7 @@ export async function searchReservations(): Promise<Reservation[]> {
     .select(SELECT)
     .eq('inn_id', innId)
     .order('checkin', { ascending: false })
+    .limit(500)
 
   if (error) throw error
   return (data ?? []).map(flattenRooms)
@@ -64,19 +65,18 @@ async function checkDoubleBooking(
   checkout: string,
   excludeReservationId?: string,
 ) {
-  for (const roomId of roomIds) {
-    const { data: links } = await supabase
-      .from('reservation_rooms')
-      .select('reservation_id, reservations!inner(checkin, checkout, status)')
-      .eq('room_id', roomId)
-    if (!links) continue
-    for (const link of links) {
-      const r = (link as Record<string, any>).reservations as { checkin: string; checkout: string; status: string } | null
-      if (!r || r.status === 'cancelled') continue
-      if (excludeReservationId && link.reservation_id === excludeReservationId) continue
-      if (r.checkin < checkout && r.checkout > checkin) {
-        throw new Error('この期間は既に予約が入っています（部屋の空きがありません）')
-      }
+  if (roomIds.length === 0) return
+  const { data: links } = await supabase
+    .from('reservation_rooms')
+    .select('reservation_id, room_id, reservations!inner(checkin, checkout, status)')
+    .in('room_id', roomIds)
+  if (!links) return
+  for (const link of links) {
+    const r = (link as Record<string, any>).reservations as { checkin: string; checkout: string; status: string } | null
+    if (!r || r.status === 'cancelled') continue
+    if (excludeReservationId && link.reservation_id === excludeReservationId) continue
+    if (r.checkin < checkout && r.checkout > checkin) {
+      throw new Error('この期間は既に予約が入っています（部屋の空きがありません）')
     }
   }
 }
@@ -155,14 +155,16 @@ export async function updateReservation(
 ): Promise<Reservation> {
   const { room_ids, ...fields } = updates
 
+  // Fetch current state ONCE for all validations
+  const { data: current } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (!current) throw new Error('予約が見つかりません')
+
   // Validate status transition
   if (fields.status) {
-    const { data: current } = await supabase
-      .from('reservations')
-      .select('status')
-      .eq('id', id)
-      .single()
-    if (!current) throw new Error('予約が見つかりません')
     const allowed = STATUS_TRANSITIONS[current.status] ?? []
     if (!allowed.includes(fields.status)) {
       const STATUS_JP: Record<string, string> = {
@@ -174,26 +176,15 @@ export async function updateReservation(
 
   // Block edits to settled reservations (except status changes)
   if (Object.keys(fields).some(k => k !== 'status') || room_ids) {
-    const { data: current } = await supabase
-      .from('reservations')
-      .select('status')
-      .eq('id', id)
-      .single()
-    if (current?.status === 'settled') {
+    if (current.status === 'settled') {
       throw new Error('精算済みの予約は編集できません')
     }
   }
 
   // Double booking check if dates or rooms changed
   if (fields.checkin || fields.checkout || room_ids) {
-    const { data: current } = await supabase
-      .from('reservations')
-      .select('checkin, checkout')
-      .eq('id', id)
-      .single()
-    const checkin = fields.checkin ?? current?.checkin ?? ''
-    const checkout = fields.checkout ?? current?.checkout ?? ''
-    // Get current room_ids if not being changed
+    const checkin = fields.checkin ?? current.checkin
+    const checkout = fields.checkout ?? current.checkout
     let checkRoomIds = room_ids
     if (!checkRoomIds) {
       const { data: rr } = await supabase
@@ -207,25 +198,18 @@ export async function updateReservation(
     }
   }
 
-  // Record change history
+  // Record change history (using `current` fetched above)
   if (Object.keys(fields).length > 0) {
-    const { data: before } = await supabase
-      .from('reservations')
-      .select('*')
-      .eq('id', id)
-      .single()
-    if (before) {
-      const historyRows = Object.entries(fields)
-        .filter(([key, val]) => String(before[key as keyof typeof before] ?? '') !== String(val ?? ''))
-        .map(([key, val]) => ({
-          reservation_id: id,
-          field_name: key,
-          old_value: String(before[key as keyof typeof before] ?? ''),
-          new_value: String(val ?? ''),
-        }))
-      if (historyRows.length > 0) {
-        await supabase.from('reservation_history').insert(historyRows)
-      }
+    const historyRows = Object.entries(fields)
+      .filter(([key, val]) => String(current[key as keyof typeof current] ?? '') !== String(val ?? ''))
+      .map(([key, val]) => ({
+        reservation_id: id,
+        field_name: key,
+        old_value: String(current[key as keyof typeof current] ?? ''),
+        new_value: String(val ?? ''),
+      }))
+    if (historyRows.length > 0) {
+      await supabase.from('reservation_history').insert(historyRows)
     }
   }
 

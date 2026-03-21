@@ -140,6 +140,7 @@ export default function CalendarView() {
             <button
               type="button"
               onClick={() => handleDayNav(-1)}
+              aria-label="前の日"
               className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
             >
               <span className="text-[18px] text-text-2">◀</span>
@@ -154,6 +155,7 @@ export default function CalendarView() {
             <button
               type="button"
               onClick={() => handleDayNav(1)}
+              aria-label="次の日"
               className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
             >
               <span className="text-[18px] text-text-2">▶</span>

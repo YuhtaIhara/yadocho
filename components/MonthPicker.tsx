@@ -44,7 +44,7 @@ export default function MonthPicker({ open, onClose, onSelect, currentMonth }: P
   return (
     <>
       <div className="fixed inset-0 bg-black/20 z-40" />
-      <div ref={ref} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[300px] bg-surface rounded-2xl shadow-elevated animate-fade-in">
+      <div ref={ref} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(300px,calc(100%-2rem))] bg-surface rounded-2xl shadow-elevated animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
           <button
