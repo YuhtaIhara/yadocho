@@ -24,8 +24,8 @@ export default function GuestDetail() {
   const qc = useQueryClient()
   const { showToast } = useToast()
   const { data: guest, isLoading } = useGuest(id)
-  const from = toDateStr(subYears(new Date(), 3))
-  const to = toDateStr(new Date())
+  const from = toDateStr(subYears(new Date(), 5))
+  const to = '2030-12-31' // Include future reservations
   const { data: allRes = [] } = useReservations(from, to)
   const history = allRes.filter(r => r.guest_id === id).sort((a, b) => b.checkin.localeCompare(a.checkin))
 

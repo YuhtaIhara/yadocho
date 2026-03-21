@@ -23,7 +23,7 @@ import { formatYen } from '@/lib/utils/format'
 import { getMealPrices } from '@/lib/utils/pricing'
 import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
 import { useTaxData } from '@/lib/hooks/useTaxRules'
-import { roomLabel } from '@/lib/types'
+import { roomLabel, PAYMENT_METHODS } from '@/lib/types'
 
 type ExtraItem = { name: string; unitPrice: number; quantity: number }
 
@@ -46,6 +46,7 @@ export default function InvoiceView() {
   const [settleSuccess, setSettleSuccess] = useState(false)
   const [settleError, setSettleError] = useState('')
   const [undoOpen, setUndoOpen] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('cash')
 
   // Load saved extras from DB when viewing a settled invoice
   useEffect(() => {
@@ -191,7 +192,7 @@ export default function InvoiceView() {
       await upsertInvoiceItems(res.id, allItems)
       await lockInvoice(res.id)
       if (res.status !== 'settled') {
-        await updateRes.mutateAsync({ id: res.id, status: 'settled' })
+        await updateRes.mutateAsync({ id: res.id, status: 'settled', payment_method: paymentMethod })
       }
       setConfirmOpen(false)
       setSettleSuccess(true)
@@ -400,9 +401,25 @@ export default function InvoiceView() {
             <p className="text-sm text-text-2 mb-1">ご請求金額（税込）</p>
             <p className="text-2xl font-medium">{formatYen(computed.total)}</p>
           </div>
-          <p className="text-sm text-text-2 text-center">
-            この金額で精算します。よろしいですか？
-          </p>
+          <div>
+            <p className="text-[15px] text-text-2 text-center mb-2">お支払い方法</p>
+            <div className="flex gap-2 justify-center flex-wrap">
+              {PAYMENT_METHODS.map(m => (
+                <button
+                  key={m.value}
+                  type="button"
+                  onClick={() => setPaymentMethod(m.value)}
+                  className={`px-4 py-2 rounded-full text-[15px] font-medium transition-colors min-h-[44px] ${
+                    paymentMethod === m.value
+                      ? 'bg-primary text-white'
+                      : 'bg-surface border border-border text-text-2'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
           {settleError && (
             <p className="text-sm text-danger text-center">{settleError}</p>
           )}

@@ -42,6 +42,23 @@ export type Guest = {
 
 export type ReservationStatus = 'scheduled' | 'checked_in' | 'settled' | 'cancelled'
 
+export const PAYMENT_METHODS = [
+  { value: 'cash', label: '現金' },
+  { value: 'card', label: 'カード' },
+  { value: 'transfer', label: '振込' },
+  { value: 'other', label: 'その他' },
+] as const
+
+export const SOURCE_OPTIONS = [
+  { value: 'phone', label: '電話' },
+  { value: 'walk_in', label: '直接来店' },
+  { value: 'web', label: 'Web' },
+  { value: 'booking_com', label: 'Booking.com' },
+  { value: 'jalan', label: 'じゃらん' },
+  { value: 'airbnb', label: 'Airbnb' },
+  { value: 'other', label: 'その他' },
+] as const
+
 export const STATUS_LABELS: Record<ReservationStatus, string> = {
   scheduled: '予約済み',
   checked_in: 'チェックイン',
@@ -71,6 +88,9 @@ export type Reservation = {
   status: ReservationStatus
   tax_exempt: boolean
   tax_exempt_reason: string | null
+  payment_method: string | null
+  payment_note: string | null
+  source: string | null
   notes: string | null
   created_at: string
   updated_at: string

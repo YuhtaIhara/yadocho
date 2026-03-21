@@ -67,6 +67,10 @@ export default function DailyReportView() {
   const grandTotal = rows.reduce((s, r) => s + r.total, 0)
   const stayTotal = rows.reduce((s, r) => s + r.stayCost, 0)
   const taxTotal = rows.reduce((s, r) => s + r.tax, 0)
+  const settledRows = rows.filter(r => r.res.status === 'settled')
+  const unsettledRows = rows.filter(r => r.res.status !== 'settled')
+  const settledTotal = settledRows.reduce((s, r) => s + r.total, 0)
+  const unsettledTotal = unsettledRows.reduce((s, r) => s + r.total, 0)
 
   return (
     <div>
@@ -112,16 +116,16 @@ export default function DailyReportView() {
             <p className="text-xs text-text-3 mt-1">予約数</p>
           </Card>
           <Card className="text-center py-3">
-            <p className="text-2xl font-medium text-primary">
-              {rows.reduce((s, r) => s + r.res.adults + r.res.children, 0)}
-            </p>
-            <p className="text-xs text-text-3 mt-1">ゲスト数</p>
-          </Card>
-          <Card className="text-center py-3">
             <p className="text-xl font-medium text-primary">
               {formatYen(grandTotal)}
             </p>
             <p className="text-xs text-text-3 mt-1">売上合計</p>
+          </Card>
+          <Card className="text-center py-3">
+            <p className="text-xl font-medium" style={{ color: unsettledRows.length > 0 ? 'var(--color-booked)' : 'var(--color-checkin)' }}>
+              {settledRows.length}/{rows.length}
+            </p>
+            <p className="text-xs text-text-3 mt-1">精算済み</p>
           </Card>
         </div>
 

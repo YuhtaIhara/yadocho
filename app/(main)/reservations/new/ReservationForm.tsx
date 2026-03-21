@@ -30,6 +30,7 @@ import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { cn } from '@/lib/utils/cn'
 import DatePicker from '@/components/DatePicker'
 import { Calendar } from 'lucide-react'
+import { SOURCE_OPTIONS } from '@/lib/types'
 import type { Guest, MealDay } from '@/lib/types'
 
 const phoneSchema = z
@@ -53,6 +54,7 @@ const schema = z
     guest_address: z.string().optional(),
     guest_allergy: z.string().optional(),
     guest_notes: z.string().optional(),
+    source: z.string().optional(),
     checkin: z.string().min(1, 'チェックイン日を選択'),
     checkout: z.string().min(1, 'チェックアウト日を選択'),
     adults: z.number().min(1),
@@ -94,6 +96,7 @@ type Props = {
     child_price: number
     checkin_time: string | null
     pricing_plan_id: string | null
+    source: string | null
     tax_exempt: boolean
     tax_exempt_reason: string | null
     notes: string | null
@@ -196,6 +199,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       guest_address: '',
       guest_allergy: '',
       guest_notes: '',
+      source: initialData?.source ?? 'phone',
       checkin: defaultCheckin,
       checkout: defaultCheckout,
       adults: initialData?.adults ?? 1,
@@ -521,6 +525,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
           tax_exempt: data.tax_exempt,
           tax_exempt_reason: data.tax_exempt_reason || undefined,
           notes: data.notes || undefined,
+          source: data.source || 'phone',
         })
 
         await createMealDays(res.id, {
@@ -697,6 +702,33 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
               />
             </div>
           )}
+        </Section>
+
+        {/* ── 予約ソース ── */}
+        <Section title="予約経路">
+          <Controller
+            name="source"
+            control={control}
+            render={({ field }) => (
+              <div className="flex gap-2 flex-wrap">
+                {SOURCE_OPTIONS.map(s => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => field.onChange(s.value)}
+                    className={cn(
+                      'px-3 py-2 rounded-xl text-sm font-medium transition-colors min-h-[44px]',
+                      field.value === s.value
+                        ? 'bg-primary text-white'
+                        : 'bg-surface border border-border text-text-2',
+                    )}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          />
         </Section>
 
         {/* ── 料金プラン ── */}

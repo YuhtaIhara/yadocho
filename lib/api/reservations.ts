@@ -55,6 +55,32 @@ export async function fetchReservation(id: string): Promise<Reservation | null> 
   return data ? flattenRooms(data) : null
 }
 
+/** Check for double booking: any room already booked for the date range */
+async function checkDoubleBooking(
+  roomIds: string[],
+  checkin: string,
+  checkout: string,
+  excludeReservationId?: string,
+) {
+  for (const roomId of roomIds) {
+    let query = supabase
+      .from('reservation_rooms')
+      .select('reservation_id, reservations!inner(checkin, checkout, status)')
+      .eq('room_id', roomId)
+    const { data: links } = await query
+    if (!links) continue
+    for (const link of links) {
+      const r = (link as any).reservations
+      if (!r || r.status === 'cancelled') continue
+      if (excludeReservationId && link.reservation_id === excludeReservationId) continue
+      // Overlap check: r.checkin < checkout && r.checkout > checkin
+      if (r.checkin < checkout && r.checkout > checkin) {
+        throw new Error(`この期間は既に予約が入っています（部屋の空きがありません）`)
+      }
+    }
+  }
+}
+
 export async function createReservation(input: {
   room_ids: string[]
   guest_id: string
@@ -68,6 +94,7 @@ export async function createReservation(input: {
   notes?: string
   tax_exempt?: boolean
   tax_exempt_reason?: string
+  source?: string
 }): Promise<Reservation> {
   // Server-side validation
   if (input.adult_price < 0 || input.child_price < 0) {
@@ -76,6 +103,9 @@ export async function createReservation(input: {
   if (!input.room_ids || input.room_ids.length === 0) {
     throw new Error('部屋を1つ以上選択してください')
   }
+
+  // Double booking check
+  await checkDoubleBooking(input.room_ids, input.checkin, input.checkout)
 
   const innId = await getInnId()
   if (!innId) throw new Error('ログインが必要です')
@@ -151,6 +181,29 @@ export async function updateReservation(
       .single()
     if (current?.status === 'settled') {
       throw new Error('精算済みの予約は編集できません')
+    }
+  }
+
+  // Double booking check if dates or rooms changed
+  if (fields.checkin || fields.checkout || room_ids) {
+    const { data: current } = await supabase
+      .from('reservations')
+      .select('checkin, checkout')
+      .eq('id', id)
+      .single()
+    const checkin = fields.checkin ?? current?.checkin ?? ''
+    const checkout = fields.checkout ?? current?.checkout ?? ''
+    // Get current room_ids if not being changed
+    let checkRoomIds = room_ids
+    if (!checkRoomIds) {
+      const { data: rr } = await supabase
+        .from('reservation_rooms')
+        .select('room_id')
+        .eq('reservation_id', id)
+      checkRoomIds = rr?.map(r => r.room_id) ?? []
+    }
+    if (checkRoomIds.length > 0 && checkin && checkout) {
+      await checkDoubleBooking(checkRoomIds, checkin, checkout, id)
     }
   }
 

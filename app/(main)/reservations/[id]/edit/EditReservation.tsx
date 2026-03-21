@@ -63,6 +63,7 @@ export default function EditReservation() {
         child_price: reservation.child_price,
         checkin_time: reservation.checkin_time,
         pricing_plan_id: reservation.pricing_plan_id,
+        source: reservation.source,
         tax_exempt: reservation.tax_exempt,
         tax_exempt_reason: reservation.tax_exempt_reason,
         notes: reservation.notes,
