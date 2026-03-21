@@ -15,7 +15,7 @@ import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
 import { useInvoicePresets } from '@/lib/hooks/useInvoicePresets'
 import { useInn } from '@/lib/hooks/useInn'
-import { upsertInvoiceItems, lockInvoice, fetchInvoiceItems } from '@/lib/api/invoices'
+import { upsertInvoiceItems, lockInvoice, unlockInvoice, fetchInvoiceItems } from '@/lib/api/invoices'
 import { verifyTax } from '@/lib/api/verifyTax'
 import { formatDateFull, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
@@ -43,6 +43,7 @@ export default function InvoiceView() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [settleSuccess, setSettleSuccess] = useState(false)
   const [settleError, setSettleError] = useState('')
+  const [undoOpen, setUndoOpen] = useState(false)
 
   // Load saved extras from DB when viewing a settled invoice
   useEffect(() => {
@@ -371,16 +372,7 @@ export default function InvoiceView() {
             <p className="text-sm text-text-3">{formatYen(computed.total)}</p>
             <button
               type="button"
-              onClick={() => {
-                if (!confirm('精算を取り消して、請求書を修正可能な状態に戻しますか？')) return
-                updateRes.mutate(
-                  { id: res.id, status: 'checked_in' },
-                  {
-                    onSuccess: () => setSettleSuccess(false),
-                    onError: (err) => showToast(err instanceof Error ? err.message : '取消に失敗しました'),
-                  },
-                )
-              }}
+              onClick={() => setUndoOpen(true)}
               className="text-[15px] text-text-sub underline min-h-[48px] px-4"
             >
               精算を取り消す
@@ -428,6 +420,50 @@ export default function InvoiceView() {
               disabled={settling}
             >
               {settling ? '精算中…' : '精算する'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Undo settlement modal */}
+      <Modal open={undoOpen} onClose={() => setUndoOpen(false)} title="精算の取消">
+        <div className="space-y-4">
+          <p className="text-[15px] text-text-2 text-center">
+            精算を取り消して、請求書を修正可能な状態に戻しますか？
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              size="lg"
+              className="flex-1"
+              onClick={() => setUndoOpen(false)}
+            >
+              やめる
+            </Button>
+            <Button
+              variant="danger"
+              size="lg"
+              className="flex-1"
+              onClick={async () => {
+                try {
+                  await unlockInvoice(res.id)
+                  updateRes.mutate(
+                    { id: res.id, status: 'checked_in' },
+                    {
+                      onSuccess: () => {
+                        setSettleSuccess(false)
+                        setUndoOpen(false)
+                        showToast('精算を取り消しました')
+                      },
+                      onError: (err) => showToast(err instanceof Error ? err.message : '取消に失敗しました'),
+                    },
+                  )
+                } catch (err) {
+                  showToast('取消に失敗しました')
+                }
+              }}
+            >
+              取り消す
             </Button>
           </div>
         </div>

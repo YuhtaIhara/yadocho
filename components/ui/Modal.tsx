@@ -32,9 +32,8 @@ export default function Modal({ open, onClose, title, children, className }: Pro
         {title && (
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
             <h2 className="text-base font-medium">{title}</h2>
-            <button type="button" onClick={onClose} className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center gap-1 justify-center rounded-full active:bg-primary-soft">
-              <X size={18} className="text-text-2" />
-              <span className="text-[15px] text-text-3">とじる</span>
+            <button type="button" onClick={onClose} className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft">
+              <X size={20} className="text-text-2" />
             </button>
           </div>
         )}

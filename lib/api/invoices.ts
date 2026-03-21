@@ -40,6 +40,15 @@ export async function upsertInvoiceItems(
   return data ?? []
 }
 
+export async function unlockInvoice(reservationId: string): Promise<void> {
+  const { error } = await supabase
+    .from('invoice_items')
+    .delete()
+    .eq('reservation_id', reservationId)
+
+  if (error) throw error
+}
+
 export async function lockInvoice(reservationId: string): Promise<void> {
   const { error } = await supabase
     .from('invoice_items')
