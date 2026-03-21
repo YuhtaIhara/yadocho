@@ -91,6 +91,7 @@ type Props = {
     adult_price: number
     child_price: number
     checkin_time: string | null
+    pricing_plan_id: string | null
     tax_exempt: boolean
     tax_exempt_reason: string | null
     notes: string | null
@@ -159,7 +160,9 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
     initialData?.room_ids ?? (paramRoom ? [paramRoom] : []),
   )
 
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(
+    initialData?.pricing_plan_id ?? null,
+  )
 
   const { data: rooms = [] } = useRooms()
   const { data: pricing } = usePricing()
