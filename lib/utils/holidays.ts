@@ -4,7 +4,7 @@
  * Covers fixed dates + spring/autumn equinox estimates
  */
 
-import { getDay } from 'date-fns'
+import { getDay, parseISO } from 'date-fns'
 
 // Fixed holidays: [month, day, name]
 const FIXED_HOLIDAYS: [number, number, string][] = [
@@ -71,7 +71,7 @@ function buildHolidaySet(year: number): Set<string> {
   // 振替休日 (substitute holidays): if a holiday falls on Sunday, next Monday is a holiday
   const allDates = [...holidays]
   for (const ds of allDates) {
-    const d = new Date(ds + 'T00:00:00')
+    const d = parseISO(ds)
     if (getDay(d) === 0) {
       // Find next non-holiday weekday
       let sub = new Date(d)
@@ -85,8 +85,8 @@ function buildHolidaySet(year: number): Set<string> {
   // 国民の休日: a day sandwiched between two holidays becomes a holiday
   const sorted = [...holidays].sort()
   for (let i = 0; i < sorted.length - 1; i++) {
-    const d1 = new Date(sorted[i] + 'T00:00:00')
-    const d2 = new Date(sorted[i + 1] + 'T00:00:00')
+    const d1 = parseISO(sorted[i])
+    const d2 = parseISO(sorted[i + 1])
     const diff = (d2.getTime() - d1.getTime()) / 86400000
     if (diff === 2) {
       const mid = new Date(d1)
