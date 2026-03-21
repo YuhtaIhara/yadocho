@@ -106,13 +106,15 @@ export default function ReservationDetail() {
         title="予約詳細"
         rightSlot={
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => router.push(`/reservations/${id}/edit`)}
-              className="w-9 h-9 flex items-center justify-center rounded-full active:bg-primary-soft"
-            >
-              <Pencil size={16} className="text-text-2" />
-            </button>
+            {res.status !== 'settled' && (
+              <button
+                type="button"
+                onClick={() => router.push(`/reservations/${id}/edit`)}
+                className="w-9 h-9 flex items-center justify-center rounded-full active:bg-primary-soft"
+              >
+                <Pencil size={16} className="text-text-2" />
+              </button>
+            )}
             <div className="relative">
               <button
                 type="button"
