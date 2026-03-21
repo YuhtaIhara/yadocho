@@ -34,7 +34,7 @@ export default function BillingList() {
   // Filter to reservations that check out on the selected date
   const billingCandidates = useMemo(
     () => reservations.filter(r =>
-      r.checkout === dateStr && (r.status === 'scheduled' || r.status === 'settled'),
+      r.checkout === dateStr && r.status !== 'cancelled',
     ),
     [reservations, dateStr],
   )
@@ -49,8 +49,8 @@ export default function BillingList() {
     const u: Reservation[] = []
     const s: Reservation[] = []
     for (const r of billingCandidates) {
-      if (settledIds.has(r.id)) s.push(r)
-      else if (r.status === 'scheduled') u.push(r)
+      if (r.status === 'settled' || settledIds.has(r.id)) s.push(r)
+      else u.push(r)
     }
     return { unsettled: u, settled: s }
   }, [billingCandidates, settledIds])
