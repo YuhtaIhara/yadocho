@@ -148,9 +148,6 @@ export default function CalendarView() {
       return format(viewStart, 'yyyy年M月', { locale: ja })
     }
     const end = addDays(viewStart, (viewDays as number) - 1)
-    if (viewStart.getMonth() === end.getMonth()) {
-      return `${format(viewStart, 'M/d')}〜${format(end, 'd日')}`
-    }
     return `${format(viewStart, 'M/d')}〜${format(end, 'M/d')}`
   }, [viewStart, viewDays])
 
