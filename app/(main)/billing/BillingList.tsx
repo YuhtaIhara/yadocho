@@ -14,8 +14,12 @@ import { useReservations } from '@/lib/hooks/useReservations'
 import { fetchSettledReservationIds } from '@/lib/api/invoices'
 import { formatDateJP, nightCount, toDateStr } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
+import { calcMealCost } from '@/lib/utils/pricing'
+import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
+import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { roomLabel, STATUS_LABELS } from '@/lib/types'
-import type { Reservation } from '@/lib/types'
+import type { Reservation, MealDay } from '@/lib/types'
+import { supabase } from '@/lib/supabase'
 
 export default function BillingList() {
   const router = useRouter()
@@ -39,11 +43,41 @@ export default function BillingList() {
     [reservations, dateStr],
   )
 
+  const { taxRules, taxRuleRates } = useTaxData()
+
+  // Fetch meal_days for all billing candidates
+  const candidateIds = useMemo(() => billingCandidates.map(r => r.id), [billingCandidates])
+  const { data: allMealDays = [] } = useQuery({
+    queryKey: ['billing-meal-days', candidateIds],
+    queryFn: async () => {
+      if (candidateIds.length === 0) return []
+      const { data } = await supabase
+        .from('meal_days')
+        .select('*')
+        .in('reservation_id', candidateIds)
+      return (data ?? []) as MealDay[]
+    },
+    enabled: candidateIds.length > 0,
+  })
+
   const { data: settledIds = new Set<string>() } = useQuery({
     queryKey: ['settled-ids', billingCandidates.map(r => r.id)],
     queryFn: () => fetchSettledReservationIds(billingCandidates.map(r => r.id)),
     enabled: billingCandidates.length > 0,
   })
+
+  /** Calculate total for a reservation (stay + meal + tax) */
+  function calcTotal(r: Reservation): number {
+    const nights = nightCount(r.checkin, r.checkout)
+    const stay = (r.adult_price * r.adults + r.child_price * r.children) * nights
+    const resMeals = allMealDays.filter(md => md.reservation_id === r.id)
+    const meal = calcMealCost(resMeals, r)
+    const taxResults = calcAllTaxes(
+      r.adult_price, r.adults, nights, r.checkin,
+      r.tax_exempt, false, taxRules, taxRuleRates,
+    )
+    return stay + meal + sumTaxResults(taxResults)
+  }
 
   const { unsettled, settled } = useMemo(() => {
     const u: Reservation[] = []
@@ -66,11 +100,10 @@ export default function BillingList() {
   const settledTotal = useMemo(() => {
     let total = 0
     for (const r of settled) {
-      const nights = nightCount(r.checkin, r.checkout)
-      total += (r.adult_price * r.adults + r.child_price * r.children) * nights
+      total += calcTotal(r)
     }
     return total
-  }, [settled])
+  }, [settled, allMealDays, taxRules, taxRuleRates])
 
   return (
     <div>
@@ -136,7 +169,7 @@ export default function BillingList() {
           <div className="flex flex-col gap-4">
             {unsettled.map(r => {
               const nights = nightCount(r.checkin, r.checkout)
-              const amount = (r.adult_price * r.adults + r.child_price * r.children) * nights
+              const amount = calcTotal(r)
               return (
                 <Card
                   key={r.id}
@@ -179,7 +212,7 @@ export default function BillingList() {
             <div className="flex flex-col gap-4">
               {settled.map(r => {
                 const nights = nightCount(r.checkin, r.checkout)
-                const amount = (r.adult_price * r.adults + r.child_price * r.children) * nights
+                const amount = calcTotal(r)
                 return (
                   <Card
                     key={r.id}
