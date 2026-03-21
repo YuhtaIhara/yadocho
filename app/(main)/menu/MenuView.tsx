@@ -2,21 +2,57 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Users, BarChart3, Settings, HelpCircle, ChevronRight, LogOut, FileText } from 'lucide-react'
-import PageHeader from '@/components/layout/PageHeader'
+import {
+  ClipboardList,
+  Users,
+  Settings,
+  BarChart3,
+  LogOut,
+  ChevronRight,
+  LogIn,
+  Hotel,
+  LogOutIcon,
+} from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { signOut } from '@/lib/auth'
+import { useInn } from '@/lib/hooks/useInn'
+import { useReservations } from '@/lib/hooks/useReservations'
+import { toDateStr } from '@/lib/utils/date'
+import { subDays, addDays } from 'date-fns'
 
+// ── Greeting by time of day ──
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour >= 6 && hour < 11) return 'おはようございます'
+  if (hour >= 11 && hour < 17) return 'こんにちは'
+  return 'おつかれさまです'
+}
+
+// ── Menu items (2-column grid) ──
 const MENU_ITEMS = [
-  { href: '/report/tax', icon: FileText, label: '税申告書' },
-  { href: '/report', icon: BarChart3, label: '月次レポート' },
-  { href: '/guests', icon: Users, label: 'ゲスト管理' },
+  { href: '/reservations', icon: ClipboardList, label: '予約一覧' },
+  { href: '/guests', icon: Users, label: '顧客管理' },
   { href: '/settings', icon: Settings, label: '設定' },
-  { href: '/guide', icon: HelpCircle, label: '使い方ガイド' },
+  { href: '/report', icon: BarChart3, label: 'レポート' },
 ] as const
 
 export default function MenuView() {
   const router = useRouter()
+  const { data: inn } = useInn()
+
+  // Fetch reservations covering today
+  const today = new Date()
+  const dateStr = toDateStr(today)
+  const from = toDateStr(subDays(today, 1))
+  const to = toDateStr(addDays(today, 1))
+  const { data: reservations = [] } = useReservations(from, to)
+
+  // KPI counts
+  const checkInCount = reservations.filter((r) => r.checkin === dateStr).length
+  const stayingCount = reservations.filter(
+    (r) => r.checkin <= dateStr && r.checkout > dateStr,
+  ).length
+  const checkOutCount = reservations.filter((r) => r.checkout === dateStr).length
 
   async function handleSignOut() {
     await signOut()
@@ -25,34 +61,80 @@ export default function MenuView() {
 
   return (
     <div>
-      <PageHeader title="メニュー" showBack={false} />
+      {/* ── Greeting header ── */}
+      <div
+        className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/20"
+        style={{ paddingTop: 'max(env(safe-area-inset-top), 12px)' }}
+      >
+        <div className="flex flex-col h-auto px-5 py-3 gap-0.5">
+          <p className="text-sub text-text-sub">{getGreeting()}</p>
+          <h1 className="text-title font-medium" style={{ fontFamily: 'var(--font-heading)' }}>
+            {inn?.name ?? ''}
+          </h1>
+        </div>
+      </div>
 
-      <div className="px-4 py-4 flex flex-col gap-4 pb-32">
-        {MENU_ITEMS.map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href} className="block">
-            <Card className="flex items-center justify-between py-4 active:scale-[0.98] transition-transform">
-              <div className="flex items-center gap-3">
-                <Icon size={18} className="text-primary" />
-                <span className="text-sm font-semibold">{label}</span>
-              </div>
-              <ChevronRight size={16} className="text-text-3" />
-            </Card>
-          </Link>
-        ))}
+      <div className="px-4 py-4 flex flex-col gap-5 pb-32">
+        {/* ── Today KPI cards ── */}
+        <Link href="/calendar" className="block">
+          <div className="grid grid-cols-3 gap-3">
+            <KpiCard icon={LogIn} label="チェックイン" count={checkInCount} color="var(--color-checkin)" />
+            <KpiCard icon={Hotel} label="滞在中" count={stayingCount} color="var(--color-staying)" />
+            <KpiCard icon={LogOutIcon} label="チェックアウト" count={checkOutCount} color="var(--color-booked)" />
+          </div>
+        </Link>
 
+        {/* ── Menu grid (2 columns) ── */}
+        <div className="grid grid-cols-2 gap-3">
+          {MENU_ITEMS.map(({ href, icon: Icon, label }) => (
+            <Link key={href} href={href} className="block">
+              <Card className="flex flex-col items-center justify-center gap-2 py-5 min-h-[80px]">
+                <Icon size={24} className="text-primary" />
+                <span className="text-body font-medium">{label}</span>
+              </Card>
+            </Link>
+          ))}
+        </div>
+
+        {/* ── Logout ── */}
         <button
           type="button"
           onClick={handleSignOut}
-          className="w-full mt-6"
+          className="w-full mt-4"
         >
-          <Card className="flex items-center gap-3 py-3.5 active:scale-[0.98] transition-transform">
+          <Card className="flex items-center justify-center gap-3 py-3.5 active:scale-[0.98] transition-transform">
             <LogOut size={18} className="text-danger" />
-            <span className="text-sm font-semibold text-danger">ログアウト</span>
+            <span className="text-body font-medium text-danger">ログアウト</span>
           </Card>
         </button>
 
-        <p className="text-center text-xs text-text-3 mt-8">yadocho v0.1.0</p>
+        <p className="text-center text-sub text-text-sub mt-6">yadocho v0.2.0</p>
       </div>
     </div>
+  )
+}
+
+// ── KPI card component ──
+function KpiCard({
+  icon: Icon,
+  label,
+  count,
+  color,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  label: string
+  count: number
+  color: string
+}) {
+  return (
+    <Card className="flex flex-col items-center justify-center gap-1.5 py-4 active:scale-[0.97] transition-transform">
+      <div style={{ color }}>
+        <Icon size={20} />
+      </div>
+      <span className="text-amount font-medium" style={{ color }}>
+        {count}
+      </span>
+      <span className="text-sub text-text-sub">{label}</span>
+    </Card>
   )
 }
