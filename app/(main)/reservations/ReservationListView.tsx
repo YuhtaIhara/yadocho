@@ -7,7 +7,7 @@ import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { useSearchReservations } from '@/lib/hooks/useReservations'
-import { formatDateJP } from '@/lib/utils/date'
+import { formatDateJP, toDateStr } from '@/lib/utils/date'
 import { roomLabel, STATUS_LABELS, type ReservationStatus } from '@/lib/types'
 import { cn } from '@/lib/utils/cn'
 
@@ -47,7 +47,11 @@ export default function ReservationListView() {
           r.reservation_number?.includes(q),
       )
     }
-    return list
+    // Sort: upcoming (nearest first) → past (most recent first)
+    const today = toDateStr(new Date())
+    const upcoming = list.filter((r) => r.checkin >= today).sort((a, b) => a.checkin.localeCompare(b.checkin))
+    const past = list.filter((r) => r.checkin < today).sort((a, b) => b.checkin.localeCompare(a.checkin))
+    return [...upcoming, ...past]
   }, [reservations, statusFilter, query])
 
   return (
