@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { format, addDays, subDays, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronDown, FileText, AlertTriangle } from 'lucide-react'
+import { ChevronDown, ChevronRight, FileText, AlertTriangle } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
@@ -367,13 +367,19 @@ function MealSection({
   count: number
   children: React.ReactNode
 }) {
+  const [open, setOpen] = useState(false)
   return (
     <div>
-      <div className="flex items-center gap-2 mb-2">
-        <h2 className="text-sm font-medium text-text-2">{title}</h2>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-2 mb-2 w-full text-left min-h-[48px] active:bg-primary-soft/50 rounded-lg px-1"
+      >
+        {open ? <ChevronDown size={16} className="text-text-3" /> : <ChevronRight size={16} className="text-text-3" />}
+        <h2 className="text-[15px] font-medium text-text-2 flex-1">{title}</h2>
         <Badge>{count}名</Badge>
-      </div>
-      <div className="flex flex-col gap-4">{children}</div>
+      </button>
+      {open && <div className="flex flex-col gap-4">{children}</div>}
     </div>
   )
 }
