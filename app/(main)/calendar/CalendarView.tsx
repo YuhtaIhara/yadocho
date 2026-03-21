@@ -20,7 +20,7 @@ import { useRooms } from '@/lib/hooks/useRooms'
 import { useBlockedDates, useCreateBlockedDate, useDeleteBlockedDate } from '@/lib/hooks/useBlockedDates'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
-import { Palmtree } from 'lucide-react'
+import { Palmtree, CalendarDays } from 'lucide-react'
 import { ROOM_TYPE_LABELS, type RoomType } from '@/lib/types'
 import SegmentControl from '@/components/ui/SegmentControl'
 
@@ -165,8 +165,9 @@ export default function CalendarView() {
         <button
           type="button"
           onClick={goToday}
-          className="text-[15px] font-medium px-3 py-1.5 rounded-full text-white bg-primary active:brightness-95 transition-all min-h-[48px]"
+          className="flex items-center gap-1 text-[15px] font-medium px-3 py-1.5 rounded-full text-white bg-primary active:brightness-95 transition-all min-h-[48px]"
         >
+          <CalendarDays size={16} />
           今日
         </button>
 
@@ -176,12 +177,12 @@ export default function CalendarView() {
             onClick={() => navigate(-1)}
             className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
           >
-            <span className="text-sm text-text-2">◀</span>
+            <span className="text-[18px] text-text-2">◀</span>
           </button>
           <button
             type="button"
             onClick={() => viewDays === 'month' ? setMonthPickerOpen(true) : undefined}
-            className="text-sm font-medium px-2 min-w-[120px] text-center"
+            className="text-[17px] font-medium px-2 min-w-[120px] text-center"
           >
             {headerLabel}
           </button>
@@ -190,7 +191,7 @@ export default function CalendarView() {
             onClick={() => navigate(1)}
             className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
           >
-            <span className="text-sm text-text-2">▶</span>
+            <span className="text-[18px] text-text-2">▶</span>
           </button>
         </div>
 

@@ -20,7 +20,7 @@ const BAR_Y = 6
 const BAR_H = ROW_H - BAR_Y * 2
 
 const BAR_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  scheduled: { bg: '#E8A65D', text: '#2D2926', border: '#D4944A' },
+  scheduled: { bg: '#C4694A', text: '#FFFFFF', border: '#A85638' },
   settled:   { bg: '#5B9A6E', text: '#FFFFFF', border: '#4A8A5D' },
 }
 
