@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, FileText, Printer } from 'lucide-react'
@@ -59,6 +59,7 @@ export default function TaxReportView() {
   const [loading, setLoading] = useState<ReportType | null>(null)
   const [error, setError] = useState('')
   const [preview, setPreview] = useState<{ type: ReportType; html: string } | null>(null)
+  const previewRef = useRef<HTMLDivElement>(null)
   const { taxRules } = useTaxData()
 
   const year = month.getFullYear()
@@ -140,6 +141,8 @@ export default function TaxReportView() {
       }
 
       setPreview({ type, html })
+      // Scroll to preview after render
+      setTimeout(() => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     } catch (err) {
       console.error(err)
       setError('データの取得に失敗しました')
@@ -216,14 +219,6 @@ export default function TaxReportView() {
           </p>
         )}
 
-        {/* Print button (visible when preview is shown) */}
-        {preview && (
-          <Button size="lg" className="w-full" onClick={handlePrint}>
-            <Printer size={16} className="mr-2" />
-            この帳票を印刷する
-          </Button>
-        )}
-
         <Card className="!bg-primary/[0.04] border border-primary/10">
           <p className="text-[15px] text-text-2">
             月計表は毎月の申告書添付資料として提出します。
@@ -245,10 +240,14 @@ export default function TaxReportView() {
 
       {/* Inline preview (visible on screen too) */}
       {preview && (
-        <div className="px-4 pb-32 no-print">
+        <div ref={previewRef} className="px-4 pb-32 no-print space-y-4">
           <div className="border border-border rounded-xl p-4 bg-white overflow-x-auto">
             <div dangerouslySetInnerHTML={{ __html: preview.html }} />
           </div>
+          <Button size="lg" className="w-full" onClick={handlePrint}>
+            <Printer size={16} className="mr-2" />
+            この帳票を印刷する
+          </Button>
         </div>
       )}
     </div>
@@ -261,11 +260,11 @@ function renderVillageMonthly(data: MonthlyTaxSummary, innName: string, represen
   const reiwa = toReiwaLabel(data.year, data.month)
   const rows = data.rows.map(r => `
     <tr>
-      <td style="text-align:center">${r.day}</td>
-      <td style="text-align:right">${r.taxableStays || ''}</td>
-      <td style="text-align:right">${r.exemptStays || ''}</td>
-      <td style="text-align:right">${r.taxableBase ? r.taxableBase.toLocaleString() : ''}</td>
-      <td style="text-align:right">${r.taxAmount ? r.taxAmount.toLocaleString() : ''}</td>
+      <td style="border:1px solid #333;text-align:center;padding:3px">${r.day}</td>
+      <td style="border:1px solid #333;text-align:right;padding:3px">${r.taxableStays || ''}</td>
+      <td style="border:1px solid #333;text-align:right;padding:3px">${r.exemptStays || ''}</td>
+      <td style="border:1px solid #333;text-align:right;padding:3px">${r.taxableBase ? r.taxableBase.toLocaleString() : ''}</td>
+      <td style="border:1px solid #333;text-align:right;padding:3px">${r.taxAmount ? r.taxAmount.toLocaleString() : ''}</td>
     </tr>
   `).join('')
 
@@ -355,11 +354,11 @@ function renderPrefMonthly(data: MonthlyTaxSummary, innName: string): string {
   const reiwa = toReiwaLabel(data.year, data.month)
   const rows = data.rows.map(r => `
     <tr>
-      <td style="text-align:center">${r.day}</td>
-      <td style="text-align:right">${r.taxableStays || ''}</td>
-      <td style="text-align:right">${r.belowThresholdStays || ''}</td>
-      <td style="text-align:right">${r.exemptStays || ''}</td>
-      <td style="text-align:right">${(r.taxableStays + r.belowThresholdStays + r.exemptStays) || ''}</td>
+      <td style="border:1px solid #333;text-align:center;padding:3px">${r.day}</td>
+      <td style="border:1px solid #333;text-align:right;padding:3px">${r.taxableStays || ''}</td>
+      <td style="border:1px solid #333;text-align:right;padding:3px">${r.belowThresholdStays || ''}</td>
+      <td style="border:1px solid #333;text-align:right;padding:3px">${r.exemptStays || ''}</td>
+      <td style="border:1px solid #333;text-align:right;padding:3px">${(r.taxableStays + r.belowThresholdStays + r.exemptStays) || ''}</td>
     </tr>
   `).join('')
 

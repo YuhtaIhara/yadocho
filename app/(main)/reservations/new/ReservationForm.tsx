@@ -49,6 +49,7 @@ const schema = z
   .object({
     guest_phone: phoneSchema,
     guest_name: z.string().optional(),
+    guest_furigana: z.string().optional(),
     guest_address: z.string().optional(),
     guest_allergy: z.string().optional(),
     guest_notes: z.string().optional(),
@@ -191,6 +192,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
     defaultValues: {
       guest_phone: initialData?.guest.phone ?? paramPhone ?? '',
       guest_name: initialData?.guest.name ?? '',
+      guest_furigana: '',
       guest_address: '',
       guest_allergy: '',
       guest_notes: '',
@@ -338,6 +340,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   function selectGuest(guest: Guest) {
     setSelectedGuest(guest)
     setValue('guest_name', guest.name)
+    setValue('guest_furigana', guest.furigana ?? '')
     setValue('guest_phone', guest.phone ?? '')
     setValue('guest_address', guest.address ?? '')
     setValue('guest_allergy', guest.allergy ?? '')
@@ -354,6 +357,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
     setGuestSearchInput('')
     setSuggestions([])
     setValue('guest_name', '')
+    setValue('guest_furigana', '')
     setValue('guest_phone', '')
     setValue('guest_address', '')
     setValue('guest_allergy', '')
@@ -460,6 +464,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
         } else {
           const guest = await createGuest({
             name: data.guest_name!,
+            furigana: data.guest_furigana || undefined,
             phone: data.guest_phone || undefined,
             address: data.guest_address || undefined,
             allergy: data.guest_allergy || undefined,
@@ -651,6 +656,11 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
                 label="名前"
                 placeholder="山田 太郎"
                 {...register('guest_name')}
+              />
+              <Input
+                label="ふりがな"
+                placeholder="やまだ たろう"
+                {...register('guest_furigana')}
               />
               <Controller
                 name="guest_phone"
