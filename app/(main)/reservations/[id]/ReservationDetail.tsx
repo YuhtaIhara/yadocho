@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Phone, Pencil, Trash2 } from 'lucide-react'
+import { Phone, Pencil } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { useQueryClient } from '@tanstack/react-query'
-import { useReservation, useUpdateReservation, useDeleteReservation } from '@/lib/hooks/useReservations'
+import { useReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
 import { useTaxData } from '@/lib/hooks/useTaxRules'
@@ -51,7 +51,6 @@ export default function ReservationDetail() {
   const { taxRules, taxRuleRates } = useTaxData()
   const queryClient = useQueryClient()
   const updateRes = useUpdateReservation()
-  const deleteRes = useDeleteReservation()
   const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [showMealEditor, setShowMealEditor] = useState(false)
 
@@ -95,15 +94,6 @@ export default function ReservationDetail() {
     )
   }
 
-  function handleDelete() {
-    if (!res) return
-    if (res.status === 'settled') {
-      alert('精算済みの予約は削除できません。先に精算を取り消してください。')
-      return
-    }
-    if (!confirm('この予約を削除しますか？')) return
-    deleteRes.mutate(id, { onSuccess: () => router.push('/calendar') })
-  }
 
   return (
     <div>
@@ -368,23 +358,30 @@ export default function ReservationDetail() {
               ゲスト詳細
             </Button>
           </div>
-          {res.status !== 'cancelled' && (
+          {res.status !== 'cancelled' && res.status !== 'settled' && (
             <button
               type="button"
-              onClick={() => handleStatusChange('cancelled')}
-              className="w-full text-center text-[15px] font-medium text-text-sub py-3 transition-colors hover:text-warning"
+              onClick={() => {
+                if (!confirm('この予約をキャンセルしますか？')) return
+                handleStatusChange('cancelled')
+              }}
+              className="w-full text-center text-[15px] font-medium text-danger py-3 min-h-[48px]"
             >
-              キャンセルにする
+              予約をキャンセル
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="w-full flex items-center justify-center gap-2 text-[15px] text-danger py-3"
-          >
-            <Trash2 size={14} />
-            削除
-          </button>
+          {res.status === 'cancelled' && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!confirm('この予約を復活しますか？')) return
+                handleStatusChange('scheduled')
+              }}
+              className="w-full text-center text-[15px] font-medium text-primary py-3 min-h-[48px]"
+            >
+              予約を復活する
+            </button>
+          )}
         </div>
       </div>
 

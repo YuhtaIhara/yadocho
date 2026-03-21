@@ -116,7 +116,7 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
   scheduled: ['checked_in', 'cancelled'],
   checked_in: ['settled', 'cancelled'],
   settled: ['checked_in'], // undo settlement only
-  cancelled: [],
+  cancelled: ['scheduled'], // undo cancellation
 }
 
 export async function updateReservation(
