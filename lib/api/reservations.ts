@@ -29,6 +29,21 @@ export async function fetchReservations(from: string, to: string): Promise<Reser
   return (data ?? []).map(flattenRooms)
 }
 
+/** Fetch all reservations (no date filter, includes cancelled) for search/list */
+export async function searchReservations(): Promise<Reservation[]> {
+  const innId = await getInnId()
+  if (!innId) return []
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .select(SELECT)
+    .eq('inn_id', innId)
+    .order('checkin', { ascending: false })
+
+  if (error) throw error
+  return (data ?? []).map(flattenRooms)
+}
+
 export async function fetchReservation(id: string): Promise<Reservation | null> {
   const { data, error } = await supabase
     .from('reservations')

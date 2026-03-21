@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchReservations,
   fetchReservation,
+  searchReservations,
   createReservation,
   updateReservation,
   deleteReservation,
@@ -14,6 +15,13 @@ export function useReservations(from: string, to: string) {
     queryKey: ['reservations', from, to],
     queryFn: () => fetchReservations(from, to),
     enabled: !!from && !!to,
+  })
+}
+
+export function useSearchReservations() {
+  return useQuery({
+    queryKey: ['reservations', 'all'],
+    queryFn: searchReservations,
   })
 }
 
