@@ -60,13 +60,28 @@ export default function BillingList() {
     enabled: candidateIds.length > 0,
   })
 
+  // Fetch invoice_items for settled reservations (to include extras in total)
+  const { data: allInvoiceItems = [] } = useQuery({
+    queryKey: ['billing-invoice-items', candidateIds],
+    queryFn: async () => {
+      if (candidateIds.length === 0) return []
+      const { data } = await supabase
+        .from('invoice_items')
+        .select('reservation_id, category, unit_price, quantity')
+        .in('reservation_id', candidateIds)
+        .eq('category', 'extra')
+      return data ?? []
+    },
+    enabled: candidateIds.length > 0,
+  })
+
   const { data: settledIds = new Set<string>() } = useQuery({
     queryKey: ['settled-ids', billingCandidates.map(r => r.id)],
     queryFn: () => fetchSettledReservationIds(billingCandidates.map(r => r.id)),
     enabled: billingCandidates.length > 0,
   })
 
-  /** Calculate total for a reservation (stay + meal + tax) */
+  /** Calculate total for a reservation (stay + meal + tax + extras) */
   function calcTotal(r: Reservation): number {
     const nights = nightCount(r.checkin, r.checkout)
     const stay = (r.adult_price * r.adults + r.child_price * r.children) * nights
@@ -76,7 +91,10 @@ export default function BillingList() {
       r.adult_price, r.adults, nights, r.checkin,
       r.tax_exempt, false, taxRules, taxRuleRates,
     )
-    return stay + meal + sumTaxResults(taxResults)
+    const extras = allInvoiceItems
+      .filter(item => item.reservation_id === r.id)
+      .reduce((s, item) => s + item.unit_price * item.quantity, 0)
+    return stay + meal + sumTaxResults(taxResults) + extras
   }
 
   const { unsettled, settled } = useMemo(() => {
@@ -103,7 +121,7 @@ export default function BillingList() {
       total += calcTotal(r)
     }
     return total
-  }, [settled, allMealDays, taxRules, taxRuleRates])
+  }, [settled, allMealDays, allInvoiceItems, taxRules, taxRuleRates])
 
   return (
     <div>
