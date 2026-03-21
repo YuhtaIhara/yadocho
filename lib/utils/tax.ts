@@ -7,7 +7,7 @@ export type { TaxResult }
  * チェックイン日が税ルールの有効期間内かチェック
  * effective_from: inclusive, effective_to: exclusive (NULL = 無期限)
  */
-function isRuleEffective(rule: TaxRule, checkinDate: string): boolean {
+export function isRuleEffective(rule: TaxRule, checkinDate: string): boolean {
   if (checkinDate < rule.effective_from) return false
   if (rule.effective_to && checkinDate >= rule.effective_to) return false
   return true
@@ -46,7 +46,7 @@ function findBracket(
  * rounding_unit=1: Math.floor (1円未満切捨)
  * rounding_unit=100: 100円未満切捨
  */
-function floorByUnit(amount: number, roundingUnit: number): number {
+export function floorByUnit(amount: number, roundingUnit: number): number {
   if (roundingUnit <= 1) return Math.floor(amount)
   return Math.floor(amount / roundingUnit) * roundingUnit
 }
