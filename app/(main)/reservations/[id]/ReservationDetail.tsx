@@ -21,6 +21,13 @@ import { calcMealCost, getMealPrices } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils/cn'
 import { roomLabel, STATUS_LABELS, type ReservationStatus } from '@/lib/types'
 
+const STATUS_COLOR: Record<string, string> = {
+  scheduled: '#E8A65D',
+  checked_in: '#5B9A6E',
+  settled: '#9B9490',
+  cancelled: '#D47B7B',
+}
+
 const STATUS_OPTIONS: ReservationStatus[] = ['scheduled', 'checked_in', 'settled', 'cancelled']
 const STATUS_BADGE: Record<string, 'default' | 'accent' | 'warning' | 'danger' | 'outline'> = {
   scheduled: 'default',
@@ -138,19 +145,25 @@ export default function ReservationDetail() {
 
       <div className="px-4 py-4 space-y-4 pb-32">
         {/* Guest info */}
-        <Card>
+        <Card
+          variant="status"
+          statusColor={STATUS_COLOR[res.status]}
+        >
           {res.reservation_number && (
-            <p className="text-xs text-text-3 mb-1">No. {res.reservation_number}</p>
+            <p className="text-[13px] text-text-3 mb-1 tracking-wide">No. {res.reservation_number}</p>
           )}
           <Link href={`/guests/${res.guest_id}`} className="block">
-            <p className="text-lg font-medium">{res.guest?.name ?? '—'} 様</p>
+            <p className="text-[24px] font-medium leading-[1.3]" style={{ fontFamily: 'var(--font-heading)' }}>
+              {res.guest?.name ?? '—'} 様
+            </p>
           </Link>
           {res.guest?.phone && (
             <a
               href={`tel:${res.guest.phone}`}
-              className="flex items-center gap-2 mt-2 text-sm text-primary"
+              className="inline-flex items-center gap-2 mt-2 text-[16px] text-primary"
+              style={{ borderBottom: '1px dashed rgba(196,105,74,0.3)', transition: 'border-color 200ms' }}
             >
-              <Phone size={14} />
+              <Phone size={16} />
               {res.guest.phone}
             </a>
           )}
@@ -310,9 +323,9 @@ export default function ReservationDetail() {
                 {t.taxName}: {t.exemptReason}{res.tax_exempt_reason ? `（${res.tax_exempt_reason}）` : ''}
               </p>
             ))}
-            <div className="flex justify-between pt-2 border-t border-border/40">
-              <span className="font-medium">合計</span>
-              <span className="font-medium text-lg">{formatYen(total)}</span>
+            <div className="flex justify-between items-baseline pt-3 mt-1" style={{ borderTop: '2px solid rgba(0,0,0,0.08)' }}>
+              <span className="text-[17px] font-medium">合計</span>
+              <span className="text-[28px] font-medium">{formatYen(total)}</span>
             </div>
           </div>
         </Card>
@@ -329,37 +342,38 @@ export default function ReservationDetail() {
         )}
 
         {/* Actions */}
-        <div className="space-y-2">
-          <Button
-            variant={NEXT_STATUS[res.status] ? 'secondary' : 'primary'}
-            size="lg"
-            className="w-full"
-            onClick={() => router.push(`/billing/${id}`)}
-          >
-            請求書を作成
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            className="w-full"
-            onClick={() => router.push(`/guests/${res.guest_id}`)}
-          >
-            ゲスト詳細を見る
-          </Button>
-          {res.status !== 'cancelled' && (
+        <div className="space-y-2.5">
+          <div className="flex gap-2.5">
             <Button
-              variant="ghost"
+              variant="secondary"
               size="lg"
-              className="w-full text-warning"
+              className="flex-1"
+              onClick={() => router.push(`/billing/${id}`)}
+            >
+              請求書を作成
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="flex-1"
+              onClick={() => router.push(`/guests/${res.guest_id}`)}
+            >
+              ゲスト詳細
+            </Button>
+          </div>
+          {res.status !== 'cancelled' && (
+            <button
+              type="button"
               onClick={() => handleStatusChange('cancelled')}
+              className="w-full text-center text-[15px] font-medium text-text-sub py-3 transition-colors hover:text-warning"
             >
               キャンセルにする
-            </Button>
+            </button>
           )}
           <button
             type="button"
             onClick={handleDelete}
-            className="w-full flex items-center justify-center gap-2 text-sm text-danger py-3"
+            className="w-full flex items-center justify-center gap-2 text-[15px] text-danger py-3"
           >
             <Trash2 size={14} />
             削除

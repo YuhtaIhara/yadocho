@@ -19,10 +19,10 @@ const ROW_H = 44
 const BAR_Y = 6
 const BAR_H = ROW_H - BAR_Y * 2
 
-const BAR_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  scheduled:  { bg: '#E8A65D', text: '#FFFFFF', border: '#D49548' },
-  checked_in: { bg: '#5B9A6E', text: '#FFFFFF', border: '#4A8A5D' },
-  settled:    { bg: '#9B9490', text: '#FFFFFF', border: '#8A8380' },
+const BAR_COLORS: Record<string, { bg: string; text: string; border: string; shadow: string }> = {
+  scheduled:  { bg: 'linear-gradient(135deg, #E8A65D 0%, #E09B4E 100%)', text: '#FFFFFF', border: '#D49548', shadow: '0 2px 6px rgba(232,166,93,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' },
+  checked_in: { bg: 'linear-gradient(135deg, #5B9A6E 0%, #4F8A60 100%)', text: '#FFFFFF', border: '#4A8A5D', shadow: '0 2px 6px rgba(91,154,110,0.35), inset 0 1px 0 rgba(255,255,255,0.2)' },
+  settled:    { bg: 'linear-gradient(135deg, #9B9490 0%, #8A8380 100%)', text: '#FFFFFF', border: '#8A8380', shadow: '0 2px 6px rgba(155,148,144,0.25), inset 0 1px 0 rgba(255,255,255,0.15)' },
 }
 
 type Props = {
@@ -248,14 +248,17 @@ export default function CalendarGrid({
                     width: pos.width,
                     top: BAR_Y,
                     height: BAR_H,
-                    backgroundColor: c.bg,
+                    background: c.bg,
                     color: c.text,
                     border: `1px solid ${c.border}`,
+                    boxShadow: c.shadow,
                     borderRadius: `${pos.clipL ? 0 : 6}px ${pos.clipR ? 0 : 6}px ${pos.clipR ? 0 : 6}px ${pos.clipL ? 0 : 6}px`,
                     zIndex: 5,
                   }}
                 >
-                  {(res.guest?.name ?? '—').split(/[\s　]/)[0]}
+                  <span style={{ textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+                    {(res.guest?.name ?? '—').split(/[\s　]/)[0]}
+                  </span>
                 </button>
               )
             })}

@@ -9,7 +9,7 @@ export function Card({ className, variant = 'default', statusColor, style, ...pr
   return (
     <div
       className={cn(
-        'bg-surface rounded-2xl shadow-card border border-border/40 p-5 hover:shadow-elevated transition-all duration-200 active:scale-[0.99]',
+        'bg-surface rounded-2xl shadow-card border border-white/50 p-5 hover:shadow-elevated transition-all duration-200 active:scale-[0.99]',
         variant === 'status' && 'border-l-4',
         className,
       )}

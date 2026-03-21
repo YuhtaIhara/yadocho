@@ -169,82 +169,91 @@ export default function ReportView() {
 
       <div className="px-4 py-4 space-y-4 pb-32">
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="text-center py-3">
-            <p className="text-2xl font-medium text-primary">{report.totalReservations}</p>
-            <p className="text-xs text-text-3 mt-1">予約数</p>
+        <div className="grid grid-cols-3 gap-2.5">
+          <Card className="text-center py-4">
+            <p className="text-[32px] font-medium text-primary leading-tight">{report.totalReservations}</p>
+            <p className="text-[15px] text-text-3 font-medium mt-1">予約数</p>
           </Card>
-          <Card className="text-center py-3">
-            <p className="text-2xl font-medium text-primary">{report.totalGuests}</p>
-            <p className="text-xs text-text-3 mt-1">ゲスト数</p>
+          <Card className="text-center py-4">
+            <p className="text-[32px] font-medium text-primary leading-tight">{report.totalGuests}</p>
+            <p className="text-[15px] text-text-3 font-medium mt-1">ゲスト数</p>
           </Card>
-          <Card className="text-center py-3">
-            <p className="text-2xl font-medium text-primary">{report.totalNights}</p>
-            <p className="text-xs text-text-3 mt-1">延べ泊数</p>
+          <Card className="text-center py-4">
+            <p className="text-[32px] font-medium text-primary leading-tight">{report.totalNights}</p>
+            <p className="text-[15px] text-text-3 font-medium mt-1">延べ泊数</p>
           </Card>
         </div>
 
-        {/* Guest breakdown */}
+        {/* Guest + Revenue breakdown — 2 columns */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <Card>
+            <h3 className="text-[15px] font-medium text-text-2 mb-3">ゲスト内訳</h3>
+            <div className="space-y-2.5">
+              <div className="flex justify-between items-baseline">
+                <span className="text-[16px] text-text-body">大人</span>
+                <span className="text-[16px] font-medium">{report.totalAdults}名</span>
+              </div>
+              <div className="flex justify-between items-baseline">
+                <span className="text-[16px] text-text-body">子供</span>
+                <span className="text-[16px] font-medium">{report.totalChildren}名</span>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <h3 className="text-[15px] font-medium text-text-2 mb-3">売上内訳</h3>
+            <div className="space-y-2.5">
+              <div className="flex justify-between items-baseline">
+                <span className="text-[15px] text-text-body">宿泊</span>
+                <span className="text-[15px] font-medium">{formatYen(report.stayRevenue)}</span>
+              </div>
+              <div className="flex justify-between items-baseline">
+                <span className="text-[15px] text-text-body">食事</span>
+                <span className="text-[15px] font-medium">{formatYen(report.mealRevenue)}</span>
+              </div>
+              <div className="flex justify-between items-baseline">
+                <span className="text-[15px] text-text-body">その他</span>
+                <span className="text-[15px] font-medium">{formatYen(report.extrasRevenue)}</span>
+              </div>
+              <div className="flex justify-between items-baseline">
+                <span className="text-[15px] text-text-body">宿泊税</span>
+                <span className="text-[15px] font-medium">{formatYen(report.taxCollected)}</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Grand total */}
         <Card>
-          <h3 className="text-sm font-medium text-text-2 mb-2">ゲスト内訳</h3>
-          <div className="text-sm space-y-1.5">
-            <div className="flex justify-between">
-              <span className="text-text-2">大人</span>
-              <span className="font-medium">{report.totalAdults}名</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-text-2">子供</span>
-              <span className="font-medium">{report.totalChildren}名</span>
-            </div>
+          <div className="flex justify-between items-baseline">
+            <span className="text-[17px] font-medium">合計</span>
+            <span className="text-[28px] font-medium">{formatYen(report.grandTotal)}</span>
           </div>
         </Card>
 
-        {/* Revenue breakdown */}
-        <Card>
-          <h3 className="text-sm font-medium text-text-2 mb-2">売上内訳</h3>
-          <div className="text-sm space-y-1.5">
-            <div className="flex justify-between">
-              <span className="text-text-2">宿泊売上</span>
-              <span className="font-medium">{formatYen(report.stayRevenue)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-text-2">食事売上</span>
-              <span className="font-medium">{formatYen(report.mealRevenue)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-text-2">その他売上</span>
-              <span className="font-medium">{formatYen(report.extrasRevenue)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-text-2">宿泊税</span>
-              <span className="font-medium">{formatYen(report.taxCollected)}</span>
-            </div>
-            <div className="flex justify-between pt-2 border-t border-border/40">
-              <span className="font-medium">合計</span>
-              <span className="font-medium text-lg">{formatYen(report.grandTotal)}</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Daily report link */}
+        {/* Link cards with affordance */}
         <Link href="/report/daily">
-          <Card className="!bg-primary/[0.04] border border-primary/10 flex flex-row items-center gap-3">
-            <FileText size={20} className="text-primary shrink-0" />
-            <div>
-              <p className="text-sm font-medium">売上日報</p>
-              <p className="text-xs text-text-3">日別の予約売上明細を確認</p>
+          <Card className="flex items-center gap-3 py-4">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(196,105,74,0.08)' }}>
+              <FileText size={20} className="text-primary" />
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[16px] font-medium">売上日報</p>
+              <p className="text-[13px] text-text-3">日別の予約売上明細を確認</p>
+            </div>
+            <ChevronRight size={18} className="text-text-3 shrink-0" />
           </Card>
         </Link>
 
-        {/* Tax report link */}
         <Link href="/report/tax">
-          <Card className="!bg-primary/[0.04] border border-primary/10 flex flex-row items-center gap-3">
-            <FileText size={20} className="text-primary shrink-0" />
-            <div>
-              <p className="text-sm font-medium">税申告書を出力</p>
-              <p className="text-xs text-text-3">月計表・納入申告書をPDFで生成</p>
+          <Card className="flex items-center gap-3 py-4">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(196,105,74,0.08)' }}>
+              <FileText size={20} className="text-primary" />
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[16px] font-medium">税申告書を出力</p>
+              <p className="text-[13px] text-text-3">月計表・納入申告書をPDFで生成</p>
+            </div>
+            <ChevronRight size={18} className="text-text-3 shrink-0" />
           </Card>
         </Link>
 
