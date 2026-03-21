@@ -169,7 +169,7 @@ export default function PricingSettings() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <p className="text-sm font-bold">{plan.name}</p>
+                  <p className="text-sm font-medium">{plan.name}</p>
                   {plan.is_default && (
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
                       デフォルト
@@ -225,7 +225,7 @@ export default function PricingSettings() {
         {/* Edit / New form */}
         {editing !== null && (
           <Card className="!bg-primary/[0.04] border border-primary/10">
-            <p className="text-sm font-bold mb-3">
+            <p className="text-sm font-medium mb-3">
               {editing === 'new' ? '新しいプラン' : 'プランを編集'}
             </p>
             <div className="space-y-4">

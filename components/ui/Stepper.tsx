@@ -26,7 +26,7 @@ export default function Stepper({ value, onChange, min = 0, max = 99 }: Props) {
       >
         <Minus size={18} strokeWidth={2.5} />
       </button>
-      <span className="w-8 text-center text-sm font-bold tabular-nums">{value}</span>
+      <span className="w-8 text-center text-base font-medium tabular-nums">{value}</span>
       <button
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}

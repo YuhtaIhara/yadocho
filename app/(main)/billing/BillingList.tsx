@@ -91,7 +91,7 @@ export default function BillingList() {
           onClick={() => setDatePickerOpen(true)}
           className="flex items-center gap-2"
         >
-          <span className="text-base font-bold">
+          <span className="text-base font-medium">
             {format(selectedDate, 'M/d（E）', { locale: ja })}
           </span>
           {isToday && <Badge>今日</Badge>}
@@ -126,7 +126,7 @@ export default function BillingList() {
       <div className="px-4 py-4 pb-32 space-y-6">
         {/* Unsettled */}
         <section>
-          <h2 className="text-sm font-bold text-text-2 mb-3 flex items-center gap-2">
+          <h2 className="text-sm font-medium text-text-2 mb-3 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-warning" />
             未精算（{unsettled.length}件）
           </h2>
@@ -145,13 +145,13 @@ export default function BillingList() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="min-w-0">
-                      <p className="text-sm font-bold truncate">{r.guest?.name ?? '—'} 様</p>
+                      <p className="text-sm font-medium truncate">{r.guest?.name ?? '—'} 様</p>
                       <p className="text-xs text-text-2 mt-0.5">
                         {roomLabel(r)} · {formatDateJP(r.checkin)}〜 {nights}泊
                       </p>
                     </div>
                     <div className="text-right shrink-0 ml-3">
-                      <p className="text-sm font-bold">{formatYen(amount)}</p>
+                      <p className="text-sm font-medium">{formatYen(amount)}</p>
                       <Badge
                         variant="outline"
                         className="mt-1"
@@ -172,7 +172,7 @@ export default function BillingList() {
         {/* Settled */}
         {settled.length > 0 && (
           <section>
-            <h2 className="text-sm font-bold text-text-2 mb-3 flex items-center gap-2">
+            <h2 className="text-sm font-medium text-text-2 mb-3 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary/60" />
               精算済み（{settled.length}件 · {formatYen(settledTotal)}）
             </h2>
@@ -188,13 +188,13 @@ export default function BillingList() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="min-w-0">
-                        <p className="text-sm font-bold truncate">{r.guest?.name ?? '—'} 様</p>
+                        <p className="text-sm font-medium truncate">{r.guest?.name ?? '—'} 様</p>
                         <p className="text-xs text-text-2 mt-0.5">
                           {roomLabel(r)} · {formatDateJP(r.checkin)}〜 {nights}泊
                         </p>
                       </div>
                       <div className="text-right shrink-0 ml-3">
-                        <p className="text-sm font-bold">{formatYen(amount)}</p>
+                        <p className="text-sm font-medium">{formatYen(amount)}</p>
                         <Badge variant="outline" className="mt-1">精算済み</Badge>
                       </div>
                     </div>

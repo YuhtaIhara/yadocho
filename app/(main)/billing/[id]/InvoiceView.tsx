@@ -213,7 +213,7 @@ export default function InvoiceView() {
 
       {/* Extra items input — no-print */}
       <div className="no-print px-4 py-3 border-b border-border/40">
-        <h3 className="text-sm font-bold text-text-2 mb-2">追加費目</h3>
+        <h3 className="text-sm font-medium text-text-2 mb-2">追加費目</h3>
         {presets.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-2 mb-2 -mx-1 px-1 scrollbar-hide">
             {presets.map(p => (
@@ -281,18 +281,18 @@ export default function InvoiceView() {
 
       {/* Invoice — printable */}
       <div className="px-4 py-6 max-w-md mx-auto">
-        <h2 className="text-center text-xl font-bold tracking-widest mb-4">ご 請 求 書</h2>
+        <h2 className="text-center text-xl font-medium tracking-widest mb-4">ご 請 求 書</h2>
 
         {inn && (
           <div className="text-right text-xs text-text-2 mb-4 space-y-0.5">
-            <p className="text-sm font-bold text-text-1">{inn.name}</p>
+            <p className="text-sm font-medium text-text-1">{inn.name}</p>
             {inn.address && <p>{inn.address}</p>}
             {inn.phone && <p>TEL: {inn.phone}</p>}
             {inn.representative && <p>代表: {inn.representative}</p>}
           </div>
         )}
 
-        <p className="text-lg font-bold mb-1">{res.guest?.name ?? '—'} 様</p>
+        <p className="text-lg font-medium mb-1">{res.guest?.name ?? '—'} 様</p>
         <div className="text-sm text-text-2 space-y-0.5 mb-4">
           <p>チェックイン: {formatDateFull(res.checkin)}</p>
           <p>チェックアウト: {formatDateFull(res.checkout)}（{computed.nights}泊）</p>
@@ -304,7 +304,7 @@ export default function InvoiceView() {
 
         <Card className="!bg-primary/[0.04] border border-primary/10 mb-4">
           <p className="text-sm text-text-2 text-center">ご請求金額（税込）</p>
-          <p className="text-2xl font-bold text-center mt-1">{formatYen(computed.total)}</p>
+          <p className="text-2xl font-medium text-center mt-1">{formatYen(computed.total)}</p>
         </Card>
 
         {/* Items table */}
@@ -340,7 +340,7 @@ export default function InvoiceView() {
               <span>{formatYen(computed.taxTotal)}</span>
             </div>
           )}
-          <div className="flex justify-between pt-2 border-t border-border font-bold text-base">
+          <div className="flex justify-between pt-2 border-t border-border font-medium text-base">
             <span>合計</span>
             <span>{formatYen(computed.total)}</span>
           </div>
@@ -351,7 +351,7 @@ export default function InvoiceView() {
       <div className="no-print px-4 pb-32">
         {settleSuccess ? (
           <div className="text-center py-6 space-y-2">
-            <p className="text-lg font-bold text-accent">精算が完了しました</p>
+            <p className="text-lg font-medium text-accent">精算が完了しました</p>
             <p className="text-sm text-text-2">{formatYen(computed.total)}</p>
           </div>
         ) : (
@@ -371,7 +371,7 @@ export default function InvoiceView() {
         <div className="space-y-4">
           <div className="text-center">
             <p className="text-sm text-text-2 mb-1">ご請求金額（税込）</p>
-            <p className="text-2xl font-bold">{formatYen(computed.total)}</p>
+            <p className="text-2xl font-medium">{formatYen(computed.total)}</p>
           </div>
           <p className="text-sm text-text-2 text-center">
             この金額で精算します。よろしいですか？

@@ -65,7 +65,7 @@ export default function DayPanel({
           onClick={() => setDatePickerOpen(true)}
           className="flex items-center gap-2 min-h-[44px]"
         >
-          <span className="text-base font-bold">
+          <span className="text-base font-medium">
             {format(date, 'yyyy年M月d日（E）', { locale: ja })}
           </span>
           {isToday && <Badge>今日</Badge>}
@@ -196,7 +196,7 @@ function ResCard({ reservation: r, onClick }: { reservation: Reservation; onClic
       onClick={onClick}
     >
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold truncate">{r.guest?.name ?? '—'} 様</p>
+        <p className="text-sm font-medium truncate">{r.guest?.name ?? '—'} 様</p>
         <p className="text-xs text-text-2 mt-0.5">
           {roomLabel(r)} · {personLabel}
           {r.checkin_time && ` · ${r.checkin_time.slice(0, 5)}`}
@@ -300,7 +300,7 @@ function BlockedCard({ block, rooms }: { block: BlockedDate; rooms: Room[] }) {
     <Card className="py-2.5 px-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-xs font-bold text-danger bg-danger/10 px-2 py-0.5 rounded shrink-0">
+          <span className="text-xs font-medium text-danger bg-danger/10 px-2 py-0.5 rounded shrink-0">
             {roomName}
           </span>
           {!editing && (

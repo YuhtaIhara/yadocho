@@ -155,7 +155,7 @@ export default function ReportView() {
         >
           <ChevronLeft size={20} className="text-text-2" />
         </button>
-        <h2 className="text-lg font-bold">
+        <h2 className="text-lg font-medium">
           {format(month, 'yyyy年M月', { locale: ja })}
         </h2>
         <button
@@ -171,22 +171,22 @@ export default function ReportView() {
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3">
           <Card className="text-center py-3">
-            <p className="text-2xl font-bold text-primary">{report.totalReservations}</p>
+            <p className="text-2xl font-medium text-primary">{report.totalReservations}</p>
             <p className="text-xs text-text-3 mt-1">予約数</p>
           </Card>
           <Card className="text-center py-3">
-            <p className="text-2xl font-bold text-primary">{report.totalGuests}</p>
+            <p className="text-2xl font-medium text-primary">{report.totalGuests}</p>
             <p className="text-xs text-text-3 mt-1">ゲスト数</p>
           </Card>
           <Card className="text-center py-3">
-            <p className="text-2xl font-bold text-primary">{report.totalNights}</p>
+            <p className="text-2xl font-medium text-primary">{report.totalNights}</p>
             <p className="text-xs text-text-3 mt-1">延べ泊数</p>
           </Card>
         </div>
 
         {/* Guest breakdown */}
         <Card>
-          <h3 className="text-sm font-bold text-text-2 mb-2">ゲスト内訳</h3>
+          <h3 className="text-sm font-medium text-text-2 mb-2">ゲスト内訳</h3>
           <div className="text-sm space-y-1.5">
             <div className="flex justify-between">
               <span className="text-text-2">大人</span>
@@ -201,7 +201,7 @@ export default function ReportView() {
 
         {/* Revenue breakdown */}
         <Card>
-          <h3 className="text-sm font-bold text-text-2 mb-2">売上内訳</h3>
+          <h3 className="text-sm font-medium text-text-2 mb-2">売上内訳</h3>
           <div className="text-sm space-y-1.5">
             <div className="flex justify-between">
               <span className="text-text-2">宿泊売上</span>
@@ -220,8 +220,8 @@ export default function ReportView() {
               <span className="font-medium">{formatYen(report.taxCollected)}</span>
             </div>
             <div className="flex justify-between pt-2 border-t border-border/40">
-              <span className="font-bold">合計</span>
-              <span className="font-bold text-lg">{formatYen(report.grandTotal)}</span>
+              <span className="font-medium">合計</span>
+              <span className="font-medium text-lg">{formatYen(report.grandTotal)}</span>
             </div>
           </div>
         </Card>
@@ -231,7 +231,7 @@ export default function ReportView() {
           <Card className="!bg-primary/[0.04] border border-primary/10 flex flex-row items-center gap-3">
             <FileText size={20} className="text-primary shrink-0" />
             <div>
-              <p className="text-sm font-bold">税申告書を出力</p>
+              <p className="text-sm font-medium">税申告書を出力</p>
               <p className="text-xs text-text-3">月計表・納入申告書をPDFで生成</p>
             </div>
           </Card>

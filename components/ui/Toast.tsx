@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from 'react'
-import { X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 type ToastType = 'error' | 'success' | 'info'
@@ -39,7 +39,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed bottom-20 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+      <div className="fixed top-4 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map(t => (
           <ToastItem key={t.id} toast={t} onDismiss={dismiss} />
         ))}
@@ -50,26 +50,26 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number) => void }) {
   useEffect(() => {
-    const timer = setTimeout(() => onDismiss(toast.id), 4000)
+    const timer = setTimeout(() => onDismiss(toast.id), 2000)
     return () => clearTimeout(timer)
   }, [toast.id, onDismiss])
 
+  const borderColor = toast.type === 'error' ? 'var(--color-danger)' : toast.type === 'success' ? 'var(--color-checkin)' : 'var(--color-border)'
+  const icon = toast.type === 'success' ? <Check size={16} className="text-checkin" /> : toast.type === 'error' ? <X size={16} className="text-danger" /> : null
+
   return (
     <div
-      className={cn(
-        'pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-xl shadow-elevated text-sm animate-in slide-in-from-bottom-2 fade-in duration-200',
-        toast.type === 'error' && 'bg-danger text-white',
-        toast.type === 'success' && 'bg-accent text-white',
-        toast.type === 'info' && 'bg-surface border border-border text-text-1',
-      )}
+      className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-surface shadow-elevated text-[15px] text-text-1 animate-fade-in-up border-l-4"
+      style={{ borderLeftColor: borderColor }}
     >
+      {icon}
       <span className="flex-1">{toast.message}</span>
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="shrink-0 p-0.5 rounded-full opacity-70 active:opacity-100"
+        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full opacity-70 active:opacity-100"
       >
-        <X size={14} />
+        <X size={14} className="text-text-3" />
       </button>
     </div>
   )

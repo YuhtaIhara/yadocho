@@ -106,7 +106,7 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
       <div className="space-y-5 max-h-[60vh] overflow-y-auto -mx-4 px-4">
         {days.map((day, idx) => (
           <div key={day.date} className="space-y-3">
-            <p className="text-sm font-bold text-text-1">{formatDateJP(day.date)}</p>
+            <p className="text-sm font-medium text-text-1">{formatDateJP(day.date)}</p>
 
             {/* Breakfast */}
             <div className="grid grid-cols-[1fr_auto] items-center gap-y-1.5">

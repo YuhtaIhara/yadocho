@@ -218,7 +218,7 @@ export default function TaxReportView() {
           >
             <ChevronLeft size={20} />
           </button>
-          <span className="text-lg font-bold">
+          <span className="text-lg font-medium">
             {format(month, 'yyyy年M月', { locale: ja })}
           </span>
           <button
@@ -239,7 +239,7 @@ export default function TaxReportView() {
               <div className="flex-1 mr-3">
                 <div className="flex items-center gap-2 mb-1">
                   <FileText size={16} className="text-primary shrink-0" />
-                  <p className="text-sm font-bold">{r.label}</p>
+                  <p className="text-sm font-medium">{r.label}</p>
                 </div>
                 <p className="text-xs text-text-3">{r.desc}</p>
               </div>

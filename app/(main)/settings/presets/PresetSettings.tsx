@@ -48,7 +48,7 @@ export default function PresetSettings() {
       <div className="px-4 py-4 space-y-4 pb-32">
         {/* Add new */}
         <Card>
-          <h3 className="text-sm font-bold text-text-2 mb-3">費目を追加</h3>
+          <h3 className="text-sm font-medium text-text-2 mb-3">費目を追加</h3>
           <div className="flex gap-2">
             <Input
               placeholder="品目名"
@@ -105,7 +105,7 @@ export default function PresetSettings() {
                     }}
                     className="text-left flex-1"
                   >
-                    <p className="text-sm font-bold">{preset.name}</p>
+                    <p className="text-sm font-medium">{preset.name}</p>
                     <p className="text-xs text-text-3">{formatYen(preset.price)}</p>
                   </button>
                   <button

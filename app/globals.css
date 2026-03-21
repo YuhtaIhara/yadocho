@@ -1,33 +1,59 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #FDFBF9;
-  --color-foreground: #3D3935;
-  --color-surface: #FFFFFF;
-  --color-primary: #BF5040;
+  /* ── 背景 ── */
+  --color-background: #FAF6F0;
+  --color-foreground: #2D2926;
+  --color-surface: #F5EDE3;
+  --color-bg-secondary: #F0EDE8;
+
+  /* ── プライマリ ── */
+  --color-primary: #C4694A;
   --color-primary-foreground: #FFFFFF;
-  --color-primary-soft: rgba(191, 80, 64, 0.10);
-  --color-accent: #4A9B7F;
+  --color-primary-soft: rgba(196, 105, 74, 0.10);
+  --color-primary-hover: #A85638;
+
+  /* ── ステータス ── */
+  --color-accent: #5B9A6E;
   --color-accent-foreground: #FFFFFF;
-  --color-warning: #D4944A;
-  --color-danger: #D93025;
-  --color-danger-soft: rgba(217, 48, 37, 0.06);
+  --color-checkin: #5B9A6E;
+  --color-booked: #E8A65D;
+  --color-staying: #8B7EB8;
+  --color-warning: #E8A65D;
+  --color-danger: #D47B7B;
+  --color-danger-soft: rgba(212, 123, 123, 0.08);
+
+  /* ── ボーダー ── */
   --color-border: #E8E2DA;
   --color-input: #E8E2DA;
-  --color-ring: rgba(191, 80, 64, 0.3);
-  --color-text-1: #3D3935;
-  --color-text-2: #7A7470;
-  --color-text-3: #78716C;
+  --color-ring: rgba(196, 105, 74, 0.3);
+
+  /* ── テキスト ── */
+  --color-text-1: #2D2926;
+  --color-text-2: #5C5552;
+  --color-text-3: #9B9490;
+
+  /* ── フォント ── */
   --font-sans: var(--font-sans);
+
+  /* ── 角丸 ── */
   --radius-sm: 8px;
-  --radius-md: 12px;
+  --radius-md: 14px;
   --radius-lg: 16px;
   --radius-xl: 20px;
 }
 
 :root {
-  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+  /* ── 影（ネオモーフィズム軽め） ── */
+  --shadow-card: 6px 6px 12px rgba(180, 170, 158, 0.25), -4px -4px 10px rgba(255, 255, 255, 0.7);
   --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-button: 0 4px 12px rgba(196, 105, 74, 0.3);
+
+  /* ── タッチターゲット ── */
+  --touch-min: 48px;
+  --touch-rec: 56px;
+  --touch-fab: 64px;
+  --touch-list: 60px;
 }
 
 /* Animations */

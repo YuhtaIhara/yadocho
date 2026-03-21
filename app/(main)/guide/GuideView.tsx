@@ -114,7 +114,7 @@ export default function GuideView() {
                 onClick={() => toggleSection(section.title)}
                 className="w-full flex items-center justify-between p-4 active:bg-primary-soft/50 transition-colors"
               >
-                <span className="text-sm font-bold flex items-center gap-2">
+                <span className="text-sm font-medium flex items-center gap-2">
                   <span className="w-1 h-4 rounded-full bg-primary" />
                   {section.title}
                 </span>

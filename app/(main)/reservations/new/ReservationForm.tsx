@@ -951,8 +951,8 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
                 </div>
               )}
               <div className="flex justify-between pt-2 border-t border-primary/10">
-                <span className="font-bold">概算合計</span>
-                <span className="font-bold text-lg">{formatYen(estimate.total)}</span>
+                <span className="font-medium">概算合計</span>
+                <span className="font-medium text-lg">{formatYen(estimate.total)}</span>
               </div>
             </div>
           </Card>
@@ -985,7 +985,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-sm font-bold text-text-2 mb-3 flex items-center gap-2">
+      <h2 className="text-sm font-medium text-text-2 mb-3 flex items-center gap-2">
         <span className="w-1 h-4 bg-primary rounded-full" />
         {title}
       </h2>

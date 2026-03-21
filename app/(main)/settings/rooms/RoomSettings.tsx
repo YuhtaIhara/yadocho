@@ -63,7 +63,7 @@ export default function RoomSettings() {
       <div className="px-4 py-4 space-y-4 pb-32">
         {/* Add new */}
         <Card>
-          <h3 className="text-sm font-bold text-text-2 mb-3">部屋を追加</h3>
+          <h3 className="text-sm font-medium text-text-2 mb-3">部屋を追加</h3>
           <div className="space-y-3">
             <Input
               label="部屋名"
@@ -162,7 +162,7 @@ export default function RoomSettings() {
                     className="text-left flex-1 min-w-0"
                   >
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold">{room.name}</p>
+                      <p className="text-sm font-medium">{room.name}</p>
                       <Badge variant="default">{ROOM_TYPE_LABELS[room.room_type ?? 'japanese']}</Badge>
                     </div>
                     <div className="flex items-center gap-1 mt-0.5 text-xs text-text-3">

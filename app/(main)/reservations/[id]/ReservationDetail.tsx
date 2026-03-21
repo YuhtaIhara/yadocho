@@ -109,7 +109,7 @@ export default function ReservationDetail() {
                     onClick={() => handleStatusChange(s)}
                     className={cn(
                       'w-full text-left px-4 py-2.5 text-sm active:bg-primary-soft',
-                      s === res.status && 'font-bold text-primary',
+                      s === res.status && 'font-medium text-primary',
                     )}
                   >
                     {STATUS_LABELS[s]}
@@ -126,7 +126,7 @@ export default function ReservationDetail() {
         {/* Guest info */}
         <Card>
           <Link href={`/guests/${res.guest_id}`} className="block">
-            <p className="text-lg font-bold">{res.guest?.name ?? '—'} 様</p>
+            <p className="text-lg font-medium">{res.guest?.name ?? '—'} 様</p>
           </Link>
           {res.guest?.phone && (
             <a
@@ -183,7 +183,7 @@ export default function ReservationDetail() {
         {/* Meals */}
         <Card>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-text-2">食事</h3>
+            <h3 className="text-sm font-medium text-text-2">食事</h3>
             <button type="button" onClick={() => setShowMealEditor(true)} className="p-1 rounded-full active:bg-primary-soft">
               <Pencil size={14} className="text-text-3" />
             </button>
@@ -217,7 +217,7 @@ export default function ReservationDetail() {
 
         {/* Price breakdown */}
         <Card>
-          <h3 className="text-sm font-bold text-text-2 mb-2">料金内訳</h3>
+          <h3 className="text-sm font-medium text-text-2 mb-2">料金内訳</h3>
           <div className="text-sm space-y-1.5">
             <div className="flex justify-between">
               <span className="text-text-2">
@@ -294,8 +294,8 @@ export default function ReservationDetail() {
               </p>
             ))}
             <div className="flex justify-between pt-2 border-t border-border/40">
-              <span className="font-bold">合計</span>
-              <span className="font-bold text-lg">{formatYen(total)}</span>
+              <span className="font-medium">合計</span>
+              <span className="font-medium text-lg">{formatYen(total)}</span>
             </div>
           </div>
         </Card>

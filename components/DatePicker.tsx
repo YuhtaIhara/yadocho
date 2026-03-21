@@ -70,7 +70,7 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
           >
             <span className="text-text-2">◀</span>
           </button>
-          <span className="text-base font-bold">
+          <span className="text-base font-medium">
             {format(viewMonth, 'yyyy年M月', { locale: ja })}
           </span>
           <div className="flex items-center gap-1">
@@ -97,8 +97,8 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
             <span
               key={w}
               className={cn(
-                'text-center text-xs font-medium py-1',
-                i === 0 ? 'text-danger' : i === 6 ? 'text-blue-500' : 'text-text-3',
+                'text-center text-[15px] font-medium py-1',
+                i === 0 ? 'text-danger' : i === 6 ? 'text-staying' : 'text-text-3',
               )}
             >
               {w}
@@ -123,13 +123,13 @@ export default function DatePicker({ open, onClose, onSelect, selectedDate }: Pr
                   'w-11 h-11 min-w-[44px] min-h-[44px] mx-auto flex items-center justify-center rounded-full text-sm transition-colors',
                   !inMonth && 'invisible',
                   isSelected
-                    ? 'bg-primary text-white font-bold'
+                    ? 'bg-primary text-white font-medium'
                     : isToday
-                      ? 'bg-primary-soft text-primary font-bold'
+                      ? 'bg-primary-soft text-primary font-medium'
                       : dow === 0
                         ? 'text-danger'
                         : dow === 6
-                          ? 'text-blue-500'
+                          ? 'text-staying'
                           : 'text-text-1',
                   inMonth && !isSelected && 'active:bg-primary-soft',
                 )}

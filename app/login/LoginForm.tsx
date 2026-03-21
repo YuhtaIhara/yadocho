@@ -35,7 +35,7 @@ export default function LoginForm() {
     <div className="min-h-screen flex items-center justify-center px-6 bg-background">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold tracking-tight text-primary">yadocho</h1>
+          <h1 className="text-4xl font-medium tracking-tight text-primary">yadocho</h1>
           <p className="text-base text-text-2 mt-2">宿泊管理アプリ</p>
         </div>
 

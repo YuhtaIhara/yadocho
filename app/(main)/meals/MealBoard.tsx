@@ -219,7 +219,7 @@ export default function MealBoard() {
           onClick={() => setDatePickerOpen(true)}
           className="flex items-center gap-2"
         >
-          <span className="text-base font-bold">
+          <span className="text-base font-medium">
             {format(selectedDate, 'M/d（E）', { locale: ja })}
           </span>
           {isToday && <Badge>今日</Badge>}
@@ -255,7 +255,7 @@ export default function MealBoard() {
             onClick={() => kondate.setExpanded(!kondate.expanded)}
             className="flex items-center gap-2 mb-2 w-full text-left"
           >
-            <h2 className="text-sm font-bold text-text-2">献立</h2>
+            <h2 className="text-sm font-medium text-text-2">献立</h2>
             {kondate.value && <Badge>入力済</Badge>}
             <ChevronDown
               size={16}
@@ -321,7 +321,7 @@ export default function MealBoard() {
           <Card className="!bg-danger-soft border border-danger/10">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle size={16} className="text-danger" />
-              <span className="text-sm font-bold text-danger">アレルギー注意</span>
+              <span className="text-sm font-medium text-danger">アレルギー注意</span>
             </div>
             {allergies.map(a => (
               <p key={a.name} className="text-sm">
@@ -370,7 +370,7 @@ function MealSection({
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <h2 className="text-sm font-bold text-text-2">{title}</h2>
+        <h2 className="text-sm font-medium text-text-2">{title}</h2>
         <Badge>{count}名</Badge>
       </div>
       <div className="flex flex-col gap-4">{children}</div>
@@ -395,7 +395,7 @@ function MealCard({
   return (
     <Card className="py-3.5 px-3 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform" onClick={onEdit}>
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-xs font-bold text-primary bg-primary-soft px-2 py-0.5 rounded">
+        <span className="text-xs font-medium text-primary bg-primary-soft px-2 py-0.5 rounded">
           {r ? roomLabel(r) : '—'}
         </span>
         <span className="text-sm font-medium truncate">{r?.guest?.name ?? '—'}</span>

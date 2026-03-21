@@ -141,7 +141,7 @@ export default function TaxSettings() {
 
         {/* Municipality selector */}
         <div className="mt-2">
-          <h3 className="text-sm font-bold text-text-1 mb-3 flex items-center gap-1.5">
+          <h3 className="text-sm font-medium text-text-1 mb-3 flex items-center gap-1.5">
             <MapPin size={14} />
             自治体から設定
           </h3>
@@ -170,7 +170,7 @@ export default function TaxSettings() {
         {confirmMuni && (
           <div className="space-y-4">
             <p className="text-sm">
-              <span className="font-bold">{confirmMuni.label}</span>の宿泊税ルールを設定します。
+              <span className="font-medium">{confirmMuni.label}</span>の宿泊税ルールを設定します。
             </p>
             {taxRules.length > 0 && (
               <div className="flex items-start gap-2 p-3 rounded-xl bg-warning-soft text-warning text-sm">

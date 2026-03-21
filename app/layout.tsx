@@ -3,9 +3,9 @@ import { Noto_Sans_JP } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 
-const noto = Noto_Sans_JP({
+const notoSans = Noto_Sans_JP({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600'],
   variable: '--font-sans',
 })
 
@@ -21,14 +21,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={noto.variable}>
+    <html lang="ja" className={notoSans.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#BF5040" />
+        <meta name="theme-color" content="#C4694A" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className={noto.className}>
+      <body className={notoSans.className}>
         <Providers>
           {children}
         </Providers>

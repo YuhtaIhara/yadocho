@@ -143,8 +143,8 @@ export default function GuestDetail() {
         ) : (
           <>
             <Card>
-              <p className="text-lg font-bold">{guest.name}</p>
-              {guest.furigana && <p className="text-xs text-text-3 mt-0.5">{guest.furigana}</p>}
+              <p className="text-lg font-medium">{guest.name}</p>
+              {guest.furigana && <p className="text-[15px] text-text-3 mt-0.5">{guest.furigana}</p>}
               <div className="mt-3 space-y-2 text-sm">
                 {guest.company && (
                   <div className="flex items-center gap-2 text-text-2">
@@ -191,7 +191,7 @@ export default function GuestDetail() {
 
         {/* History */}
         <section>
-          <h2 className="text-sm font-bold text-text-2 mb-3 flex items-center gap-2">
+          <h2 className="text-sm font-medium text-text-2 mb-3 flex items-center gap-2">
             <span className="w-1 h-4 bg-primary rounded-full" />
             宿泊履歴（{history.length}回）
           </h2>

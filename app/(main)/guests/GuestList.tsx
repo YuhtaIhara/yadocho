@@ -144,7 +144,7 @@ export default function GuestList() {
       {adding && (
         <div className="px-4 py-3 border-b border-border/40">
           <div className="space-y-3">
-            <p className="text-sm font-bold">新規ゲスト登録</p>
+            <p className="text-sm font-medium">新規ゲスト登録</p>
             <Input label="名前" placeholder="山田 太郎" value={name} onChange={e => setName(e.target.value)} />
             <Input label="ふりがな" placeholder="やまだ たろう" value={furigana} onChange={e => setFurigana(e.target.value)} />
             <Input label="電話番号" placeholder="09012345678" value={phone} onChange={e => setPhone(e.target.value)} />
@@ -201,7 +201,7 @@ export default function GuestList() {
                     ) : (
                       <ChevronDown size={14} className="text-text-3" />
                     )}
-                    <span className="text-xs font-bold text-text-2">{key}</span>
+                    <span className="text-xs font-medium text-text-2">{key}</span>
                     <span className="text-xs text-text-3">{sectionGuests.length}</span>
                   </button>
 
@@ -216,8 +216,8 @@ export default function GuestList() {
                         >
                           <div className="flex items-center justify-between">
                             <div className="min-w-0">
-                              <p className="text-sm font-bold truncate">{g.name}</p>
-                              {g.furigana && <p className="text-[11px] text-text-3 -mt-0.5">{g.furigana}</p>}
+                              <p className="text-sm font-medium truncate">{g.name}</p>
+                              {g.furigana && <p className="text-[15px] text-text-3 -mt-0.5">{g.furigana}</p>}
                               <p className="text-xs text-text-2 mt-0.5">{g.phone ?? '電話番号なし'}</p>
                               {g.allergy && (
                                 <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-danger-soft text-danger text-xs font-medium">

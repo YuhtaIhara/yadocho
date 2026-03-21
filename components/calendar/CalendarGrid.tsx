@@ -144,11 +144,11 @@ export default function CalendarGrid({
               >
                 <span
                   className={cn(
-                    'text-[14px] leading-none w-7 h-7 flex items-center justify-center rounded-full',
+                    'text-[15px] leading-none w-7 h-7 flex items-center justify-center rounded-full',
                     today
-                      ? 'font-bold text-white bg-primary'
+                      ? 'font-medium text-white bg-primary'
                       : selected
-                        ? 'font-bold text-primary'
+                        ? 'font-medium text-primary'
                         : dow === 0
                           ? 'text-danger font-medium'
                           : dow === 6
@@ -160,8 +160,8 @@ export default function CalendarGrid({
                 </span>
                 <span
                   className={cn(
-                    'text-[12px] leading-none mt-0.5',
-                    today ? 'font-bold text-primary' : dow === 0 ? 'text-danger/70' : dow === 6 ? 'text-blue-400' : 'text-text-3',
+                    'text-[13px] leading-none mt-0.5',
+                    today ? 'font-medium text-primary' : dow === 0 ? 'text-danger/70' : dow === 6 ? 'text-blue-400' : 'text-text-3',
                   )}
                 >
                   ({format(d, 'E', { locale: ja })})
@@ -179,7 +179,7 @@ export default function CalendarGrid({
               className="shrink-0 sticky left-0 z-10 bg-surface flex items-center px-2 border-r border-b border-border/30"
               style={{ width: ROOM_W, minWidth: ROOM_W }}
             >
-              <span className="text-xs font-bold text-text-1 truncate">{room.name}</span>
+              <span className="text-[13px] font-medium text-text-1 truncate">{room.name}</span>
             </div>
 
             {/* Date cells */}
@@ -241,7 +241,7 @@ export default function CalendarGrid({
                     e.stopPropagation()
                     onSelectReservation?.(res.id)
                   }}
-                  className="absolute flex items-center gap-0.5 px-1.5 text-[12px] font-semibold truncate active:brightness-90 transition-all"
+                  className="absolute flex items-center gap-0.5 px-1.5 text-[13px] font-semibold truncate active:brightness-90 transition-all"
                   style={{
                     left: pos.left,
                     width: pos.width,

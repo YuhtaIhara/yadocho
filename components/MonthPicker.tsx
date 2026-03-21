@@ -54,7 +54,7 @@ export default function MonthPicker({ open, onClose, onSelect, currentMonth }: P
           >
             <span className="text-text-2">◀</span>
           </button>
-          <span className="text-base font-bold">{year}年</span>
+          <span className="text-base font-medium">{year}年</span>
           <div className="flex items-center gap-1">
             <button
               type="button"

@@ -22,6 +22,7 @@ import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
 import { Palmtree } from 'lucide-react'
 import { ROOM_TYPE_LABELS, type RoomType } from '@/lib/types'
+import SegmentControl from '@/components/ui/SegmentControl'
 
 type ViewDays = 7 | 14 | 'month'
 
@@ -186,7 +187,7 @@ export default function CalendarView() {
         <button
           type="button"
           onClick={goToday}
-          className="text-xs font-bold px-3 py-1.5 rounded-full text-white bg-primary active:brightness-95 transition-all"
+          className="text-[15px] font-medium px-3 py-1.5 rounded-full text-white bg-primary active:brightness-95 transition-all min-h-[48px]"
         >
           今日
         </button>
@@ -195,21 +196,21 @@ export default function CalendarView() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+            className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
           >
             <span className="text-sm text-text-2">◀</span>
           </button>
           <button
             type="button"
             onClick={() => viewDays === 'month' ? setMonthPickerOpen(true) : undefined}
-            className="text-sm font-bold px-2 min-w-[120px] text-center"
+            className="text-sm font-medium px-2 min-w-[120px] text-center"
           >
             {headerLabel}
           </button>
           <button
             type="button"
             onClick={() => navigate(1)}
-            className="w-8 h-8 flex items-center justify-center rounded-full active:bg-primary-soft"
+            className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
           >
             <span className="text-sm text-text-2">▶</span>
           </button>
@@ -219,7 +220,7 @@ export default function CalendarView() {
           type="button"
           onClick={() => setBlockMode(v => !v)}
           className={cn(
-            'flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors',
+            'flex items-center gap-1 text-[15px] font-medium px-2.5 py-1.5 rounded-full transition-colors min-h-[48px]',
             blockMode
               ? 'bg-danger text-white'
               : 'bg-surface border border-border text-text-2 active:bg-primary-soft',
@@ -231,22 +232,16 @@ export default function CalendarView() {
       </div>
 
       {/* ── View toggle ── */}
-      <div className="flex items-center justify-center gap-1 px-4 py-2 border-b border-border/40">
-        {([7, 14, 'month'] as ViewDays[]).map(v => (
-          <button
-            key={String(v)}
-            type="button"
-            onClick={() => handleViewChange(v)}
-            className={cn(
-              'px-4 py-1.5 rounded-lg text-xs font-medium transition-colors',
-              viewDays === v
-                ? 'bg-primary text-white'
-                : 'bg-surface border border-border text-text-2 active:bg-primary-soft',
-            )}
-          >
-            {v === 'month' ? '月' : `${v}日`}
-          </button>
-        ))}
+      <div className="flex items-center justify-center px-4 py-2 border-b border-border/40">
+        <SegmentControl
+          options={[
+            { value: '7', label: '週' },
+            { value: '14', label: '2週' },
+            { value: 'month', label: '月' },
+          ]}
+          selected={String(viewDays)}
+          onChange={v => handleViewChange(v === 'month' ? 'month' : Number(v) as 7 | 14)}
+        />
       </div>
 
       {/* Block mode banner */}
