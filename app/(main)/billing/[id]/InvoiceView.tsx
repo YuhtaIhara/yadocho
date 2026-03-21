@@ -191,13 +191,14 @@ export default function InvoiceView() {
       await upsertInvoiceItems(res.id, allItems)
       await lockInvoice(res.id)
       if (res.status !== 'settled') {
-        updateRes.mutate({ id: res.id, status: 'settled' })
+        await updateRes.mutateAsync({ id: res.id, status: 'settled' })
       }
       setConfirmOpen(false)
       setSettleSuccess(true)
     } catch (err) {
-      console.error(err)
-      setSettleError('精算に失敗しました。もう一度お試しください。')
+      console.error('[settle error]', err)
+      const msg = err instanceof Error ? err.message : '不明なエラー'
+      setSettleError(`精算に失敗しました: ${msg}`)
     } finally {
       setSettling(false)
     }
