@@ -28,7 +28,7 @@ export default function RoomSettings() {
 
   // For deletion guard: fetch future reservations
   const today = toDateStr(new Date())
-  const farFuture = toDateStr(new Date(Date.now() + 365 * 86400000))
+  const farFuture = toDateStr(new Date(Date.now() + 3650 * 86400000)) // 10 years
   const { data: futureRes = [] } = useReservations(today, farFuture)
 
   // Collect unique room types from existing rooms + presets

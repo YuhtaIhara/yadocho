@@ -66,7 +66,9 @@ export async function upsertMealDay(input: Omit<MealDay, 'id' | 'created_at' | '
 export async function upsertMealDays(inputs: Omit<MealDay, 'id' | 'created_at' | 'updated_at'>[]): Promise<MealDay[]> {
   if (inputs.length === 0) return []
   for (const input of inputs) validateMealCounts(input)
-  await guardSettled(inputs[0].reservation_id)
+  // Guard all unique reservation IDs, not just first
+  const uniqueResIds = [...new Set(inputs.map(i => i.reservation_id))]
+  for (const resId of uniqueResIds) await guardSettled(resId)
   const { data, error } = await supabase
     .from('meal_days')
     .upsert(inputs, { onConflict: 'reservation_id,date' })
