@@ -211,73 +211,75 @@ export default function InvoiceView() {
         }
       />
 
-      {/* Extra items input — no-print */}
-      <div className="no-print px-4 py-3 border-b border-border/40">
-        <h3 className="text-sm font-medium text-text-2 mb-2">追加費目</h3>
-        {presets.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-2 -mx-1 px-1 scrollbar-hide">
-            {presets.map(p => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setExtras(prev => [...prev, { name: p.name, unitPrice: p.price, quantity: 1 }])}
-                className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-full bg-primary-soft text-primary active:bg-primary/20 transition-colors"
-              >
-                {p.name} {formatYen(p.price)}
-              </button>
-            ))}
+      {/* Extra items input — no-print, locked when settled */}
+      {res.status !== 'settled' && (
+        <div className="no-print px-4 py-3 border-b border-border/40">
+          <h3 className="text-sm font-medium text-text-2 mb-2">追加費目</h3>
+          {presets.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-2 -mx-1 px-1 scrollbar-hide">
+              {presets.map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setExtras(prev => [...prev, { name: p.name, unitPrice: p.price, quantity: 1 }])}
+                  className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-full bg-primary-soft text-primary active:bg-primary/20 transition-colors"
+                >
+                  {p.name} {formatYen(p.price)}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <Input
+                placeholder="品目"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                className="!h-10"
+              />
+            </div>
+            <div className="w-24">
+              <Input
+                placeholder="単価"
+                type="number"
+                value={newPrice}
+                onChange={e => setNewPrice(e.target.value)}
+                className="!h-10"
+              />
+            </div>
+            <Button variant="secondary" size="sm" onClick={addExtra} className="shrink-0">
+              追加
+            </Button>
           </div>
-        )}
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <Input
-              placeholder="品目"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              className="!h-10"
-            />
-          </div>
-          <div className="w-24">
-            <Input
-              placeholder="単価"
-              type="number"
-              value={newPrice}
-              onChange={e => setNewPrice(e.target.value)}
-              className="!h-10"
-            />
-          </div>
-          <Button variant="secondary" size="sm" onClick={addExtra} className="shrink-0">
-            追加
-          </Button>
-        </div>
-        {extras.length > 0 && (
-          <div className="mt-2 space-y-1">
-            {extras.map((e, i) => (
-              <div key={i} className="flex items-center justify-between text-sm bg-surface rounded-lg px-3 py-1.5">
-                <span>{e.name}</span>
-                <div className="flex items-center gap-2">
-                  <span>{formatYen(e.unitPrice)}</span>
-                  <Stepper
-                    value={e.quantity}
-                    onChange={v =>
-                      setExtras(prev => prev.map((x, j) => (j === i ? { ...x, quantity: v } : x)))
-                    }
-                    min={1}
-                    max={99}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setExtras(prev => prev.filter((_, j) => j !== i))}
-                    className="text-xs text-danger"
-                  >
-                    ×
-                  </button>
+          {extras.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {extras.map((e, i) => (
+                <div key={i} className="flex items-center justify-between text-sm bg-surface rounded-lg px-3 py-1.5">
+                  <span>{e.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{formatYen(e.unitPrice)}</span>
+                    <Stepper
+                      value={e.quantity}
+                      onChange={v =>
+                        setExtras(prev => prev.map((x, j) => (j === i ? { ...x, quantity: v } : x)))
+                      }
+                      min={1}
+                      max={99}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setExtras(prev => prev.filter((_, j) => j !== i))}
+                      className="text-xs text-danger"
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Invoice — printable */}
       <div className="px-4 py-6 max-w-md mx-auto">
@@ -347,12 +349,28 @@ export default function InvoiceView() {
         </div>
       </div>
 
-      {/* Settle button — no-print */}
+      {/* Settle / Unsettled button — no-print */}
       <div className="no-print px-4 pb-32">
         {res.status === 'settled' || settleSuccess ? (
-          <div className="text-center py-6 space-y-2">
+          <div className="text-center py-6 space-y-3">
             <p className="text-[17px] font-medium text-text-sub">精算済み</p>
             <p className="text-sm text-text-3">{formatYen(computed.total)}</p>
+            <button
+              type="button"
+              onClick={() => {
+                if (!confirm('精算を取り消して、請求書を修正可能な状態に戻しますか？')) return
+                updateRes.mutate(
+                  { id: res.id, status: 'checked_in' },
+                  {
+                    onSuccess: () => setSettleSuccess(false),
+                    onError: (err) => alert(`取消に失敗しました: ${err instanceof Error ? err.message : '不明なエラー'}`),
+                  },
+                )
+              }}
+              className="text-[15px] text-text-sub underline min-h-[48px] px-4"
+            >
+              精算を取り消す
+            </button>
           </div>
         ) : (
           <Button
