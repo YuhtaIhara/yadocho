@@ -151,6 +151,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [showNewGuest, setShowNewGuest] = useState(false)
   const [guestLoaded, setGuestLoaded] = useState(!!initialData)
+  const [guestSearchInput, setGuestSearchInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [pickerTarget, setPickerTarget] = useState<'checkin' | 'checkout' | null>(null)
@@ -352,6 +353,8 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
     setSelectedGuest(null)
     setGuestLoaded(false)
     setShowNewGuest(false)
+    setGuestSearchInput('')
+    setSuggestions([])
     setValue('guest_name', '')
     setValue('guest_phone', '')
     setValue('guest_address', '')
@@ -559,93 +562,113 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       <form onSubmit={handleSubmit(onSubmit)} className="px-4 py-4 space-y-6 pb-32">
         {/* ── ゲスト ── */}
         <Section title="ゲスト">
-          {/* Phone — primary input with real-time search */}
-          <div className="relative">
-            <Controller
-              name="guest_phone"
-              control={control}
-              render={({ field }) => (
+          {!selectedGuest && !showNewGuest && (
+            <>
+              {/* Search — name or phone */}
+              <div className="relative">
                 <Input
-                  label="電話番号（必須）"
-                  placeholder="09012345678"
-                  type="tel"
-                  value={field.value}
+                  label="名前・電話番号で検索"
+                  placeholder="山田太郎 / 09012345678"
+                  type="text"
+                  value={guestSearchInput}
                   onChange={e => {
-                    const raw = e.target.value.replace(/[-\s]/g, '')
-                    field.onChange(raw)
-                    // Real-time search by phone
-                    if (raw.length >= 3) {
-                      handleGuestSearch(raw)
+                    const val = e.target.value
+                    setGuestSearchInput(val)
+                    if (val.trim().length >= 2) {
+                      handleGuestSearch(val)
                     } else {
                       setSuggestions([])
                       setShowSuggestions(false)
-                    }
-                    // Auto-show new guest form when phone is complete but no match
-                    if (raw.length >= 10 && !selectedGuest) {
-                      // Delay to let search complete
-                      setTimeout(() => {
-                        if (!selectedGuest) setShowNewGuest(true)
-                      }, 500)
                     }
                   }}
                   onFocus={() => {
                     if (suggestions.length > 0) setShowSuggestions(true)
                   }}
                   onBlur={() => {
-                    field.onBlur()
                     setTimeout(() => setShowSuggestions(false), 200)
                   }}
-                  error={errors.guest_phone?.message}
                   autoComplete="off"
-                  disabled={!!selectedGuest}
                 />
-              )}
-            />
-            {showSuggestions && !selectedGuest && (
-              <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-elevated max-h-40 overflow-y-auto">
-                {suggestions.map(g => (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => selectGuest(g)}
-                    className="w-full text-left px-4 py-2.5 active:bg-primary-soft text-sm"
-                  >
-                    <span className="font-medium">{g.name}</span>
-                    {g.phone && (
-                      <span className="text-text-3 ml-2">{g.phone}</span>
-                    )}
-                  </button>
-                ))}
+                {showSuggestions && (
+                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-elevated max-h-40 overflow-y-auto">
+                    {suggestions.map(g => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => selectGuest(g)}
+                        className="w-full text-left px-4 py-2.5 active:bg-primary-soft text-sm"
+                      >
+                        <span className="font-medium">{g.name}</span>
+                        {g.phone && (
+                          <span className="text-text-3 ml-2">{g.phone}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+
+              {/* New guest shortcut — always visible */}
+              <button
+                type="button"
+                onClick={() => setShowNewGuest(true)}
+                className="mt-2 w-full flex items-center justify-center gap-1.5 text-[15px] font-medium text-primary py-3 rounded-xl border border-primary/20 bg-primary/[0.04] active:bg-primary/[0.08] transition-colors min-h-[48px]"
+              >
+                ＋ 新規ゲストとして登録
+              </button>
+            </>
+          )}
 
           {/* Guest loaded indicator */}
-          {guestLoaded && selectedGuest && (
-            <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs font-medium text-accent bg-accent/10 px-2.5 py-1 rounded-full">
-                既存ゲスト: {selectedGuest.name}
+          {selectedGuest && (
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-medium text-accent bg-accent/10 px-3 py-1.5 rounded-full">
+                {selectedGuest.name}
+                {selectedGuest.phone && <span className="text-text-3 ml-2 text-[13px]">{selectedGuest.phone}</span>}
               </span>
               <button
                 type="button"
-                className="text-xs text-text-3 underline shrink-0"
+                className="text-[15px] text-text-3 underline shrink-0 min-h-[48px] px-2"
                 onClick={clearGuest}
               >
-                解除
+                変更
               </button>
             </div>
           )}
 
-          {/* Guest info form — new or existing */}
-          {showNewGuest && (
-            <div className="mt-3 space-y-3 border border-border rounded-xl p-4">
-              {!selectedGuest && (
-                <p className="text-xs text-text-2">この電話番号は未登録です。ゲスト情報を入力してください。</p>
-              )}
+          {/* Guest info form — new guest */}
+          {showNewGuest && !selectedGuest && (
+            <div className="space-y-3 border border-border rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[15px] font-medium">新規ゲスト</p>
+                <button
+                  type="button"
+                  className="text-[15px] text-text-3 underline min-h-[48px] px-2"
+                  onClick={() => { setShowNewGuest(false); setGuestSearchInput('') }}
+                >
+                  検索に戻る
+                </button>
+              </div>
               <Input
                 label="名前"
                 placeholder="山田 太郎"
                 {...register('guest_name')}
+              />
+              <Controller
+                name="guest_phone"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    label="電話番号"
+                    placeholder="09012345678"
+                    type="tel"
+                    value={field.value}
+                    onChange={e => {
+                      field.onChange(e.target.value.replace(/[-\s]/g, ''))
+                    }}
+                    error={errors.guest_phone?.message}
+                  />
+                )}
               />
               <Input
                 label="住所"
