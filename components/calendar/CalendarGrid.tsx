@@ -80,30 +80,19 @@ export default function CalendarGrid({
     [blockedLookup],
   )
 
-  // Auto-scroll to today on first mount
-  useEffect(() => {
-    if (!scrollRef.current || !firstDate) return
-    const todayIdx = dates.findIndex(d => dateFnsIsToday(d))
-    if (todayIdx >= 0) {
-      scrollRef.current.scrollLeft = Math.max(0, todayIdx * COL_W - COL_W * 2)
-    }
-  }, [dates, firstDate])
-
-  // Auto-scroll to keep selectedDate visible when it changes
+  // Always center selectedDate in view
+  const isFirstScroll = useRef(true)
   useEffect(() => {
     if (!scrollRef.current || !firstDate) return
     const idx = dates.findIndex(d => isSameDay(d, selectedDate))
     if (idx < 0) return
     const el = scrollRef.current
-    const targetLeft = idx * COL_W
-    const viewLeft = el.scrollLeft - ROOM_W
-    const viewRight = viewLeft + el.clientWidth - ROOM_W
-    // If selected date is outside visible area, scroll to center it
-    if (targetLeft < viewLeft || targetLeft > viewRight - COL_W) {
-      el.scrollTo({
-        left: Math.max(0, targetLeft - (el.clientWidth - ROOM_W) / 2 + COL_W / 2),
-        behavior: 'smooth',
-      })
+    const targetLeft = Math.max(0, idx * COL_W - (el.clientWidth - ROOM_W) / 2 + COL_W / 2)
+    if (isFirstScroll.current) {
+      el.scrollLeft = targetLeft
+      isFirstScroll.current = false
+    } else {
+      el.scrollTo({ left: targetLeft, behavior: 'smooth' })
     }
   }, [selectedDate, dates, firstDate])
 
