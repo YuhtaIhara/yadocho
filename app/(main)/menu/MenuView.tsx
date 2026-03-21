@@ -60,7 +60,7 @@ export default function MenuView() {
   // KPI counts
   const checkInCount = reservations.filter((r) => r.checkin === dateStr).length
   const stayingCount = reservations.filter(
-    (r) => r.checkin <= dateStr && r.checkout > dateStr,
+    (r) => r.checkin < dateStr && r.checkout > dateStr,
   ).length
   const checkOutCount = reservations.filter((r) => r.checkout === dateStr).length
 
