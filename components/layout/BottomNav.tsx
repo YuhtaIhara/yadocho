@@ -33,7 +33,7 @@ export default function BottomNav() {
           if (isCenter) {
             return (
               <Link key={href} href={href} className="flex flex-col items-center -mt-5 relative">
-                <span className="flex items-center justify-center w-[64px] h-[64px] rounded-full bg-primary active:scale-95 transition-transform shadow-[var(--shadow-button)]">
+                <span className="flex items-center justify-center w-[64px] h-[64px] rounded-full bg-primary active:scale-95 transition-transform" style={{ boxShadow: '0 4px 12px rgba(196,105,74,0.4)' }}>
                   <Icon size={26} strokeWidth={2.2} className="text-primary-foreground" />
                 </span>
                 {label && <span className="text-[13px] font-medium text-primary mt-0.5">{label}</span>}
