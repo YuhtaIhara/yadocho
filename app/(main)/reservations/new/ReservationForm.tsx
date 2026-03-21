@@ -308,9 +308,6 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   ])
 
   async function handleGuestSearch(input: string) {
-    setSelectedGuest(null)
-    setGuestLoaded(false)
-    setShowNewGuest(false)
     const trimmed = input.trim()
     if (trimmed.length < 2) {
       setSuggestions([])
@@ -318,19 +315,9 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       return
     }
     try {
-      // fetchGuests already handles name vs phone search based on input content
       const guests = await fetchGuests(trimmed)
       setSuggestions(guests)
       setShowSuggestions(guests.length > 0)
-      // If no matches and phone looks complete, show new guest section
-      const cleaned = trimmed.replace(/[-\s]/g, '')
-      const isDigitsOnly = /^\d+$/.test(cleaned)
-      if (guests.length === 0 && isDigitsOnly && cleaned.length >= 10) {
-        setShowNewGuest(true)
-      }
-      if (guests.length === 0 && !isDigitsOnly) {
-        setShowNewGuest(true)
-      }
     } catch (err) {
       console.error('ゲスト検索に失敗:', err)
       setSuggestions([])
