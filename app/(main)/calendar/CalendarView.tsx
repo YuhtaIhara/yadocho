@@ -83,10 +83,19 @@ export default function CalendarView() {
       setViewStart(prev => {
         const next = new Date(prev)
         next.setMonth(next.getMonth() + dir)
-        return startOfMonth(next)
+        const newStart = startOfMonth(next)
+        // Move selectedDate into the new month
+        const today = new Date()
+        setSelectedDate(isSameMonth(today, newStart) ? today : newStart)
+        return newStart
       })
     } else {
-      setViewStart(prev => (dir === 1 ? addDays(prev, viewDays) : subDays(prev, viewDays)))
+      setViewStart(prev => {
+        const newStart = dir === 1 ? addDays(prev, viewDays as number) : subDays(prev, viewDays as number)
+        // Move selectedDate to the first day of the new range
+        setSelectedDate(newStart)
+        return newStart
+      })
     }
   }
 
@@ -128,7 +137,18 @@ export default function CalendarView() {
 
   function handleDayNav(dir: 1 | -1) {
     const next = dir === 1 ? addDays(selectedDate, 1) : subDays(selectedDate, 1)
-    handleSelectDate(next)
+    // If next date falls outside the current view range, shift the view
+    if (viewDays === 'month') {
+      if (!isSameMonth(next, viewStart)) {
+        setViewStart(startOfMonth(next))
+      }
+    } else {
+      const viewEnd = addDays(viewStart, (viewDays as number) - 1)
+      if (next < viewStart || next > viewEnd) {
+        setViewStart(next)
+      }
+    }
+    setSelectedDate(next)
   }
 
   function handleCellClick(date: string, roomId: string) {
