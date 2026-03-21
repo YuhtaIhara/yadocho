@@ -36,6 +36,7 @@ type Props = {
   onSelectReservation?: (id: string) => void
   onCellClick?: (date: string, roomId: string) => void
   onBlockToggle?: (date: string, roomId: string) => void
+  onEdgeSwipe?: (dir: 'left' | 'right') => void
 }
 
 export default function CalendarGrid({
@@ -48,6 +49,7 @@ export default function CalendarGrid({
   onSelectReservation,
   onCellClick,
   onBlockToggle,
+  onEdgeSwipe,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const firstDate = dates[0]
@@ -95,6 +97,38 @@ export default function CalendarGrid({
       el.scrollTo({ left: targetLeft, behavior: 'smooth' })
     }
   }, [selectedDate, dates, firstDate])
+
+  // Edge swipe: detect overscroll at edges to trigger month change
+  useEffect(() => {
+    if (!scrollRef.current || !onEdgeSwipe) return
+    const el = scrollRef.current
+    let touchStartX = 0
+
+    function handleTouchStart(e: TouchEvent) {
+      touchStartX = e.touches[0].clientX
+    }
+
+    function handleTouchEnd(e: TouchEvent) {
+      if (!onEdgeSwipe) return
+      const dx = e.changedTouches[0].clientX - touchStartX
+      const threshold = 60
+      if (Math.abs(dx) < threshold) return
+      if (el.scrollLeft <= 5 && dx > 0) {
+        onEdgeSwipe('left')
+      }
+      const maxScroll = el.scrollWidth - el.clientWidth
+      if (el.scrollLeft >= maxScroll - 5 && dx < 0) {
+        onEdgeSwipe('right')
+      }
+    }
+
+    el.addEventListener('touchstart', handleTouchStart, { passive: true })
+    el.addEventListener('touchend', handleTouchEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', handleTouchStart)
+      el.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [onEdgeSwipe])
 
   function barPosition(res: Reservation) {
     if (!firstDate) return null

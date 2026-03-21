@@ -175,21 +175,6 @@ export default function CalendarView() {
           </button>
         </div>
 
-        {/* ── Status legend (inline) ── */}
-        <div className="flex items-center justify-center gap-4 px-4 py-1 text-[13px] text-text-sub border-t border-border/10">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #E8A65D, #E09B4E)' }} />
-            予約済み
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #5B9A6E, #4F8A60)' }} />
-            チェックイン
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #9B9490, #8A8380)' }} />
-            精算済み
-          </span>
-        </div>
       </div>
 
       {/* Block mode banner */}
@@ -217,8 +202,32 @@ export default function CalendarView() {
           onSelectReservation={(id) => router.push(`/reservations/${id}`)}
           onCellClick={blockMode ? undefined : handleCellClick}
           onBlockToggle={blockMode ? handleBlockToggle : undefined}
+          onEdgeSwipe={(dir) => {
+            const next = dir === 'right'
+              ? new Date(viewStart.getFullYear(), viewStart.getMonth() + 1, 1)
+              : new Date(viewStart.getFullYear(), viewStart.getMonth() - 1, 1)
+            setViewStart(startOfMonth(next))
+            const today = new Date()
+            setSelectedDate(isSameMonth(today, next) ? today : next)
+          }}
         />
       )}
+
+      {/* ── Status legend ── */}
+      <div className="flex items-center justify-center gap-4 px-4 py-1.5 text-[13px] text-text-sub">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #E8A65D, #E09B4E)' }} />
+          予約済み
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #5B9A6E, #4F8A60)' }} />
+          チェックイン
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #9B9490, #8A8380)' }} />
+          精算済み
+        </span>
+      </div>
 
       {/* ── Day panel (without its own date nav) ── */}
       <DayPanel
