@@ -19,6 +19,7 @@ import { roomLabel, type Reservation, type MealDay } from '@/lib/types'
 import type { MealEntry } from '@/lib/pdf/MealDailyReport'
 import DatePicker from '@/components/DatePicker'
 import MealEditor from '@/components/MealEditor'
+import { useToast } from '@/components/ui/Toast'
 
 function useKondateDB(dateStr: string) {
   const qc = useQueryClient()
@@ -50,6 +51,7 @@ function useKondateDB(dateStr: string) {
 }
 
 export default function MealBoard() {
+  const { showToast } = useToast()
   const queryClient = useQueryClient()
   const { data: inn } = useInn()
   const [selectedDate, setSelectedDate] = useState(() => new Date())
@@ -173,6 +175,7 @@ export default function MealBoard() {
     } catch (e) {
       if ((e as Error).name !== 'AbortError') {
         console.error('PDF generation failed:', e)
+        showToast('PDF生成に失敗しました')
       }
     } finally {
       setPdfLoading(false)

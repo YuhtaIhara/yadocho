@@ -7,7 +7,7 @@ import { VillageMonthlyReport } from '@/lib/pdf/VillageMonthlyReport'
 import { VillageDeclarationForm } from '@/lib/pdf/VillageDeclarationForm'
 import { PrefMonthlyReport } from '@/lib/pdf/PrefMonthlyReport'
 import { PrefDeclarationForm } from '@/lib/pdf/PrefDeclarationForm'
-import type { Reservation } from '@/lib/types'
+import type { Reservation, TaxRule, TaxRuleRate } from '@/lib/types'
 
 /**
  * GET /api/tax-report?type=village-monthly&year=2026&month=6
@@ -45,6 +45,34 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Inn not found' }, { status: 404 })
     }
 
+    // Fetch tax rules + rates for this inn
+    const { data: taxRules } = await supabase
+      .from('tax_rules')
+      .select('*')
+      .eq('inn_id', innId)
+      .order('sort_order')
+
+    let threshold = 6000
+    let ratePercent = 3.5
+
+    if (taxRules && taxRules.length > 0) {
+      const firstRule = taxRules[0] as TaxRule
+      threshold = firstRule.threshold
+
+      const ruleIds = (taxRules as TaxRule[]).map(r => r.id)
+      const { data: rates } = await supabase
+        .from('tax_rule_rates')
+        .select('*')
+        .in('tax_rule_id', ruleIds)
+
+      if (rates && rates.length > 0) {
+        const firstRate = rates[0] as TaxRuleRate
+        if (firstRate.rate_percent != null) {
+          ratePercent = firstRate.rate_percent
+        }
+      }
+    }
+
     // Fetch reservations for the month (checkin in this month)
     const from = `${year}-${String(month).padStart(2, '0')}-01`
     const lastDay = new Date(year, month, 0).getDate()
@@ -60,10 +88,9 @@ export async function GET(req: Request) {
 
     switch (type) {
       case 'village-monthly': {
-        // 野沢温泉村の税率: 3.5%（経過措置）, 免税点: 6000円
         const data = buildMonthlyTaxData(
           reservations as Reservation[],
-          year, month, 6000, 3.5,
+          year, month, threshold, ratePercent,
         )
 
         const element = React.createElement(VillageMonthlyReport, {
@@ -102,7 +129,7 @@ export async function GET(req: Request) {
             .neq('status', 'cancelled')
 
           monthsData.push(
-            buildMonthlyTaxData(mReservations as Reservation[], targetYear, targetMonth, 6000, 3.5),
+            buildMonthlyTaxData(mReservations as Reservation[], targetYear, targetMonth, threshold, ratePercent),
           )
         }
 
@@ -116,7 +143,7 @@ export async function GET(req: Request) {
           representative: inn.representative ?? '',
           phone: inn.phone ?? '',
           filingDate,
-          taxRatePercent: 3.5,
+          taxRatePercent: ratePercent,
         })
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const formBuffer = await renderToBuffer(formElement as any)
@@ -132,7 +159,7 @@ export async function GET(req: Request) {
       case 'pref-monthly': {
         const prefData = buildMonthlyTaxData(
           reservations as Reservation[],
-          year, month, 6000, 3.5,
+          year, month, threshold, ratePercent,
         )
 
         const prefMonthlyEl = React.createElement(PrefMonthlyReport, {
@@ -168,7 +195,7 @@ export async function GET(req: Request) {
             .neq('status', 'cancelled')
 
           prefMonthsData.push(
-            buildMonthlyTaxData(mRes as Reservation[], targetYear, targetMonth, 6000, 3.5),
+            buildMonthlyTaxData(mRes as Reservation[], targetYear, targetMonth, threshold, ratePercent),
           )
         }
 

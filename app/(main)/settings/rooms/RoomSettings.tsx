@@ -13,9 +13,11 @@ import { useReservations } from '@/lib/hooks/useReservations'
 import { createRoom, updateRoom, deleteRoom } from '@/lib/api/rooms'
 import { ROOM_TYPE_PRESETS } from '@/lib/types'
 import { toDateStr } from '@/lib/utils/date'
+import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils/cn'
 
 export default function RoomSettings() {
+  const { showToast } = useToast()
   const qc = useQueryClient()
   const { data: rooms = [] } = useRooms()
   const [newName, setNewName] = useState('')
@@ -66,7 +68,7 @@ export default function RoomSettings() {
     // Guard: check if room has future reservations
     const hasRes = futureRes.some(r => r.rooms?.some(room => room.id === id))
     if (hasRes) {
-      alert('この部屋には予約があるため削除できません。先に予約を別の部屋に変更してください。')
+      showToast('この部屋には予約があるため削除できません。先に予約を別の部屋に変更してください。')
       return
     }
     if (!confirm('この部屋を削除しますか？')) return
