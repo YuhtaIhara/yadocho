@@ -222,7 +222,7 @@ export default function CalendarGrid({
                   }}
                 >
                   {!blocked && !occupied && (
-                    <span className="flex items-center justify-center w-full h-full text-[10px] text-text-3/40 select-none">＋</span>
+                    <span className="flex items-center justify-center w-full h-full text-[15px] text-text-3/40 select-none">＋</span>
                   )}
                 </div>
               )
