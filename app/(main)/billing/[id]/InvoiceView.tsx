@@ -349,10 +349,10 @@ export default function InvoiceView() {
 
       {/* Settle button — no-print */}
       <div className="no-print px-4 pb-32">
-        {settleSuccess ? (
+        {res.status === 'settled' || settleSuccess ? (
           <div className="text-center py-6 space-y-2">
-            <p className="text-lg font-medium text-accent">精算が完了しました</p>
-            <p className="text-sm text-text-2">{formatYen(computed.total)}</p>
+            <p className="text-[17px] font-medium text-text-sub">精算済み</p>
+            <p className="text-sm text-text-3">{formatYen(computed.total)}</p>
           </div>
         ) : (
           <Button
