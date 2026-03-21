@@ -96,6 +96,7 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
       onClose()
     } catch (e) {
       console.error('Failed to save meal days:', e)
+      alert(`食事データの保存に失敗しました: ${e instanceof Error ? e.message : '不明なエラー'}`)
     } finally {
       setSaving(false)
     }
