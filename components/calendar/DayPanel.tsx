@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { format, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import Link from 'next/link'
-import { LogIn, LogOut, Ban, Check, X, CalendarPlus } from 'lucide-react'
+import { LogIn, LogOut, Ban, Check, X, CalendarPlus, ChevronDown, ChevronRight } from 'lucide-react'
 import DatePicker from '@/components/DatePicker'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -169,19 +169,27 @@ function Section({
   title,
   dotColor,
   children,
+  defaultOpen = false,
 }: {
   icon?: React.ReactNode
   title: string
   dotColor: string
   children: React.ReactNode
+  defaultOpen?: boolean
 }) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="mb-4">
-      <div className="flex items-center gap-2 mb-2">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-2 mb-2 w-full text-left min-h-[48px] active:bg-primary-soft/50 rounded-lg px-1"
+      >
         {icon ?? <span className={cn('w-2 h-2 rounded-full', dotColor)} />}
-        <span className="text-sm font-semibold text-text-2">{title}</span>
-      </div>
-      <div className="flex flex-col gap-4">{children}</div>
+        <span className="text-[15px] font-medium text-text-2 flex-1">{title}</span>
+        {open ? <ChevronDown size={16} className="text-text-3" /> : <ChevronRight size={16} className="text-text-3" />}
+      </button>
+      {open && <div className="flex flex-col gap-4">{children}</div>}
     </div>
   )
 }
