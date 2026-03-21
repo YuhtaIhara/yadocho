@@ -19,7 +19,7 @@ import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { toDateStr } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
 import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
-import { roomLabel, STATUS_LABELS } from '@/lib/types'
+import { roomLabel, STATUS_LABELS, PAYMENT_METHODS } from '@/lib/types'
 
 export default function DailyReportView() {
   const router = useRouter()
@@ -158,11 +158,11 @@ export default function DailyReportView() {
                       <p className="font-medium truncate max-w-[120px]">
                         {res.guest?.name ?? '—'}
                       </p>
-                      {res.reservation_number && (
-                        <p className="text-xs text-text-sub">
-                          {res.reservation_number}
-                        </p>
-                      )}
+                      <p className="text-xs text-text-sub">
+                        {res.reservation_number && `${res.reservation_number} `}
+                        {STATUS_LABELS[res.status]}
+                        {res.payment_method && ` · ${PAYMENT_METHODS.find(m => m.value === res.payment_method)?.label ?? res.payment_method}`}
+                      </p>
                     </td>
                     <td className="p-3 text-text-body">{roomLabel(res)}</td>
                     <td className="p-3 text-right">

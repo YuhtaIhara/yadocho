@@ -325,6 +325,11 @@ export default function InvoiceView() {
         <Card className="!bg-primary/[0.04] border border-primary/10 mb-4">
           <p className="text-sm text-text-2 text-center">ご請求金額（税込）</p>
           <p className="text-2xl font-medium text-center mt-1">{formatYen(computed.total)}</p>
+          {res.payment_method && (
+            <p className="text-sm text-text-3 text-center mt-1">
+              {PAYMENT_METHODS.find(m => m.value === res.payment_method)?.label ?? res.payment_method}
+            </p>
+          )}
         </Card>
 
         {/* Items table */}

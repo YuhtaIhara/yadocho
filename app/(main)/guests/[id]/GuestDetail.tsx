@@ -143,7 +143,15 @@ export default function GuestDetail() {
         ) : (
           <>
             <Card>
-              <p className="text-lg font-medium">{guest.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-medium">{guest.name}</p>
+                {history.length >= 2 && (
+                  <Badge variant="accent">リピーター（{history.length}回）</Badge>
+                )}
+                {history.length === 1 && (
+                  <Badge variant="outline">初回</Badge>
+                )}
+              </div>
               {guest.furigana && <p className="text-[15px] text-text-3 mt-0.5">{guest.furigana}</p>}
               <div className="mt-3 space-y-2 text-sm">
                 {guest.company && (

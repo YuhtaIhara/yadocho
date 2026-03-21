@@ -205,6 +205,28 @@ export async function updateReservation(
     }
   }
 
+  // Record change history
+  if (Object.keys(fields).length > 0) {
+    const { data: before } = await supabase
+      .from('reservations')
+      .select('*')
+      .eq('id', id)
+      .single()
+    if (before) {
+      const historyRows = Object.entries(fields)
+        .filter(([key, val]) => String(before[key as keyof typeof before] ?? '') !== String(val ?? ''))
+        .map(([key, val]) => ({
+          reservation_id: id,
+          field_name: key,
+          old_value: String(before[key as keyof typeof before] ?? ''),
+          new_value: String(val ?? ''),
+        }))
+      if (historyRows.length > 0) {
+        await supabase.from('reservation_history').insert(historyRows)
+      }
+    }
+  }
+
   // Update reservation fields
   if (Object.keys(fields).length > 0) {
     const { error } = await supabase
