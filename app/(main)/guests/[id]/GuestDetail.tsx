@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/Badge'
 import { useGuest } from '@/lib/hooks/useGuests'
 import { useReservations } from '@/lib/hooks/useReservations'
 import { updateGuest, deleteGuest } from '@/lib/api/guests'
-import { roomLabel } from '@/lib/types'
+import { roomLabel, STATUS_LABELS } from '@/lib/types'
 import { formatDateJP, nightCount, toDateStr } from '@/lib/utils/date'
 import { useQueryClient } from '@tanstack/react-query'
 import { subYears } from 'date-fns'
@@ -226,7 +226,7 @@ export default function GuestDetail() {
                             : 'default'
                       }
                     >
-                      {roomLabel(r)}
+                      {STATUS_LABELS[r.status]}
                     </Badge>
                   </div>
                 </Card>

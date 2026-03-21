@@ -574,6 +574,11 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       <PageHeader title={isEdit ? '予約を編集' : '新規予約'} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="px-4 py-4 space-y-6 pb-32">
+        {formError && (
+          <p className="text-sm text-danger text-center bg-danger-soft rounded-xl py-3 px-4 animate-fade-in">
+            {formError}
+          </p>
+        )}
         {/* ── ゲスト ── */}
         <Section title="ゲスト">
           {!selectedGuest && !showNewGuest && (
