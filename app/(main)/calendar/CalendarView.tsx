@@ -9,6 +9,7 @@ import {
   addDays,
   subDays,
   isSameMonth,
+  isSameDay,
   format,
 } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -20,40 +21,26 @@ import { useRooms } from '@/lib/hooks/useRooms'
 import { useBlockedDates, useCreateBlockedDate, useDeleteBlockedDate } from '@/lib/hooks/useBlockedDates'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
-import { Palmtree, CalendarDays } from 'lucide-react'
+import { Palmtree, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ROOM_TYPE_LABELS, type RoomType } from '@/lib/types'
-import SegmentControl from '@/components/ui/SegmentControl'
-
-type ViewDays = 7 | 14 | 'month'
 
 export default function CalendarView() {
   const router = useRouter()
-  const [viewStart, setViewStart] = useState(() => new Date())
-  const [viewDays, setViewDays] = useState<ViewDays>('month')
+  const [viewStart, setViewStart] = useState(() => startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [blockMode, setBlockMode] = useState(false)
   const [monthPickerOpen, setMonthPickerOpen] = useState(false)
 
-  // Swipe removed — conflicts with horizontal scroll
-
-  // Compute date range based on view mode
+  // Always month view
   const { from, to, dates } = useMemo(() => {
-    if (viewDays === 'month') {
-      const monthStart = startOfMonth(viewStart)
-      const monthEnd = endOfMonth(viewStart)
-      return {
-        from: toDateStr(monthStart),
-        to: toDateStr(monthEnd),
-        dates: eachDayOfInterval({ start: monthStart, end: monthEnd }),
-      }
-    }
-    const end = addDays(viewStart, viewDays - 1)
+    const monthStart = startOfMonth(viewStart)
+    const monthEnd = endOfMonth(viewStart)
     return {
-      from: toDateStr(viewStart),
-      to: toDateStr(end),
-      dates: eachDayOfInterval({ start: viewStart, end }),
+      from: toDateStr(monthStart),
+      to: toDateStr(monthEnd),
+      dates: eachDayOfInterval({ start: monthStart, end: monthEnd }),
     }
-  }, [viewStart, viewDays])
+  }, [viewStart])
 
   const { data: rooms = [], isLoading: roomsLoading } = useRooms()
   const { data: reservations = [] } = useReservations(from, to)
@@ -74,41 +61,18 @@ export default function CalendarView() {
 
   function goToday() {
     const today = new Date()
-    setViewStart(viewDays === 'month' ? startOfMonth(today) : today)
+    setViewStart(startOfMonth(today))
     setSelectedDate(today)
   }
 
-  function navigate(dir: 1 | -1) {
-    if (viewDays === 'month') {
-      setViewStart(prev => {
-        const next = new Date(prev)
-        next.setMonth(next.getMonth() + dir)
-        const newStart = startOfMonth(next)
-        // Move selectedDate into the new month
-        const today = new Date()
-        setSelectedDate(isSameMonth(today, newStart) ? today : newStart)
-        return newStart
-      })
-    } else {
-      setViewStart(prev => {
-        const newStart = dir === 1 ? addDays(prev, viewDays as number) : subDays(prev, viewDays as number)
-        // Move selectedDate to the first day of the new range
-        setSelectedDate(newStart)
-        return newStart
-      })
+  function handleDayNav(dir: 1 | -1) {
+    const next = dir === 1 ? addDays(selectedDate, 1) : subDays(selectedDate, 1)
+    if (!isSameMonth(next, viewStart)) {
+      setViewStart(startOfMonth(next))
     }
+    setSelectedDate(next)
   }
 
-  function handleViewChange(v: ViewDays) {
-    setViewDays(v)
-    if (v === 'month') {
-      setViewStart(startOfMonth(selectedDate))
-    } else {
-      setViewStart(selectedDate)
-    }
-  }
-
-  /** Date header tap in block mode -> toggle all-room block */
   function handleSelectDate(d: Date) {
     if (blockMode) {
       const dateStr = toDateStr(d)
@@ -121,7 +85,7 @@ export default function CalendarView() {
       return
     }
     setSelectedDate(d)
-    if (viewDays === 'month' && !isSameMonth(d, viewStart)) {
+    if (!isSameMonth(d, viewStart)) {
       setViewStart(startOfMonth(d))
     }
   }
@@ -135,22 +99,6 @@ export default function CalendarView() {
     }
   }
 
-  function handleDayNav(dir: 1 | -1) {
-    const next = dir === 1 ? addDays(selectedDate, 1) : subDays(selectedDate, 1)
-    // If next date falls outside the current view range, shift the view
-    if (viewDays === 'month') {
-      if (!isSameMonth(next, viewStart)) {
-        setViewStart(startOfMonth(next))
-      }
-    } else {
-      const viewEnd = addDays(viewStart, (viewDays as number) - 1)
-      if (next < viewStart || next > viewEnd) {
-        setViewStart(next)
-      }
-    }
-    setSelectedDate(next)
-  }
-
   function handleCellClick(date: string, roomId: string) {
     router.push(`/reservations/new?date=${date}&room=${roomId}`)
   }
@@ -161,15 +109,7 @@ export default function CalendarView() {
     setSelectedDate(isSameMonth(today, d) ? today : d)
   }
 
-
-  // Header label
-  const headerLabel = useMemo(() => {
-    if (viewDays === 'month') {
-      return format(viewStart, 'yyyy年M月', { locale: ja })
-    }
-    const end = addDays(viewStart, (viewDays as number) - 1)
-    return `${format(viewStart, 'M/d')}〜${format(end, 'M/d')}`
-  }, [viewStart, viewDays])
+  const isToday = isSameDay(selectedDate, new Date())
 
   // Blocked dates for selected day
   const selectedDateStr = toDateStr(selectedDate)
@@ -180,83 +120,80 @@ export default function CalendarView() {
 
   return (
     <div>
-      {/* ── Navigation bar ── */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-background/90 backdrop-blur-lg border-b border-border/40">
-        <button
-          type="button"
-          onClick={goToday}
-          className="flex items-center gap-1 text-[15px] font-medium px-3 py-1.5 rounded-full text-white bg-primary active:brightness-95 transition-all min-h-[48px] shrink-0 whitespace-nowrap"
-        >
-          <CalendarDays size={16} />
-          今日
-        </button>
+      {/* ── Unified header: [今日]  ◀ M/d(E) ▶  [休み] ── */}
+      <div
+        className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/20"
+        style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}
+      >
+        <div className="flex items-center justify-between px-3 py-1.5">
+          <button
+            type="button"
+            onClick={goToday}
+            className={cn(
+              'flex items-center gap-1 text-[15px] font-medium px-3 py-1.5 rounded-full active:brightness-95 transition-all min-h-[48px] shrink-0 whitespace-nowrap',
+              isToday
+                ? 'bg-primary text-white'
+                : 'bg-primary/10 text-primary',
+            )}
+          >
+            <CalendarDays size={16} />
+            今日
+          </button>
 
-        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => handleDayNav(-1)}
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
+            >
+              <ChevronLeft size={20} className="text-text-2" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMonthPickerOpen(true)}
+              className="text-[17px] font-medium px-1 min-h-[44px] flex items-center whitespace-nowrap"
+            >
+              {format(selectedDate, 'M/d（E）', { locale: ja })}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDayNav(1)}
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
+            >
+              <ChevronRight size={20} className="text-text-2" />
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={() => navigate(-1)}
-            className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
+            onClick={() => setBlockMode(v => !v)}
+            className={cn(
+              'flex items-center gap-1 text-[15px] font-medium px-2.5 py-1.5 rounded-full transition-colors min-h-[48px] shrink-0 whitespace-nowrap',
+              blockMode
+                ? 'bg-danger text-white'
+                : 'bg-surface border border-border text-text-2 active:bg-primary-soft',
+            )}
           >
-            <span className="text-[18px] text-text-2">◀</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => viewDays === 'month' ? setMonthPickerOpen(true) : undefined}
-            className="text-[17px] font-medium px-2 min-w-[120px] text-center"
-          >
-            {headerLabel}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate(1)}
-            className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
-          >
-            <span className="text-[18px] text-text-2">▶</span>
+            <Palmtree size={14} />
+            休み
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setBlockMode(v => !v)}
-          className={cn(
-            'flex items-center gap-1 text-[15px] font-medium px-2.5 py-1.5 rounded-full transition-colors min-h-[48px] shrink-0 whitespace-nowrap',
-            blockMode
-              ? 'bg-danger text-white'
-              : 'bg-surface border border-border text-text-2 active:bg-primary-soft',
-          )}
-        >
-          <Palmtree size={14} />
-          休み
-        </button>
-      </div>
-
-      {/* ── View toggle ── */}
-      <div className="flex items-center justify-center px-4 py-2 border-b border-border/40">
-        <SegmentControl
-          options={[
-            { value: '7', label: '週' },
-            { value: '14', label: '2週' },
-            { value: 'month', label: '月' },
-          ]}
-          selected={String(viewDays)}
-          onChange={v => handleViewChange(v === 'month' ? 'month' : Number(v) as 7 | 14)}
-        />
-      </div>
-
-      {/* ── Status legend ── */}
-      <div className="flex items-center justify-center gap-4 px-4 py-1.5 text-[13px] text-text-sub">
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(135deg, #E8A65D, #E09B4E)' }} />
-          予約済み
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(135deg, #5B9A6E, #4F8A60)' }} />
-          チェックイン
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(135deg, #9B9490, #8A8380)' }} />
-          精算済み
-        </span>
+        {/* ── Status legend (inline) ── */}
+        <div className="flex items-center justify-center gap-4 px-4 py-1 text-[13px] text-text-sub border-t border-border/10">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: 'linear-gradient(135deg, #E8A65D, #E09B4E)' }} />
+            予約済み
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: 'linear-gradient(135deg, #5B9A6E, #4F8A60)' }} />
+            チェックイン
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: 'linear-gradient(135deg, #9B9490, #8A8380)' }} />
+            精算済み
+          </span>
+        </div>
       </div>
 
       {/* Block mode banner */}
@@ -268,37 +205,31 @@ export default function CalendarView() {
         </div>
       )}
 
-      {/* ── Calendar grid (with swipe) ── */}
+      {/* ── Calendar grid ── */}
       {roomsLoading ? (
         <div className="flex items-center justify-center h-48">
           <span className="text-sm text-text-3">読み込み中…</span>
         </div>
       ) : (
-        <div>
-          <CalendarGrid
-            rooms={sortedRooms}
-            reservations={reservations}
-            blockedDates={blockedDates}
-            dates={dates}
-            selectedDate={selectedDate}
-            onSelectDate={handleSelectDate}
-            onSelectReservation={(id) => router.push(`/reservations/${id}`)}
-            onCellClick={blockMode ? undefined : handleCellClick}
-            onBlockToggle={blockMode ? handleBlockToggle : undefined}
-          />
-        </div>
+        <CalendarGrid
+          rooms={sortedRooms}
+          reservations={reservations}
+          blockedDates={blockedDates}
+          dates={dates}
+          selectedDate={selectedDate}
+          onSelectDate={handleSelectDate}
+          onSelectReservation={(id) => router.push(`/reservations/${id}`)}
+          onCellClick={blockMode ? undefined : handleCellClick}
+          onBlockToggle={blockMode ? handleBlockToggle : undefined}
+        />
       )}
 
-      {/* ── Day panel ── */}
+      {/* ── Day panel (without its own date nav) ── */}
       <DayPanel
         date={selectedDate}
         reservations={reservations}
         blockedDates={blockedForSelectedDay}
         rooms={sortedRooms}
-        onPrevDay={() => handleDayNav(-1)}
-        onNextDay={() => handleDayNav(1)}
-        onToday={goToday}
-        onSelectDate={handleSelectDate}
         onSelectReservation={(id) => router.push(`/reservations/${id}`)}
       />
 
@@ -306,7 +237,7 @@ export default function CalendarView() {
         open={monthPickerOpen}
         onClose={() => setMonthPickerOpen(false)}
         onSelect={handleMonthSelect}
-        currentMonth={viewDays === 'month' ? viewStart : startOfMonth(viewStart)}
+        currentMonth={viewStart}
       />
     </div>
   )

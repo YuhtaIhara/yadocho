@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { format, isSameDay } from 'date-fns'
+import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import Link from 'next/link'
 import { LogIn, LogOut, Ban, Check, X, CalendarPlus, ChevronDown, ChevronRight } from 'lucide-react'
-import DatePicker from '@/components/DatePicker'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils/cn'
@@ -18,10 +17,6 @@ type Props = {
   reservations: Reservation[]
   blockedDates?: BlockedDate[]
   rooms?: Room[]
-  onPrevDay: () => void
-  onNextDay: () => void
-  onToday: () => void
-  onSelectDate?: (date: Date) => void
   onSelectReservation?: (id: string) => void
 }
 
@@ -30,15 +25,9 @@ export default function DayPanel({
   reservations,
   blockedDates = [],
   rooms = [],
-  onPrevDay,
-  onNextDay,
-  onToday,
-  onSelectDate,
   onSelectReservation,
 }: Props) {
   const dateStr = format(date, 'yyyy-MM-dd')
-  const isToday = isSameDay(date, new Date())
-  const [datePickerOpen, setDatePickerOpen] = useState(false)
 
   const checkIns = reservations.filter(r => r.checkin === dateStr)
   const checkOuts = reservations.filter(r => r.checkout === dateStr)
@@ -50,35 +39,6 @@ export default function DayPanel({
 
   return (
     <div className="px-4 pt-3 pb-4">
-      {/* ── Day navigation ── */}
-      <div className="flex items-center justify-between mb-3">
-        <button
-          type="button"
-          onClick={onPrevDay}
-          className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
-        >
-          <span className="text-lg text-text-2">◀</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setDatePickerOpen(true)}
-          className="flex items-center gap-2 min-h-[44px]"
-        >
-          <span className="text-base font-medium">
-            {format(date, 'yyyy年M月d日（E）', { locale: ja })}
-          </span>
-          {isToday && <Badge>今日</Badge>}
-        </button>
-
-        <button
-          type="button"
-          onClick={onNextDay}
-          className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft transition-colors"
-        >
-          <span className="text-lg text-text-2">▶</span>
-        </button>
-      </div>
 
       {/* ── Check-ins ── */}
       {checkIns.length > 0 && (
@@ -154,12 +114,6 @@ export default function DayPanel({
         </div>
       )}
 
-      <DatePicker
-        open={datePickerOpen}
-        onClose={() => setDatePickerOpen(false)}
-        onSelect={(d) => { onSelectDate?.(d); setDatePickerOpen(false) }}
-        selectedDate={date}
-      />
     </div>
   )
 }
