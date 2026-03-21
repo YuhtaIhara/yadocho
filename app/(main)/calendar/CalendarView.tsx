@@ -165,7 +165,7 @@ export default function CalendarView() {
         <button
           type="button"
           onClick={goToday}
-          className="flex items-center gap-1 text-[15px] font-medium px-3 py-1.5 rounded-full text-white bg-primary active:brightness-95 transition-all min-h-[48px]"
+          className="flex items-center gap-1 text-[15px] font-medium px-3 py-1.5 rounded-full text-white bg-primary active:brightness-95 transition-all min-h-[48px] shrink-0 whitespace-nowrap"
         >
           <CalendarDays size={16} />
           今日
@@ -199,7 +199,7 @@ export default function CalendarView() {
           type="button"
           onClick={() => setBlockMode(v => !v)}
           className={cn(
-            'flex items-center gap-1 text-[15px] font-medium px-2.5 py-1.5 rounded-full transition-colors min-h-[48px]',
+            'flex items-center gap-1 text-[15px] font-medium px-2.5 py-1.5 rounded-full transition-colors min-h-[48px] shrink-0 whitespace-nowrap',
             blockMode
               ? 'bg-danger text-white'
               : 'bg-surface border border-border text-text-2 active:bg-primary-soft',
