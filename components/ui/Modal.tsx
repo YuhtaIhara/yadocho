@@ -24,7 +24,8 @@ export default function Modal({ open, onClose, title, children, className }: Pro
       ref={ref}
       onClose={onClose}
       className={cn(
-        'backdrop:bg-black/40 backdrop:animate-fade-in bg-transparent p-0 max-w-lg w-[calc(100%-2rem)] mx-auto rounded-2xl',
+        'backdrop:bg-black/40 backdrop:animate-fade-in bg-transparent p-0 max-w-lg w-[calc(100%-2rem)] rounded-2xl',
+        'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0',
         'open:animate-in open:fade-in open:zoom-in-95',
       )}
     >
