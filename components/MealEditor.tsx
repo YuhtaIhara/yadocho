@@ -127,7 +127,7 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
               <select
                 value={day.breakfast_time ?? ''}
                 onChange={e => updateDay(idx, { breakfast_time: e.target.value || null })}
-                className="h-8 rounded-lg border border-border bg-surface px-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="h-11 rounded-lg border border-border bg-surface px-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
                 <option value="">未設定</option>
                 {BREAKFAST_TIMES.map(t => (
@@ -152,7 +152,7 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
               <select
                 value={day.lunch_time ?? ''}
                 onChange={e => updateDay(idx, { lunch_time: e.target.value || null })}
-                className="h-8 rounded-lg border border-border bg-surface px-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="h-11 rounded-lg border border-border bg-surface px-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
                 <option value="">未設定</option>
                 {LUNCH_TIMES.map(t => (
@@ -177,7 +177,7 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
               <select
                 value={day.dinner_time ?? ''}
                 onChange={e => updateDay(idx, { dinner_time: e.target.value || null })}
-                className="h-8 rounded-lg border border-border bg-surface px-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="h-11 rounded-lg border border-border bg-surface px-2 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
                 <option value="">未設定</option>
                 {DINNER_TIMES.map(t => (

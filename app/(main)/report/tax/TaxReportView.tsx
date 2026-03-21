@@ -258,7 +258,7 @@ export default function TaxReportView() {
       {/* Inline preview (visible on screen too) */}
       {preview && (
         <div ref={previewRef} className="px-4 pb-32 no-print space-y-4">
-          <div className="border border-border rounded-xl p-4 bg-white overflow-x-auto">
+          <div className="border border-border rounded-xl p-4 bg-surface overflow-x-auto">
             <div dangerouslySetInnerHTML={{ __html: preview.html }} />
           </div>
           <Button size="lg" className="w-full" onClick={handlePrint}>

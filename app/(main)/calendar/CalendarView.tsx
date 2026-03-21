@@ -116,7 +116,7 @@ export default function CalendarView() {
 
   return (
     <div>
-      {/* ── Unified header: [今日]  ◀ M/d(E) ▶  [休み] ── */}
+      {/* ── Unified header: [今日]  ◀ M/d(E) ▶  [休業] ── */}
       <div
         className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border/20"
         style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}
@@ -171,22 +171,22 @@ export default function CalendarView() {
             )}
           >
             <Palmtree size={14} />
-            休み
+            休業
           </button>
         </div>
 
         {/* ── Status legend (inline) ── */}
         <div className="flex items-center justify-center gap-4 px-4 py-1 text-[13px] text-text-sub border-t border-border/10">
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: 'linear-gradient(135deg, #E8A65D, #E09B4E)' }} />
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #E8A65D, #E09B4E)' }} />
             予約済み
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: 'linear-gradient(135deg, #5B9A6E, #4F8A60)' }} />
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #5B9A6E, #4F8A60)' }} />
             チェックイン
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: 'linear-gradient(135deg, #9B9490, #8A8380)' }} />
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #9B9490, #8A8380)' }} />
             精算済み
           </span>
         </div>

@@ -824,7 +824,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
                   {room.name}
                   {unavailable && (
                     <span className="block text-[11px] font-normal no-underline">
-                      {isBlocked ? '休業' : '予約あり'}
+                      {isBlocked ? '休業含む' : '予約あり'}
                     </span>
                   )}
                 </button>
