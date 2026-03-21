@@ -79,6 +79,23 @@ export async function updateGuest(
   id: string,
   updates: Partial<Omit<Guest, 'id' | 'inn_id' | 'created_at' | 'updated_at'>>,
 ): Promise<Guest> {
+  // Duplicate phone check (excluding current guest)
+  if (updates.phone) {
+    const innId = await getInnId()
+    if (innId) {
+      const { data: existing } = await supabase
+        .from('guests')
+        .select('id')
+        .eq('inn_id', innId)
+        .eq('phone', updates.phone)
+        .neq('id', id)
+        .limit(1)
+      if (existing && existing.length > 0) {
+        throw new Error('この電話番号は既に登録されています')
+      }
+    }
+  }
+
   const { data, error } = await supabase
     .from('guests')
     .update(updates)

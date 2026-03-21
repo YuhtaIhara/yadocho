@@ -22,7 +22,7 @@ import { useBlockedDates, useCreateBlockedDate, useDeleteBlockedDate } from '@/l
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
 import { Palmtree, CalendarDays } from 'lucide-react'
-import { ROOM_TYPE_LABELS, type RoomType } from '@/lib/types'
+import type { RoomType } from '@/lib/types'
 
 export default function CalendarView() {
   const router = useRouter()
@@ -48,13 +48,9 @@ export default function CalendarView() {
   const createBlocked = useCreateBlockedDate()
   const deleteBlocked = useDeleteBlockedDate()
 
-  // Sort rooms by room_type then sort_order
+  // Sort rooms by sort_order
   const sortedRooms = useMemo(() => {
-    const typeOrder: Record<RoomType, number> = { japanese: 0, western: 1, mixed: 2, other: 3 }
     return [...rooms].sort((a, b) => {
-      const ta = typeOrder[a.room_type ?? 'japanese'] ?? 3
-      const tb = typeOrder[b.room_type ?? 'japanese'] ?? 3
-      if (ta !== tb) return ta - tb
       return a.sort_order - b.sort_order
     })
   }, [rooms])

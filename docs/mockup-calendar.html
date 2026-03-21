@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0">
+<title>yadocho - カレンダー磨きモックアップ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=Noto+Serif+JP:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg: #FAF6F0;
+    --color-bg-card: #F5EDE3;
+    --color-bg-secondary: #F0EDE8;
+    --color-text: #2D2926;
+    --color-text-body: #5C5552;
+    --color-text-sub: #9B9490;
+    --color-primary: #C4694A;
+    --color-primary-hover: #A85638;
+    --color-secondary: #D4856A;
+    --color-checkin: #5B9A6E;
+    --color-booked: #E8A65D;
+    --color-staying: #8B7EB8;
+    --color-error: #D47B7B;
+    --font-heading: 'Noto Serif JP', serif;
+    --font-body: 'Noto Sans JP', sans-serif;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    --shadow-card: 6px 6px 12px rgba(180,170,158,0.25), -4px -4px 10px rgba(255,255,255,0.7);
+    --shadow-button: 0 4px 12px rgba(196,105,74,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    width: 390px;
+    margin: 0 auto;
+    min-height: 844px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* === Top Navigation === */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 8px;
+  }
+  .btn-today {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    cursor: pointer;
+    box-shadow: var(--shadow-button);
+    transition: transform 120ms ease-out;
+  }
+  .btn-today:active { transform: scale(0.97); }
+  .btn-today svg { width: 16px; height: 16px; }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .month-nav span {
+    font-size: 18px;
+    font-weight: 500;
+    font-family: var(--font-heading);
+    color: var(--color-text);
+  }
+  .month-nav button {
+    background: none;
+    border: none;
+    color: var(--color-text-sub);
+    font-size: 18px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: background 120ms;
+  }
+  .month-nav button:hover { background: var(--color-bg-secondary); }
+
+  .btn-rest {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-bg-card);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 15px;
+    color: var(--color-text-body);
+    font-family: var(--font-body);
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* === Segment Control === */
+  .segment-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 4px 20px 12px;
+  }
+  .segment-control {
+    display: inline-flex;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    box-shadow: inset 2px 2px 4px rgba(180,170,158,0.2), inset -2px -2px 4px rgba(255,255,255,0.5);
+  }
+  .segment-item {
+    padding: 10px 24px;
+    border-radius: calc(var(--radius-md) - 2px);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    transition: all 120ms ease-out;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .segment-item.active {
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: 2px 2px 6px rgba(180,170,158,0.2), -2px -2px 4px rgba(255,255,255,0.7);
+  }
+
+  /* === Calendar Grid === */
+  .calendar-grid {
+    padding: 0 12px;
+  }
+  .day-header {
+    display: grid;
+    grid-template-columns: 48px repeat(7, 1fr);
+    gap: 2px;
+    padding: 0 0 4px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .day-header .room-col { /* spacer */ }
+  .day-col {
+    text-align: center;
+    padding: 4px 0;
+  }
+  .day-num {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text);
+    line-height: 1.2;
+  }
+  .day-num.today {
+    background: var(--color-primary);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .day-name {
+    font-size: 13px;
+    color: var(--color-text-sub);
+    line-height: 1.3;
+  }
+  .day-name.sat { color: #5B7FA8; }
+  .day-name.sun { color: var(--color-primary); }
+  .day-num.sat { color: #5B7FA8; }
+  .day-num.sun { color: var(--color-primary); }
+
+  /* Room rows */
+  .room-rows {
+    margin-top: 4px;
+  }
+  .room-row {
+    display: grid;
+    grid-template-columns: 48px repeat(7, 1fr);
+    gap: 2px;
+    min-height: 48px;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    transition: background 200ms;
+  }
+  .room-row:hover { background: rgba(244,236,227,0.5); }
+  .room-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text);
+    text-align: center;
+    padding: 4px 0;
+  }
+  .grid-cell {
+    position: relative;
+    height: 40px;
+    display: flex;
+    align-items: center;
+  }
+  .grid-cell .empty-add {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-sub);
+    opacity: 0.3;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: opacity 200ms, background 200ms;
+  }
+  .grid-cell .empty-add:hover {
+    opacity: 0.6;
+    background: rgba(232,166,93,0.08);
+  }
+
+  /* Reservation bars */
+  .res-bar {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    cursor: pointer;
+    transition: transform 120ms ease-out, box-shadow 120ms;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .res-bar:active { transform: scale(0.98); }
+  .res-bar.booked {
+    background: linear-gradient(135deg, #E8A65D 0%, #E09B4E 100%);
+    box-shadow: 0 2px 6px rgba(232,166,93,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .res-bar.checkedin {
+    background: linear-gradient(135deg, #5B9A6E 0%, #4F8A60 100%);
+    box-shadow: 0 2px 6px rgba(91,154,110,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .res-bar .bar-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .res-bar .bar-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.8);
+    margin-left: 4px;
+  }
+
+  /* spans for multi-day bars */
+  .span-2 { width: calc(200% + 2px); z-index: 2; }
+  .span-3 { width: calc(300% + 4px); z-index: 2; }
+
+  /* === Day Detail Section === */
+  .day-detail {
+    padding: 16px 20px;
+    margin-top: 8px;
+  }
+  .day-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .day-detail-header button {
+    background: none;
+    border: none;
+    color: var(--color-text-sub);
+    font-size: 18px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .day-detail-header .date-text {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  .day-detail-header .badge-today {
+    font-size: 13px;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-full);
+    padding: 2px 10px;
+    font-weight: 500;
+  }
+
+  .section-label {
+    font-size: 15px;
+    color: var(--color-text-sub);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-label .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+  }
+  .section-label .dot.checkin { background: var(--color-booked); }
+  .section-label .dot.staying { background: var(--color-checkin); }
+
+  /* Reservation card */
+  .res-card {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-left: 4px solid var(--color-booked);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 72px;
+    cursor: pointer;
+    transition: transform 120ms;
+  }
+  .res-card:active { transform: scale(0.98); }
+  .res-card.staying { border-left-color: var(--color-checkin); }
+
+  .res-card-info {
+    flex: 1;
+  }
+  .res-card-name {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: 2px;
+  }
+  .res-card-sub {
+    font-size: 15px;
+    color: var(--color-text-sub);
+  }
+  .res-card-phone {
+    font-size: 15px;
+    color: var(--color-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .room-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-left: 12px;
+    box-shadow: 0 2px 8px rgba(196,105,74,0.25);
+  }
+
+  .empty-day {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--color-text-sub);
+    font-size: 15px;
+  }
+  .empty-day svg {
+    width: 40px;
+    height: 40px;
+    color: var(--color-text-sub);
+    opacity: 0.4;
+    margin-bottom: 8px;
+  }
+
+  /* === Bottom Tab Bar === */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    height: 64px;
+    background: var(--color-bg);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+  }
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: var(--color-text-sub);
+    text-decoration: none;
+    min-width: 56px;
+    min-height: 48px;
+    justify-content: center;
+    transition: color 120ms;
+  }
+  .tab-item.active { color: var(--color-primary); }
+  .tab-item svg { width: 24px; height: 24px; }
+  .tab-item span { font-size: 13px; font-weight: 500; }
+
+  .fab {
+    width: 64px;
+    height: 64px;
+    background: var(--color-primary);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    margin-top: -24px;
+    box-shadow: 0 4px 12px rgba(196,105,74,0.4);
+    cursor: pointer;
+    transition: transform 120ms;
+  }
+  .fab:active { transform: scale(0.95); }
+  .fab svg { width: 28px; height: 28px; }
+
+  /* spacing for bottom bar */
+  .bottom-spacer { height: 80px; }
+
+  /* Polish: subtle gradient on top */
+  .top-gradient {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, var(--color-bg) 80%, transparent);
+    padding-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-gradient">
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <button class="btn-today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      今日
+    </button>
+
+    <div class="month-nav">
+      <button>◀</button>
+      <span>2026年3月</span>
+      <button>▶</button>
+    </div>
+
+    <button class="btn-rest">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/><path d="M12 7v5l3 3"/></svg>
+      休み
+    </button>
+  </div>
+
+  <!-- Segment Control -->
+  <div class="segment-wrap">
+    <div class="segment-control">
+      <div class="segment-item active">週</div>
+      <div class="segment-item">2週</div>
+      <div class="segment-item">月</div>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Grid -->
+<div class="calendar-grid">
+  <!-- Day headers -->
+  <div class="day-header">
+    <div class="room-col"></div>
+    <div class="day-col"><div class="day-num">19</div><div class="day-name">木</div></div>
+    <div class="day-col"><div class="day-num">20</div><div class="day-name">金</div></div>
+    <div class="day-col"><div class="day-num today">21</div><div class="day-name sat">土</div></div>
+    <div class="day-col"><div class="day-num sun">22</div><div class="day-name sun">日</div></div>
+    <div class="day-col"><div class="day-num">23</div><div class="day-name">月</div></div>
+    <div class="day-col"><div class="day-num">24</div><div class="day-name">火</div></div>
+    <div class="day-col"><div class="day-num">25</div><div class="day-name">水</div></div>
+  </div>
+
+  <!-- Room rows -->
+  <div class="room-rows">
+    <!-- Room 201 -->
+    <div class="room-row">
+      <div class="room-label">201</div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell" style="position:relative;">
+        <div class="res-bar booked span-2" style="right:0;"><span class="bar-name">山田</span></div>
+      </div>
+      <div class="grid-cell"></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+    </div>
+
+    <!-- Room 202 -->
+    <div class="room-row">
+      <div class="room-label">202</div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell" style="position:relative;">
+        <div class="res-bar checkedin span-2"><span class="bar-name">ともだ</span></div>
+      </div>
+      <div class="grid-cell"></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+    </div>
+
+    <!-- Room 203 -->
+    <div class="room-row">
+      <div class="room-label">203</div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell" style="position:relative;">
+        <div class="res-bar booked"><span class="bar-name">井原</span></div>
+      </div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+    </div>
+
+    <!-- Room 205 -->
+    <div class="room-row">
+      <div class="room-label">205</div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell" style="position:relative;">
+        <div class="res-bar booked span-3"><span class="bar-name">佐藤</span></div>
+      </div>
+      <div class="grid-cell"></div>
+      <div class="grid-cell"></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+    </div>
+
+    <!-- Room 206 -->
+    <div class="room-row">
+      <div class="room-label">206</div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell" style="position:relative;">
+        <div class="res-bar booked span-2"><span class="bar-name">山田</span></div>
+      </div>
+      <div class="grid-cell"></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+    </div>
+
+    <!-- Room 207 -->
+    <div class="room-row">
+      <div class="room-label">207</div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+    </div>
+
+    <!-- Room 208 -->
+    <div class="room-row">
+      <div class="room-label">208</div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell" style="position:relative;">
+        <div class="res-bar booked"><span class="bar-name">井原</span></div>
+      </div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+      <div class="grid-cell"><span class="empty-add">+</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Day Detail Section -->
+<div class="day-detail">
+  <div class="day-detail-header">
+    <button>◀</button>
+    <span class="date-text">2026年3月21日 (土)</span>
+    <span class="badge-today">今日</span>
+    <button>▶</button>
+  </div>
+
+  <div class="section-label">
+    <span class="dot checkin"></span>
+    チェックイン (3)
+  </div>
+
+  <div class="res-card">
+    <div class="res-card-info">
+      <div class="res-card-name">山田 太郎 様</div>
+      <div class="res-card-sub">大人2名 · 2泊</div>
+      <a class="res-card-phone" href="tel:09012345678">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        090-1234-5678
+      </a>
+    </div>
+    <div class="room-badge">201</div>
+  </div>
+
+  <div class="res-card">
+    <div class="res-card-info">
+      <div class="res-card-name">井原 様</div>
+      <div class="res-card-sub">大人1名 · 1泊</div>
+      <a class="res-card-phone" href="tel:09087654321">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        090-8765-4321
+      </a>
+    </div>
+    <div class="room-badge">203</div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <div class="section-label">
+      <span class="dot staying"></span>
+      滞在中 (1)
+    </div>
+
+    <div class="res-card staying">
+      <div class="res-card-info">
+        <div class="res-card-name">ともだ 様</div>
+        <div class="res-card-sub">大人2名 · 1泊 · テスト予約</div>
+      </div>
+      <div class="room-badge">202</div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-spacer"></div>
+
+<!-- Bottom Tab Bar -->
+<div class="bottom-bar">
+  <a class="tab-item active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>カレンダー</span>
+  </a>
+  <a class="tab-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3z"/></svg>
+    <span>食事</span>
+  </a>
+  <div class="fab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </div>
+  <a class="tab-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/><path d="M16 8h-6a2 2 0 100 4h4a2 2 0 010 4H8"/></svg>
+    <span>請求</span>
+  </a>
+  <a class="tab-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+    <span>その他</span>
+  </a>
+</div>
+
+</body>
+</html>

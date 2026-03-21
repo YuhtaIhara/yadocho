@@ -63,7 +63,7 @@ export default function PricingSettings() {
 
   function set(key: keyof FormState, val: string) {
     if (key === 'name') setForm(f => ({ ...f, name: val }))
-    else setForm(f => ({ ...f, [key]: parseInt(val) || 0 }))
+    else setForm(f => ({ ...f, [key]: Math.max(0, parseInt(val) || 0) }))
   }
 
   function startNew() {

@@ -10,20 +10,16 @@ export type Inn = {
   updated_at: string
 }
 
-export type RoomType = 'japanese' | 'western' | 'mixed' | 'other'
+export type RoomType = string
 
-export const ROOM_TYPE_LABELS: Record<RoomType, string> = {
-  japanese: '和室',
-  western: '洋室',
-  mixed: '和洋室',
-  other: 'その他',
-}
+/** Preset room type suggestions */
+export const ROOM_TYPE_PRESETS = ['和室', '洋室', '和洋室', '禁煙', '喫煙'] as const
 
 export type Room = {
   id: string
   inn_id: string
   name: string
-  room_type: RoomType
+  room_type: string
   capacity: number
   sort_order: number
   created_at: string

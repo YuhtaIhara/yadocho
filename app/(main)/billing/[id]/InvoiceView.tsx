@@ -116,7 +116,8 @@ export default function InvoiceView() {
 
   function addExtra() {
     if (!newName || !newPrice) return
-    setExtras(prev => [...prev, { name: newName, unitPrice: parseInt(newPrice) || 0, quantity: 1 }])
+    const price = Math.max(0, parseInt(newPrice) || 0)
+    setExtras(prev => [...prev, { name: newName, unitPrice: price, quantity: 1 }])
     setNewName('')
     setNewPrice('')
   }

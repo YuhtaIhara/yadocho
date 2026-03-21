@@ -75,6 +75,17 @@ export async function updatePricingPlan(
 }
 
 export async function deletePricingPlan(id: string): Promise<void> {
+  // Check for active reservations using this plan
+  const { data: refs } = await supabase
+    .from('reservations')
+    .select('id')
+    .eq('pricing_plan_id', id)
+    .neq('status', 'cancelled')
+    .limit(1)
+  if (refs && refs.length > 0) {
+    throw new Error('このプランを使用中の予約があるため削除できません')
+  }
+
   const { error } = await supabase
     .from('pricing_plans')
     .delete()

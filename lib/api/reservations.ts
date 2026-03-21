@@ -69,6 +69,14 @@ export async function createReservation(input: {
   tax_exempt?: boolean
   tax_exempt_reason?: string
 }): Promise<Reservation> {
+  // Server-side validation
+  if (input.adult_price < 0 || input.child_price < 0) {
+    throw new Error('料金は0以上で入力してください')
+  }
+  if (!input.room_ids || input.room_ids.length === 0) {
+    throw new Error('部屋を1つ以上選択してください')
+  }
+
   const innId = await getInnId()
   if (!innId) throw new Error('ログインが必要です')
 

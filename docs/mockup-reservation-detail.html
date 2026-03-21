@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0">
+<title>yadocho - 予約詳細 磨きモックアップ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=Noto+Serif+JP:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg: #FAF6F0;
+    --color-bg-card: #F5EDE3;
+    --color-bg-secondary: #F0EDE8;
+    --color-text: #2D2926;
+    --color-text-body: #5C5552;
+    --color-text-sub: #9B9490;
+    --color-primary: #C4694A;
+    --color-primary-hover: #A85638;
+    --color-checkin: #5B9A6E;
+    --color-booked: #E8A65D;
+    --color-error: #D47B7B;
+    --font-heading: 'Noto Serif JP', serif;
+    --font-body: 'Noto Sans JP', sans-serif;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    --shadow-card: 6px 6px 12px rgba(180,170,158,0.25), -4px -4px 10px rgba(255,255,255,0.7);
+    --shadow-button: 0 4px 12px rgba(196,105,74,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    width: 390px;
+    margin: 0 auto;
+    min-height: 844px;
+    position: relative;
+    padding-bottom: 80px;
+  }
+
+  /* === Header === */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    position: sticky;
+    top: 0;
+    background: var(--color-bg);
+    z-index: 10;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: var(--color-text);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+  .back-btn:hover { background: var(--color-bg-secondary); }
+  .page-title {
+    font-size: 20px;
+    font-weight: 500;
+    font-family: var(--font-heading);
+    color: var(--color-text);
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .edit-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: var(--color-text-sub);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+  .status-badge {
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid;
+  }
+  .status-badge.scheduled {
+    color: var(--color-booked);
+    border-color: var(--color-booked);
+    background: rgba(232,166,93,0.08);
+  }
+  .status-badge.checkedin {
+    color: var(--color-checkin);
+    border-color: var(--color-checkin);
+    background: rgba(91,154,110,0.08);
+  }
+  .status-badge.settled {
+    color: var(--color-text-sub);
+    border-color: var(--color-text-sub);
+    background: rgba(155,148,144,0.08);
+  }
+
+  /* === Content === */
+  .content {
+    padding: 0 20px;
+  }
+
+  /* === Cards === */
+  .card {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(255,255,255,0.5);
+  }
+  .card.status-left {
+    border-left: 4px solid var(--color-booked);
+  }
+  .card.status-left.checkedin {
+    border-left-color: var(--color-checkin);
+  }
+
+  /* Guest card */
+  .res-number {
+    font-size: 13px;
+    color: var(--color-text-sub);
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+  .guest-name {
+    font-size: 24px;
+    font-weight: 500;
+    font-family: var(--font-heading);
+    color: var(--color-text);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .phone-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 16px;
+    color: var(--color-primary);
+    text-decoration: none;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(196,105,74,0.3);
+    transition: border-color 200ms;
+  }
+  .phone-link:hover {
+    border-bottom-color: var(--color-primary);
+  }
+  .phone-link svg { width: 16px; height: 16px; }
+
+  /* Stay info */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .info-label {
+    font-size: 13px;
+    color: var(--color-text-sub);
+    margin-bottom: 2px;
+  }
+  .info-value {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  .info-full {
+    grid-column: 1 / -1;
+  }
+  .info-note {
+    grid-column: 1 / -1;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 15px;
+    color: var(--color-text-body);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* Meal card */
+  .meal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .meal-row:last-child { border-bottom: none; }
+  .meal-label {
+    font-size: 16px;
+    color: var(--color-text-body);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .meal-label svg { width: 18px; height: 18px; color: var(--color-text-sub); }
+  .meal-count {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  /* Pricing card */
+  .card-title {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: 12px;
+  }
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .price-row:last-of-type { border-bottom: none; }
+  .price-label {
+    font-size: 15px;
+    color: var(--color-text-body);
+    flex: 1;
+  }
+  .price-detail {
+    font-size: 13px;
+    color: var(--color-text-sub);
+    margin-left: 4px;
+  }
+  .price-amount {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text);
+    text-align: right;
+    min-width: 80px;
+  }
+  .price-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 0 4px;
+    margin-top: 4px;
+    border-top: 2px solid rgba(0,0,0,0.08);
+  }
+  .price-total .price-label {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  .price-total .price-amount {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--color-text);
+    font-family: var(--font-body);
+  }
+
+  /* === Buttons === */
+  .btn-group {
+    padding: 8px 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn-primary {
+    width: 100%;
+    min-height: 56px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 17px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: var(--shadow-button);
+    transition: transform 120ms ease-out;
+  }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-primary.checkin-btn {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  }
+
+  .btn-secondary {
+    width: 100%;
+    min-height: 56px;
+    background: transparent;
+    color: var(--color-primary);
+    border: 1.5px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    font-size: 17px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: transform 120ms ease-out, background 200ms;
+  }
+  .btn-secondary:hover { background: rgba(196,105,74,0.04); }
+  .btn-secondary:active { transform: scale(0.97); }
+
+  .btn-text {
+    width: 100%;
+    min-height: 48px;
+    background: transparent;
+    color: var(--color-text-sub);
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: color 200ms;
+  }
+  .btn-text:hover { color: var(--color-text-body); }
+
+  /* === Bottom Tab Bar === */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    height: 64px;
+    background: var(--color-bg);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+  }
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: var(--color-text-sub);
+    text-decoration: none;
+    min-width: 56px;
+    min-height: 48px;
+    justify-content: center;
+  }
+  .tab-item svg { width: 24px; height: 24px; }
+  .tab-item span { font-size: 13px; font-weight: 500; }
+  .fab {
+    width: 64px;
+    height: 64px;
+    background: var(--color-primary);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    margin-top: -24px;
+    box-shadow: 0 4px 12px rgba(196,105,74,0.4);
+  }
+  .fab svg { width: 28px; height: 28px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="page-header">
+  <div class="header-left">
+    <button class="back-btn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <h1 class="page-title">予約詳細</h1>
+  </div>
+  <div class="header-right">
+    <button class="edit-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+    </button>
+    <span class="status-badge scheduled">予約済み</span>
+  </div>
+</div>
+
+<div class="content">
+  <!-- Guest Card -->
+  <div class="card status-left">
+    <div class="res-number">No. 260319-002</div>
+    <div class="guest-name">山田 太郎 様</div>
+    <a class="phone-link" href="tel:09012345678">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      090-1234-5678
+    </a>
+  </div>
+
+  <!-- Stay Info Card -->
+  <div class="card">
+    <div class="info-grid">
+      <div>
+        <div class="info-label">部屋</div>
+        <div class="info-value">201</div>
+      </div>
+      <div>
+        <div class="info-label">人数</div>
+        <div class="info-value">大人2名</div>
+      </div>
+      <div class="info-full">
+        <div class="info-label">期間</div>
+        <div class="info-value">3月20日 (金) 〜 3月22日 (日) (2泊)</div>
+      </div>
+      <div>
+        <div class="info-label">到着</div>
+        <div class="info-value">15:00</div>
+      </div>
+      <div class="info-note">
+        チェックイン15時希望
+      </div>
+    </div>
+  </div>
+
+  <!-- Meal Card -->
+  <div class="card">
+    <div class="card-title">食事</div>
+    <div class="meal-row">
+      <div class="meal-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        夕食
+      </div>
+      <div class="meal-count">大人2 × 2泊</div>
+    </div>
+    <div class="meal-row">
+      <div class="meal-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        朝食
+      </div>
+      <div class="meal-count">大人2 × 1泊</div>
+    </div>
+  </div>
+
+  <!-- Pricing Card -->
+  <div class="card">
+    <div class="card-title">料金内訳</div>
+    <div class="price-row">
+      <span class="price-label">宿泊料<span class="price-detail"> ¥8,500 × 2名 × 2泊</span></span>
+      <span class="price-amount">¥34,000</span>
+    </div>
+    <div class="price-row">
+      <span class="price-label">夕食 (大人)<span class="price-detail"> ¥2,000 × 4</span></span>
+      <span class="price-amount">¥8,000</span>
+    </div>
+    <div class="price-row">
+      <span class="price-label">朝食 (大人)<span class="price-detail"> ¥800 × 2</span></span>
+      <span class="price-amount">¥1,600</span>
+    </div>
+    <div class="price-total">
+      <span class="price-label">合計</span>
+      <span class="price-amount">¥43,600</span>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="btn-group">
+    <button class="btn-primary checkin-btn">チェックインする</button>
+    <button class="btn-secondary">請求書を作成</button>
+    <button class="btn-text">ゲスト詳細を見る</button>
+  </div>
+</div>
+
+<!-- Bottom Tab Bar -->
+<div class="bottom-bar">
+  <a class="tab-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>カレンダー</span>
+  </a>
+  <a class="tab-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3z"/></svg>
+    <span>食事</span>
+  </a>
+  <div class="fab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </div>
+  <a class="tab-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/></svg>
+    <span>請求</span>
+  </a>
+  <a class="tab-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+    <span>その他</span>
+  </a>
+</div>
+
+</body>
+</html>
