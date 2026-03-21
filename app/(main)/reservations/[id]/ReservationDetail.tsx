@@ -8,8 +8,9 @@ import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/components/ui/Toast'
+import { supabase } from '@/lib/supabase'
 import { useReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
@@ -55,6 +56,21 @@ export default function ReservationDetail() {
   const updateRes = useUpdateReservation()
   const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [showMealEditor, setShowMealEditor] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+
+  const { data: history = [] } = useQuery({
+    queryKey: ['reservation-history', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('reservation_history')
+        .select('*')
+        .eq('reservation_id', id)
+        .order('changed_at', { ascending: false })
+        .limit(20)
+      return data ?? []
+    },
+    enabled: showHistory,
+  })
 
   if (isLoading) {
     return (
@@ -403,6 +419,35 @@ export default function ReservationDetail() {
             </button>
           )}
         </div>
+
+        {/* Change history */}
+        <button
+          type="button"
+          onClick={() => setShowHistory(v => !v)}
+          className="w-full text-center text-[15px] text-text-sub py-2 min-h-[44px]"
+        >
+          {showHistory ? '変更履歴を閉じる' : '変更履歴を見る'}
+        </button>
+        {showHistory && history.length > 0 && (
+          <Card className="text-sm space-y-2">
+            {history.map((h: any) => (
+              <div key={h.id} className="flex justify-between items-baseline border-b border-border/20 pb-1.5">
+                <div className="min-w-0">
+                  <span className="text-text-3">{h.field_name}: </span>
+                  <span className="text-text-sub line-through">{h.old_value || '—'}</span>
+                  <span className="mx-1">→</span>
+                  <span className="font-medium">{h.new_value || '—'}</span>
+                </div>
+                <span className="text-xs text-text-3 shrink-0 ml-2">
+                  {new Date(h.changed_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            ))}
+          </Card>
+        )}
+        {showHistory && history.length === 0 && (
+          <p className="text-center text-sm text-text-3 py-4">変更履歴はありません</p>
+        )}
       </div>
 
       <MealEditor
