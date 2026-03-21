@@ -64,11 +64,9 @@ describe('isJapaneseHoliday', () => {
     // Note: buildHolidaySet may not detect this due to timezone edge cases in
     // toISOString() during 振替休日 processing shifting the sorted array.
     // This test documents the ACTUAL behavior. If the code is fixed, flip to true.
-    test('2026-09-22 between 敬老の日 and 秋分の日 — documents current behavior', () => {
-      // The code currently does NOT recognize this as 国民の休日
-      // due to a potential timezone issue in the buildHolidaySet implementation.
-      // If this starts failing (returning true), it means the bug was fixed.
-      expect(isJapaneseHoliday('2026-09-22')).toBe(false)
+    test('2026-09-22 between 敬老の日 and 秋分の日 — correctly detected after TZ fix', () => {
+      // Fixed: buildHolidaySet now uses format() instead of toISOString() for TZ safety
+      expect(isJapaneseHoliday('2026-09-22')).toBe(true)
     })
 
     // 2015-09-22 is a well-known 国民の休日 (between 敬老の日 Sep 21 and 秋分の日 Sep 23)

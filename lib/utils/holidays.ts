@@ -4,7 +4,7 @@
  * Covers fixed dates + spring/autumn equinox estimates
  */
 
-import { getDay, parseISO } from 'date-fns'
+import { getDay, parseISO, format } from 'date-fns'
 
 // Fixed holidays: [month, day, name]
 const FIXED_HOLIDAYS: [number, number, string][] = [
@@ -73,12 +73,11 @@ function buildHolidaySet(year: number): Set<string> {
   for (const ds of allDates) {
     const d = parseISO(ds)
     if (getDay(d) === 0) {
-      // Find next non-holiday weekday
-      let sub = new Date(d)
-      do {
-        sub.setDate(sub.getDate() + 1)
-      } while (holidays.has(sub.toISOString().slice(0, 10)))
-      holidays.add(sub.toISOString().slice(0, 10))
+      let sub = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+      while (holidays.has(format(sub, 'yyyy-MM-dd'))) {
+        sub = new Date(sub.getFullYear(), sub.getMonth(), sub.getDate() + 1)
+      }
+      holidays.add(format(sub, 'yyyy-MM-dd'))
     }
   }
 
@@ -89,9 +88,8 @@ function buildHolidaySet(year: number): Set<string> {
     const d2 = parseISO(sorted[i + 1])
     const diff = (d2.getTime() - d1.getTime()) / 86400000
     if (diff === 2) {
-      const mid = new Date(d1)
-      mid.setDate(mid.getDate() + 1)
-      const midStr = mid.toISOString().slice(0, 10)
+      const mid = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate() + 1)
+      const midStr = format(mid, 'yyyy-MM-dd')
       if (getDay(mid) !== 0) {
         holidays.add(midStr)
       }
