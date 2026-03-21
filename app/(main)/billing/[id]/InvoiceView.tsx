@@ -161,7 +161,7 @@ export default function InvoiceView() {
           unit_price: item.unitPrice,
           quantity: item.quantity,
           sort_order: i,
-          locked: false,
+          locked: true,
         })),
         ...extras.map((e, i) => ({
           reservation_id: res.id,
@@ -170,7 +170,7 @@ export default function InvoiceView() {
           unit_price: e.unitPrice,
           quantity: e.quantity,
           sort_order: computed.items.length + i,
-          locked: false,
+          locked: true,
         })),
       ]
 
@@ -184,13 +184,12 @@ export default function InvoiceView() {
             unit_price: taxResult.taxAmount,
             quantity: 1,
             sort_order: allItems.length,
-            locked: false,
+            locked: true,
           })
         }
       }
 
-      await upsertInvoiceItems(res.id, allItems)
-      await lockInvoice(res.id)
+      await upsertInvoiceItems(res.id, allItems) // items already locked:true
       if (res.status !== 'settled') {
         await updateRes.mutateAsync({ id: res.id, status: 'settled', payment_method: paymentMethod })
       }

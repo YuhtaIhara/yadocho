@@ -171,8 +171,9 @@ export function calcAllTaxes(
 
       case 'percentage': {
         const rate = rates[0]
-        if (rate?.rate_percent != null) {
-          const rawAmount = pricePerPerson * adults * nights * Number(rate.rate_percent) / 100
+        const pctRate = Number(rate?.rate_percent ?? 0)
+        if (rate?.rate_percent != null && !isNaN(pctRate)) {
+          const rawAmount = pricePerPerson * adults * nights * pctRate / 100
           taxAmount = floorByUnit(rawAmount, rule.rounding_unit)
           displayRateSource = rate
         }
