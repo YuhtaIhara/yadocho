@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, UserPlus } from 'lucide-react'
+import { Search, UserPlus, ChevronDown, ChevronRight } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/layout/PageHeader'
@@ -11,6 +11,56 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useGuests } from '@/lib/hooks/useGuests'
 import { createGuest } from '@/lib/api/guests'
+import type { Guest } from '@/lib/types'
+
+/**
+ * 名前の先頭文字からセクションキーを取得
+ * ひらがな・カタカナ → 五十音のあ行〜わ行
+ * 漢字 → そのまま先頭1文字
+ * その他 → '#'
+ */
+function getSectionKey(name: string): string {
+  if (!name) return '#'
+  const first = name.charAt(0)
+
+  // カタカナ→ひらがな変換してから行判定
+  const kana = first.replace(/[\u30A0-\u30FF]/g, ch =>
+    String.fromCharCode(ch.charCodeAt(0) - 0x60),
+  )
+
+  const code = kana.charCodeAt(0)
+  // ひらがな判定
+  if (code >= 0x3041 && code <= 0x3093) {
+    if (code <= 0x304A) return 'あ'
+    if (code <= 0x3054) return 'か'
+    if (code <= 0x305E) return 'さ'
+    if (code <= 0x3068) return 'た'
+    if (code <= 0x306E) return 'な'
+    if (code <= 0x307D) return 'は'
+    if (code <= 0x3082) return 'ま'
+    if (code <= 0x3088) return 'や'
+    if (code <= 0x308D) return 'ら'
+    return 'わ'
+  }
+  // 漢字
+  if (code >= 0x4E00 && code <= 0x9FFF) return first
+  // 英字
+  if (/[a-zA-Z]/.test(first)) return first.toUpperCase()
+  return '#'
+}
+
+type GuestSection = { key: string; guests: Guest[] }
+
+function groupAndSort(guests: Guest[]): GuestSection[] {
+  const sorted = [...guests].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+  const map = new Map<string, Guest[]>()
+  for (const g of sorted) {
+    const key = getSectionKey(g.name)
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(g)
+  }
+  return Array.from(map.entries()).map(([key, guests]) => ({ key, guests }))
+}
 
 export default function GuestList() {
   const router = useRouter()
@@ -25,6 +75,18 @@ export default function GuestList() {
   const [allergy, setAllergy] = useState('')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+
+  const sections = useMemo(() => groupAndSort(guests), [guests])
+
+  function toggleSection(key: string) {
+    setCollapsed(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   async function handleAdd() {
     if (!name) return
@@ -110,26 +172,53 @@ export default function GuestList() {
             {search ? '該当するゲストが見つかりません' : 'ゲストが登録されていません'}
           </p>
         ) : (
-          <div className="flex flex-col gap-4">
-            {guests.map(g => (
-              <Card
-                key={g.id}
-                className="stagger-item active:scale-[0.98] transition-transform cursor-pointer"
-                onClick={() => router.push(`/guests/${g.id}`)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold truncate">{g.name}</p>
-                    <p className="text-xs text-text-2 mt-0.5">{g.phone ?? '電話番号なし'}</p>
-                    {g.allergy && (
-                      <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-danger-soft text-danger text-xs font-medium">
-                        ⚠ {g.allergy}
-                      </span>
+          <div className="flex flex-col gap-1">
+            {sections.map(({ key, guests: sectionGuests }) => {
+              const isCollapsed = collapsed.has(key)
+              return (
+                <div key={key}>
+                  {/* Section header */}
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(key)}
+                    className="flex items-center gap-2 w-full py-2 px-1 active:bg-primary-soft/50 rounded-lg"
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight size={14} className="text-text-3" />
+                    ) : (
+                      <ChevronDown size={14} className="text-text-3" />
                     )}
-                  </div>
+                    <span className="text-xs font-bold text-text-2">{key}</span>
+                    <span className="text-xs text-text-3">{sectionGuests.length}</span>
+                  </button>
+
+                  {/* Guest cards */}
+                  {!isCollapsed && (
+                    <div className="flex flex-col gap-2 ml-1 mb-3">
+                      {sectionGuests.map(g => (
+                        <Card
+                          key={g.id}
+                          className="stagger-item active:scale-[0.98] transition-transform cursor-pointer"
+                          onClick={() => router.push(`/guests/${g.id}`)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold truncate">{g.name}</p>
+                              <p className="text-xs text-text-2 mt-0.5">{g.phone ?? '電話番号なし'}</p>
+                              {g.allergy && (
+                                <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-danger-soft text-danger text-xs font-medium">
+                                  ⚠ {g.allergy}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </Card>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

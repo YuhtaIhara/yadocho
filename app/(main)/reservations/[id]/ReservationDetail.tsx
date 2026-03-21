@@ -61,7 +61,7 @@ export default function ReservationDetail() {
 
   const nights = nightCount(res.checkin, res.checkout)
   const stayCost = (res.adult_price * res.adults + res.child_price * res.children) * nights
-  const mealCost = calcMealCost(mealDays, pricing)
+  const mealCost = calcMealCost(mealDays, res)
   const taxResults = calcAllTaxes(
     res.adult_price, res.adults, nights, res.checkin,
     res.tax_exempt, false, taxRules, taxRuleRates,
@@ -234,9 +234,7 @@ export default function ReservationDetail() {
               </div>
             )}
             {mealCost > 0 && (() => {
-              const { dp, cdp, bp, cbp } = getMealPrices(pricing)
-              const lp = pricing?.lunch_price ?? 0
-              const clp = pricing?.child_lunch_price ?? 0
+              const { dp, cdp, bp, cbp, lp, clp } = getMealPrices(res)
               let dinnerA = 0, dinnerC = 0, breakA = 0, breakC = 0, lunchA = 0, lunchC = 0
               for (const md of mealDays) {
                 dinnerA += md.dinner_adults; dinnerC += md.dinner_children

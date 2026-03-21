@@ -62,7 +62,8 @@ export default function InvoiceView() {
       })
     }
 
-    const { dp, cdp, bp, cbp, lp, clp } = getMealPrices(pricing)
+    // 食事単価は予約にスナップショットされた値を使う（設定変更の影響を受けない）
+    const { dp, cdp, bp, cbp, lp, clp } = getMealPrices(res)
 
     let totalDinnerA = 0, totalDinnerC = 0
     let totalBreakA = 0, totalBreakC = 0
@@ -333,12 +334,12 @@ export default function InvoiceView() {
             <span className="text-text-2">小計</span>
             <span>{formatYen(computed.subtotal + computed.extrasTotal)}</span>
           </div>
-          {computed.taxResults.filter(t => t.taxable).map(t => (
-            <div key={t.taxRuleId} className="flex justify-between">
-              <span className="text-text-2">{t.taxName}({t.displayRate})</span>
-              <span>{formatYen(t.taxAmount)}</span>
+          {computed.taxTotal > 0 && (
+            <div className="flex justify-between">
+              <span className="text-text-2">宿泊税</span>
+              <span>{formatYen(computed.taxTotal)}</span>
             </div>
-          ))}
+          )}
           <div className="flex justify-between pt-2 border-t border-border font-bold text-base">
             <span>合計</span>
             <span>{formatYen(computed.total)}</span>

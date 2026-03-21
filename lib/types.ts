@@ -50,6 +50,13 @@ export type Reservation = {
   children: number
   adult_price: number
   child_price: number
+  pricing_plan_id: string | null
+  dinner_price: number
+  child_dinner_price: number
+  breakfast_price: number
+  child_breakfast_price: number
+  lunch_price: number
+  child_lunch_price: number
   checkin_time: string | null
   status: ReservationStatus
   tax_exempt: boolean
@@ -114,6 +121,23 @@ export type BlockedDate = {
   date: string
   room_id: string | null
   reason: string | null
+  created_at: string
+}
+
+export type PricingPlan = {
+  id: string
+  inn_id: string
+  name: string
+  adult_price: number
+  child_price: number
+  dinner_price: number
+  child_dinner_price: number
+  breakfast_price: number
+  child_breakfast_price: number
+  lunch_price: number
+  child_lunch_price: number
+  is_default: boolean
+  sort_order: number
   created_at: string
 }
 

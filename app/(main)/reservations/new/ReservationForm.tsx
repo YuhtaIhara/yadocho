@@ -6,6 +6,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format, addDays } from 'date-fns'
+import { ja } from 'date-fns/locale'
 import PageHeader from '@/components/layout/PageHeader'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -15,6 +16,7 @@ import Stepper from '@/components/ui/Stepper'
 import { useRooms } from '@/lib/hooks/useRooms'
 import { useReservations } from '@/lib/hooks/useReservations'
 import { usePricing } from '@/lib/hooks/usePricing'
+import { usePricingPlans } from '@/lib/hooks/usePricingPlans'
 import { useCreateReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
 import { fetchGuests, createGuest, updateGuest } from '@/lib/api/guests'
 import { createMealDays } from '@/lib/api/meal-days'
@@ -25,6 +27,8 @@ import { getMealPrices } from '@/lib/utils/pricing'
 import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
 import { useTaxData } from '@/lib/hooks/useTaxRules'
 import { cn } from '@/lib/utils/cn'
+import DatePicker from '@/components/DatePicker'
+import { Calendar } from 'lucide-react'
 import type { Guest, MealDay } from '@/lib/types'
 
 const phoneSchema = z
@@ -149,12 +153,16 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   const [guestLoaded, setGuestLoaded] = useState(!!initialData)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [pickerTarget, setPickerTarget] = useState<'checkin' | 'checkout' | null>(null)
   const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>(
     initialData?.room_ids ?? (paramRoom ? [paramRoom] : []),
   )
 
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+
   const { data: rooms = [] } = useRooms()
   const { data: pricing } = usePricing()
+  const { data: plans = [] } = usePricingPlans()
   const { taxRules, taxRuleRates } = useTaxData()
   const createRes = useCreateReservation()
   const updateRes = useUpdateReservation()
@@ -203,12 +211,19 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
     },
   })
 
+  // 新規作成時: デフォルトプランの料金を初期値に設定
   useEffect(() => {
-    if (pricing && !initialData) {
+    if (plans.length > 0 && !initialData && !selectedPlanId) {
+      const defaultPlan = plans.find(p => p.is_default) ?? plans[0]
+      setSelectedPlanId(defaultPlan.id)
+      setValue('adult_price', defaultPlan.adult_price)
+      setValue('child_price', defaultPlan.child_price)
+    } else if (pricing && !initialData && plans.length === 0) {
+      // pricing_plans がなければ旧 pricing_config にフォールバック
       setValue('adult_price', pricing.adult_price)
       setValue('child_price', pricing.child_price)
     }
-  }, [pricing, setValue, initialData])
+  }, [plans, pricing, setValue, initialData, selectedPlanId])
 
   // Auto-search guest when phone param is provided
   useEffect(() => {
@@ -260,7 +275,10 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   const estimate = useMemo(() => {
     if (nights <= 0) return null
     const stay = (adultPrice * adults + childPrice * children) * nights
-    const { dp, cdp, bp, cbp, lp, clp } = getMealPrices(pricing)
+    // 食事単価: 選択中のプラン → pricing_config フォールバック
+    const selectedPlan = plans.find(p => p.id === selectedPlanId)
+    const mealSource = selectedPlan ?? pricing
+    const { dp, cdp, bp, cbp, lp, clp } = getMealPrices(mealSource)
 
     const dA = Math.min(dinnerCount, adults)
     const dC = dinnerCount - dA
@@ -285,7 +303,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   }, [
     nights, adultPrice, adults, childPrice, children,
     dinner, breakfast, lunch, dinnerCount, breakfastCount, lunchCount,
-    pricing, checkin, roomCount, taxExempt, taxRules, taxRuleRates,
+    pricing, plans, selectedPlanId, checkin, roomCount, taxExempt, taxRules, taxRuleRates,
   ])
 
   async function handleGuestSearch(input: string) {
@@ -449,6 +467,38 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
           guestId = guest.id
         }
 
+        // 食事単価をスナップショット
+        const plan = plans.find(p => p.id === selectedPlanId)
+        const mealSnapshot = plan
+          ? {
+              pricing_plan_id: plan.id,
+              dinner_price: plan.dinner_price,
+              child_dinner_price: plan.child_dinner_price,
+              breakfast_price: plan.breakfast_price,
+              child_breakfast_price: plan.child_breakfast_price,
+              lunch_price: plan.lunch_price,
+              child_lunch_price: plan.child_lunch_price,
+            }
+          : pricing
+            ? {
+                pricing_plan_id: null as string | null,
+                dinner_price: pricing.dinner_price,
+                child_dinner_price: pricing.child_dinner_price,
+                breakfast_price: pricing.breakfast_price,
+                child_breakfast_price: pricing.child_breakfast_price,
+                lunch_price: pricing.lunch_price,
+                child_lunch_price: pricing.child_lunch_price,
+              }
+            : {
+                pricing_plan_id: null as string | null,
+                dinner_price: 2000,
+                child_dinner_price: 1500,
+                breakfast_price: 800,
+                child_breakfast_price: 500,
+                lunch_price: 0,
+                child_lunch_price: 0,
+              }
+
         const res = await createRes.mutateAsync({
           room_ids: selectedRoomIds,
           guest_id: guestId,
@@ -458,6 +508,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
           children: data.children,
           adult_price: data.adult_price,
           child_price: data.child_price,
+          ...mealSnapshot,
           checkin_time: data.checkin_time || undefined,
           tax_exempt: data.tax_exempt,
           tax_exempt_reason: data.tax_exempt_reason || undefined,
@@ -484,7 +535,16 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
       }
     } catch (err) {
       console.error(isEdit ? 'Reservation update failed:' : 'Reservation creation failed:', err)
-      setFormError(isEdit ? '予約の更新に失敗しました。もう一度お試しください。' : '予約の登録に失敗しました。もう一度お試しください。')
+      const message = err instanceof Error ? err.message : ''
+      if (message.includes('network') || message.includes('fetch')) {
+        setFormError('インターネット接続を確認してください。')
+      } else if (message.includes('duplicate') || message.includes('unique')) {
+        setFormError('同じ日程・部屋の予約が既にあります。')
+      } else {
+        setFormError(isEdit
+          ? '予約の更新に失敗しました。入力内容を確認してもう一度お試しください。'
+          : '予約の登録に失敗しました。入力内容を確認してもう一度お試しください。')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -606,25 +666,83 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
           )}
         </Section>
 
+        {/* ── 料金プラン ── */}
+        {!isEdit && plans.length > 0 && (
+          <Section title="料金プラン">
+            <div className="flex flex-wrap gap-2">
+              {plans.map(plan => (
+                <button
+                  key={plan.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedPlanId(plan.id)
+                    setValue('adult_price', plan.adult_price)
+                    setValue('child_price', plan.child_price)
+                  }}
+                  className={cn(
+                    'px-3 py-2 rounded-xl text-sm font-medium border transition-colors',
+                    selectedPlanId === plan.id
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-surface border-border text-text-1 active:bg-primary-soft',
+                  )}
+                >
+                  {plan.name}
+                  <span className="text-xs ml-1 opacity-75">{formatYen(plan.adult_price)}</span>
+                </button>
+              ))}
+            </div>
+          </Section>
+        )}
+
         {/* ── 日程 ── */}
         <Section title="日程">
           <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="IN"
-              type="date"
-              {...register('checkin')}
-              error={errors.checkin?.message}
-            />
-            <Input
-              label="OUT"
-              type="date"
-              {...register('checkout')}
-              error={errors.checkout?.message}
-            />
+            <div>
+              <label className="block text-xs font-medium text-text-2 mb-1.5">チェックイン</label>
+              <button
+                type="button"
+                onClick={() => setPickerTarget('checkin')}
+                className="w-full h-11 px-3 flex items-center justify-between rounded-xl bg-surface border border-border text-sm active:bg-primary-soft/50 transition-colors"
+              >
+                <span>{checkin ? format(new Date(checkin), 'M/d (E)', { locale: ja }) : '日付を選択'}</span>
+                <Calendar size={16} className="text-text-3" />
+              </button>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-text-2 mb-1.5">チェックアウト</label>
+              <button
+                type="button"
+                onClick={() => setPickerTarget('checkout')}
+                className="w-full h-11 px-3 flex items-center justify-between rounded-xl bg-surface border border-border text-sm active:bg-primary-soft/50 transition-colors"
+              >
+                <span>{checkout ? format(new Date(checkout), 'M/d (E)', { locale: ja }) : '日付を選択'}</span>
+                <Calendar size={16} className="text-text-3" />
+              </button>
+            </div>
           </div>
-          {checkin && checkout && checkout <= checkin && (
-            <p className="text-sm text-danger mt-2">チェックアウトはチェックインより後の日付にしてください</p>
-          )}
+
+          <DatePicker
+            open={pickerTarget !== null}
+            onClose={() => setPickerTarget(null)}
+            selectedDate={pickerTarget === 'checkout' && checkout ? new Date(checkout) : checkin ? new Date(checkin) : new Date()}
+            onSelect={(d) => {
+              const dateStr = format(d, 'yyyy-MM-dd')
+              if (pickerTarget === 'checkin') {
+                setValue('checkin', dateStr)
+                // チェックインがチェックアウト以降なら、翌日に自動補正
+                if (checkout && dateStr >= checkout) {
+                  setValue('checkout', format(addDays(d, 1), 'yyyy-MM-dd'))
+                }
+              } else if (pickerTarget === 'checkout') {
+                setValue('checkout', dateStr)
+                // チェックアウトがチェックイン以前なら、チェックインをアウト前日に補正
+                if (checkin && dateStr <= checkin) {
+                  setValue('checkin', format(addDays(d, -1), 'yyyy-MM-dd'))
+                }
+              }
+              setPickerTarget(null)
+            }}
+          />
           {nights > 0 && (
             <p className="text-sm text-text-2 mt-2">
               {nights}泊 · 空き{' '}
@@ -792,12 +910,15 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
               {...register('tax_exempt')}
               className="w-5 h-5 rounded border-border text-primary focus:ring-primary"
             />
-            <span className="text-sm font-medium">非課税にする</span>
+            <div>
+              <span className="text-sm font-medium">非課税にする</span>
+              <p className="text-xs text-text-3 mt-0.5">修学旅行など課税免除の対象の場合にチェック</p>
+            </div>
           </label>
           {taxExempt && (
             <Input
-              label="免税理由（任意）"
-              placeholder="例: 修学旅行"
+              label="免税理由"
+              placeholder="例: 修学旅行（○○中学校）"
               {...register('tax_exempt_reason')}
               className="mt-2"
             />
@@ -823,12 +944,12 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
                   <span className="font-medium">{formatYen(estimate.meal)}</span>
                 </div>
               )}
-              {estimate.taxResults.filter(t => t.taxable).map(t => (
-                <div key={t.taxRuleId} className="flex justify-between">
-                  <span className="text-text-2">{t.taxName}({t.displayRate})</span>
-                  <span className="font-medium">{formatYen(t.taxAmount)}</span>
+              {estimate.taxTotal > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-text-2">宿泊税</span>
+                  <span className="font-medium">{formatYen(estimate.taxTotal)}</span>
                 </div>
-              ))}
+              )}
               <div className="flex justify-between pt-2 border-t border-primary/10">
                 <span className="font-bold">概算合計</span>
                 <span className="font-bold text-lg">{formatYen(estimate.total)}</span>

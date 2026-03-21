@@ -1,6 +1,6 @@
 import type { MealDay, PricingConfig } from '@/lib/types'
 
-/** 食事単価のデフォルト値（pricing_config 未設定時） */
+/** 食事単価のデフォルト値（未設定時） */
 export const MEAL_DEFAULTS = {
   dinner_price: 2000,
   child_dinner_price: 1500,
@@ -10,19 +10,21 @@ export const MEAL_DEFAULTS = {
   child_lunch_price: 0,
 } as const
 
-/** pricing_config からフォールバック付きで食事単価を取得 */
-export function getMealPrices(pricing: PricingConfig | null | undefined) {
+/** 食事単価を持つオブジェクトから取得（PricingConfig, Reservation, PricingPlan いずれも可） */
+type MealPriceSource = Pick<PricingConfig, 'dinner_price' | 'child_dinner_price' | 'breakfast_price' | 'child_breakfast_price' | 'lunch_price' | 'child_lunch_price'>
+
+export function getMealPrices(source: MealPriceSource | null | undefined) {
   return {
-    dp: pricing?.dinner_price ?? MEAL_DEFAULTS.dinner_price,
-    cdp: pricing?.child_dinner_price ?? MEAL_DEFAULTS.child_dinner_price,
-    bp: pricing?.breakfast_price ?? MEAL_DEFAULTS.breakfast_price,
-    cbp: pricing?.child_breakfast_price ?? MEAL_DEFAULTS.child_breakfast_price,
-    lp: pricing?.lunch_price ?? MEAL_DEFAULTS.lunch_price,
-    clp: pricing?.child_lunch_price ?? MEAL_DEFAULTS.child_lunch_price,
+    dp: source?.dinner_price ?? MEAL_DEFAULTS.dinner_price,
+    cdp: source?.child_dinner_price ?? MEAL_DEFAULTS.child_dinner_price,
+    bp: source?.breakfast_price ?? MEAL_DEFAULTS.breakfast_price,
+    cbp: source?.child_breakfast_price ?? MEAL_DEFAULTS.child_breakfast_price,
+    lp: source?.lunch_price ?? MEAL_DEFAULTS.lunch_price,
+    clp: source?.child_lunch_price ?? MEAL_DEFAULTS.child_lunch_price,
   }
 }
 
-export function calcMealCost(mealDays: MealDay[], pricing: PricingConfig | null | undefined) {
+export function calcMealCost(mealDays: MealDay[], pricing: MealPriceSource | null | undefined) {
   const { dp, cdp, bp, cbp, lp, clp } = getMealPrices(pricing)
 
   let total = 0

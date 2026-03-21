@@ -2,15 +2,16 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Users, BarChart3, Settings, HelpCircle, ChevronRight, LogOut } from 'lucide-react'
+import { Users, BarChart3, Settings, HelpCircle, ChevronRight, LogOut, FileText } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { signOut } from '@/lib/auth'
 
 const MENU_ITEMS = [
-  { href: '/settings', icon: Settings, label: '設定' },
-  { href: '/guests', icon: Users, label: 'ゲスト管理' },
+  { href: '/report/tax', icon: FileText, label: '税申告書' },
   { href: '/report', icon: BarChart3, label: '月次レポート' },
+  { href: '/guests', icon: Users, label: 'ゲスト管理' },
+  { href: '/settings', icon: Settings, label: '設定' },
   { href: '/guide', icon: HelpCircle, label: '使い方ガイド' },
 ] as const
 

@@ -96,8 +96,12 @@ export default function ReportView() {
       taxCollected += sumTaxResults(taxResults)
     }
 
-    // Meal revenue from meal_days + pricing
-    const mealRevenue = calcMealCost(allMealDays, pricing)
+    // Meal revenue: 予約ごとにスナップショットされた食事単価で計算
+    let mealRevenue = 0
+    for (const res of reservations) {
+      const resMeals = allMealDays.filter(md => md.reservation_id === res.id)
+      mealRevenue += calcMealCost(resMeals, res)
+    }
 
     // Extras from invoice_items
     let extrasRevenue = 0

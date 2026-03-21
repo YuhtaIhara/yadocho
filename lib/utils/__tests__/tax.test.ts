@@ -508,59 +508,47 @@ describe('calcAllTaxes', () => {
     })
   })
 
-  // ── 4.4 松本市（市税100円に修正、免税点6000円） ──
+  // ── 4.4 flat+flat 方式（松本市・阿智村）──
+  // 松本市と阿智村は同じ flat+flat コードパスを通るため it.each で統合
 
-  describe('松本市（県税flat100 + 市税flat100）', () => {
-    it('T13: 8000円/人, 2人, 2泊', () => {
+  describe('flat+flat方式（松本市・阿智村）', () => {
+    it.each([
+      { name: '松本市', rules: MATSUMOTO_RULES, rates: MATSUMOTO_RATES, muniFlat: 100 },
+      { name: '阿智村', rules: ACHI_RULES, rates: ACHI_RATES, muniFlat: 200 },
+    ])('$name: 課税ケース — 8000円/人, 2人', ({ rules, rates, muniFlat }) => {
+      const results = calcAllTaxes(8000, 2, 1, '2026-06-01', false, false, rules, rates)
+
+      expect(results).toHaveLength(2)
+      const pref = results.find((r) => r.taxType === 'prefecture')!
+      expect(pref.taxAmount).toBe(200) // 100 * 2 * 1
+
+      const muni = results.find((r) => r.taxType === 'municipal')!
+      expect(muni.taxAmount).toBe(muniFlat * 2) // muniFlat * 2 * 1
+
+      expect(sumTaxResults(results)).toBe(200 + muniFlat * 2)
+    })
+
+    it.each([
+      { name: '松本市', rules: MATSUMOTO_RULES, rates: MATSUMOTO_RATES },
+      { name: '阿智村', rules: ACHI_RULES, rates: ACHI_RATES },
+    ])('$name: 免税ケース — 5500円/人（6000未満）', ({ rules, rates }) => {
+      const results = calcAllTaxes(5500, 1, 1, '2026-06-01', false, false, rules, rates)
+
+      expect(results).toHaveLength(2)
+      expect(results.every((r) => !r.taxable && r.taxAmount === 0)).toBe(true)
+      expect(sumTaxResults(results)).toBe(0)
+    })
+
+    it('松本市: 複数泊 — 8000円/人, 2人, 2泊', () => {
       const results = calcAllTaxes(8000, 2, 2, '2026-06-01', false, false, MATSUMOTO_RULES, MATSUMOTO_RATES)
 
       const pref = results.find((r) => r.taxType === 'prefecture')!
       expect(pref.taxAmount).toBe(400) // 100 * 2 * 2
 
       const muni = results.find((r) => r.taxType === 'municipal')!
-      expect(muni.taxAmount).toBe(400) // 100 * 2 * 2（200→100に修正）
+      expect(muni.taxAmount).toBe(400) // 100 * 2 * 2
 
       expect(sumTaxResults(results)).toBe(800)
-    })
-
-    it('T14: 5500円/人, 1人, 1泊 — 県税・市税ともに免税（6000未満）', () => {
-      const results = calcAllTaxes(5500, 1, 1, '2026-06-01', false, false, MATSUMOTO_RULES, MATSUMOTO_RATES)
-
-      const pref = results.find((r) => r.taxType === 'prefecture')!
-      expect(pref.taxable).toBe(false)
-      expect(pref.taxAmount).toBe(0)
-
-      const muni = results.find((r) => r.taxType === 'municipal')!
-      expect(muni.taxable).toBe(false) // 免税点6000円追加
-      expect(muni.taxAmount).toBe(0)
-
-      expect(sumTaxResults(results)).toBe(0)
-    })
-  })
-
-  // ── 4.5 阿智村（県税100+村税200に分離） ──
-
-  describe('阿智村（県税flat100 + 村税flat200）', () => {
-    it('T15: 8000円/人, 2人, 1泊', () => {
-      const results = calcAllTaxes(8000, 2, 1, '2026-06-01', false, false, ACHI_RULES, ACHI_RATES)
-
-      expect(results).toHaveLength(2) // 1つ→2つに変更
-
-      const pref = results.find((r) => r.taxType === 'prefecture')!
-      expect(pref.taxAmount).toBe(200) // 100 * 2 * 1
-
-      const muni = results.find((r) => r.taxType === 'municipal')!
-      expect(muni.taxAmount).toBe(400) // 200 * 2 * 1
-
-      expect(sumTaxResults(results)).toBe(600)
-    })
-
-    it('T15b: 5500円/人, 1人, 1泊 — 県税・村税ともに免税', () => {
-      const results = calcAllTaxes(5500, 1, 1, '2026-06-01', false, false, ACHI_RULES, ACHI_RATES)
-
-      expect(results).toHaveLength(2)
-      expect(results.every((r) => !r.taxable && r.taxAmount === 0)).toBe(true)
-      expect(sumTaxResults(results)).toBe(0)
     })
   })
 
@@ -791,6 +779,74 @@ describe('calcAllTaxes', () => {
       ]
       const results = calcAllTaxes(7777, 1, 1, '2026-06-01', false, false, [rule], rates)
       expect(results[0].taxAmount).toBe(200) // floor(233.31 / 100) * 100
+    })
+  })
+
+  // ── 公式計算例の検証 ──
+
+  describe('公式計算例の検証（条例ベース）', () => {
+    it('野沢温泉: 8,500円 × 2名 × 1泊 の完全な計算過程', () => {
+      // 1人1泊: floor(8500 × 0.035) = floor(297.5) = 297円（県税込み合計）
+      // 県税: 100円/人泊（flat）
+      // 村税: 297 - 100 = 197円/人泊
+      // 2名1泊: 県税 = 100×2 = 200円, 村税 = 197×2 = 394円
+      const results = calcAllTaxes(8500, 2, 1, '2026-06-01', false, false, NOZAWA_RULES, NOZAWA_RATES)
+
+      const pref = results.find((r) => r.taxType === 'prefecture')!
+      expect(pref.taxAmount).toBe(200)
+
+      const muni = results.find((r) => r.taxType === 'municipal')!
+      expect(muni.taxAmount).toBe(394)
+
+      expect(sumTaxResults(results)).toBe(594)
+    })
+
+    it('野沢温泉: 端数が出る 8,571円 → floor(8571×0.035)=299、村税=199', () => {
+      // floor(8571 × 0.035) = floor(299.985) = 299
+      // 村税 = 299 - 100 = 199
+      const results = calcAllTaxes(8571, 1, 1, '2026-06-01', false, false, NOZAWA_RULES, NOZAWA_RATES)
+
+      const pref = results.find((r) => r.taxType === 'prefecture')!
+      expect(pref.taxAmount).toBe(100)
+
+      const muni = results.find((r) => r.taxType === 'municipal')!
+      expect(muni.taxAmount).toBe(199)
+
+      expect(sumTaxResults(results)).toBe(299)
+    })
+
+    it('野沢温泉: 免税点ぎりぎり 6,001円 → 課税される', () => {
+      // floor(6001 × 0.035) = floor(210.035) = 210
+      // 村税 = 210 - 100 = 110
+      const results = calcAllTaxes(6001, 1, 1, '2026-06-01', false, false, NOZAWA_RULES, NOZAWA_RATES)
+
+      expect(results.every((r) => r.taxable)).toBe(true)
+      expect(sumTaxResults(results)).toBe(210) // 100(県) + 110(村)
+    })
+
+    it('白馬村: ブラケット境界 20,000円ちょうど → 上のブラケット(20000-50000=300円)', () => {
+      // bracket_min <= price && price < bracket_max
+      // 20000: bracket_min=20000 → 20000-50000ブラケットに該当
+      const results = calcAllTaxes(20000, 1, 1, '2026-06-01', false, false, HAKUBA_RULES, HAKUBA_RATES)
+
+      const muni = results.find((r) => r.taxType === 'municipal')!
+      expect(muni.taxAmount).toBe(300) // 20000-50000ブラケット
+    })
+
+    it('白馬村: ブラケット境界 19,999円 → 下のブラケット(6000-20000=100円)', () => {
+      const results = calcAllTaxes(19999, 1, 1, '2026-06-01', false, false, HAKUBA_RULES, HAKUBA_RATES)
+
+      const muni = results.find((r) => r.taxType === 'municipal')!
+      expect(muni.taxAmount).toBe(100) // 6000-20000ブラケット
+    })
+
+    it('一般長野県: 8,000円 × 1名 × 1泊 → 県税200円のみ', () => {
+      const results = calcAllTaxes(8000, 1, 1, '2026-06-01', false, false, NAGANO_OTHER_RULES, NAGANO_OTHER_RATES)
+
+      expect(results).toHaveLength(1)
+      expect(results[0].taxType).toBe('prefecture')
+      expect(results[0].taxAmount).toBe(200)
+      expect(results[0].taxName).toBe('長野県宿泊税')
     })
   })
 })

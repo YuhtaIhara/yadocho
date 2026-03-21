@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, FileText, Download } from 'lucide-react'
@@ -9,32 +9,12 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { getSupabase } from '@/lib/supabase'
 import { buildMonthlyTaxData, type MonthlyTaxSummary } from '@/lib/utils/tax-report'
+import { useTaxData } from '@/lib/hooks/useTaxRules'
 import type { Reservation } from '@/lib/types'
 
 type ReportType = 'village-monthly' | 'village-form' | 'pref-monthly' | 'pref-form'
 
-const REPORT_TYPES: { type: ReportType; label: string; desc: string }[] = [
-  {
-    type: 'village-monthly',
-    label: '村 月計表',
-    desc: '日別の宿泊者数・課税標準額・税額',
-  },
-  {
-    type: 'village-form',
-    label: '村 納入申告書（様式第2号）',
-    desc: '3ヶ月分の申告書。村に提出',
-  },
-  {
-    type: 'pref-monthly',
-    label: '県 月計表',
-    desc: '日別の課税対象・対象外の宿泊数',
-  },
-  {
-    type: 'pref-form',
-    label: '県 納入申告書（様式第2号）',
-    desc: '3ヶ月分の申告書。県税事務所に提出',
-  },
-]
+type ReportDef = { type: ReportType; label: string; desc: string }
 
 async function fetchReservationsForMonth(year: number, month: number) {
   const supabase = getSupabase()
@@ -78,9 +58,51 @@ export default function TaxReportView() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [loading, setLoading] = useState<ReportType | null>(null)
   const [error, setError] = useState('')
+  const { taxRules } = useTaxData()
 
   const year = month.getFullYear()
   const monthNum = month.getMonth() + 1
+
+  // 税ルールから自治体パターンを自動判定
+  const hasMunicipalTax = useMemo(
+    () => taxRules.some(r => r.tax_type === 'municipal'),
+    [taxRules],
+  )
+  const hasPrefectureTax = useMemo(
+    () => taxRules.some(r => r.tax_type === 'prefecture'),
+    [taxRules],
+  )
+
+  // 独自課税市町村（野沢温泉村等）: 村への申告のみ（村が県分を代行）→ 村帳票のみ
+  // 一般市町村（麻績村等）: 県への申告のみ → 県帳票のみ
+  const reportTypes = useMemo<ReportDef[]>(() => {
+    if (hasMunicipalTax) {
+      // 独自課税市町村: 村帳票のみ（村に一括提出、県への申告不要）
+      return [
+        { type: 'village-monthly', label: '月計表', desc: '日別の宿泊者数・課税標準額・税額' },
+        { type: 'village-form', label: '納入申告書（様式第2号）', desc: '3ヶ月分の申告書' },
+      ]
+    }
+    if (hasPrefectureTax) {
+      // 一般市町村: 県帳票のみ
+      return [
+        { type: 'pref-monthly', label: '月計表', desc: '日別の課税対象・対象外の宿泊数' },
+        { type: 'pref-form', label: '納入申告書（様式第2号）', desc: '3ヶ月分の申告書。県税事務所に提出' },
+      ]
+    }
+    return []
+  }, [hasMunicipalTax, hasPrefectureTax])
+
+  // 提出先の説明
+  const filingNote = useMemo(() => {
+    if (hasMunicipalTax) {
+      return '申告書は村（町/市）に提出します。県への申告は不要です（村が県分を代行納入します）。'
+    }
+    if (hasPrefectureTax) {
+      return '申告書は管轄の県税事務所に提出します。'
+    }
+    return '宿泊税の設定がされていません。設定画面で自治体を選択してください。'
+  }, [hasMunicipalTax, hasPrefectureTax])
 
   async function generatePDF(type: ReportType) {
     setLoading(type)
@@ -157,8 +179,23 @@ export default function TaxReportView() {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const blob = await pdf(element as any).toBlob()
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
+      const filename = `${type}-${year}-${String(monthNum).padStart(2, '0')}.pdf`
+      const file = new File([blob], filename, { type: 'application/pdf' })
+
+      // モバイル: Web Share API で共有シート（印刷・AirDrop・ファイル保存）
+      if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: reportTypes.find(r => r.type === type)?.label ?? 'PDF' })
+      } else {
+        // デスクトップ or Share API非対応: ダウンロード
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
     } catch (err) {
       console.error(err)
       setError('PDF生成に失敗しました')
@@ -193,12 +230,10 @@ export default function TaxReportView() {
           </button>
         </div>
 
-        <p className="text-sm text-text-2">
-          野沢温泉村への宿泊税申告書をPDFで出力します。
-        </p>
+        <p className="text-sm text-text-2">{filingNote}</p>
 
         {/* Report types */}
-        {REPORT_TYPES.map(r => (
+        {reportTypes.map(r => (
           <Card key={r.type}>
             <div className="flex items-start justify-between">
               <div className="flex-1 mr-3">
@@ -218,13 +253,21 @@ export default function TaxReportView() {
                 ) : (
                   <>
                     <Download size={14} className="mr-1" />
-                    PDF
+                    PDF出力
                   </>
                 )}
               </Button>
             </div>
           </Card>
         ))}
+
+        {reportTypes.length === 0 && (
+          <Card className="!bg-danger-soft border border-danger/10">
+            <p className="text-sm text-danger">
+              宿泊税の設定がされていません。設定 → 宿泊税 から自治体を選択してください。
+            </p>
+          </Card>
+        )}
 
         {error && (
           <p className="text-sm text-danger text-center bg-danger-soft rounded-xl py-3 px-4">
@@ -238,7 +281,7 @@ export default function TaxReportView() {
             納入申告書は3ヶ月分をまとめて提出（年税額360万円未満の承認がある場合は四半期ごと）。
           </p>
           <p className="text-xs text-text-3 mt-1">
-            「宿泊システム導入事業者は任意様式で可」（野沢温泉村）
+            「宿泊システム導入事業者は任意様式で可」
           </p>
         </Card>
       </div>
