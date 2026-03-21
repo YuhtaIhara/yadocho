@@ -103,11 +103,45 @@ export async function createReservation(input: {
   return flattenRooms(full)
 }
 
+/** Valid status transitions */
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  scheduled: ['checked_in', 'cancelled'],
+  checked_in: ['settled', 'cancelled'],
+  settled: ['checked_in'], // undo settlement only
+  cancelled: [],
+}
+
 export async function updateReservation(
   id: string,
   updates: Partial<Omit<Reservation, 'id' | 'inn_id' | 'created_at' | 'updated_at' | 'rooms' | 'guest'>> & { room_ids?: string[] },
 ): Promise<Reservation> {
   const { room_ids, ...fields } = updates
+
+  // Validate status transition
+  if (fields.status) {
+    const { data: current } = await supabase
+      .from('reservations')
+      .select('status')
+      .eq('id', id)
+      .single()
+    if (!current) throw new Error('予約が見つかりません')
+    const allowed = STATUS_TRANSITIONS[current.status] ?? []
+    if (!allowed.includes(fields.status)) {
+      throw new Error(`${current.status} から ${fields.status} への変更はできません`)
+    }
+  }
+
+  // Block edits to settled reservations (except status changes)
+  if (Object.keys(fields).some(k => k !== 'status') || room_ids) {
+    const { data: current } = await supabase
+      .from('reservations')
+      .select('status')
+      .eq('id', id)
+      .single()
+    if (current?.status === 'settled') {
+      throw new Error('精算済みの予約は編集できません')
+    }
+  }
 
   // Update reservation fields
   if (Object.keys(fields).length > 0) {
@@ -143,6 +177,15 @@ export async function updateReservation(
 }
 
 export async function deleteReservation(id: string): Promise<void> {
+  // Prevent deletion of settled reservations
+  const { data: current } = await supabase
+    .from('reservations')
+    .select('status')
+    .eq('id', id)
+    .single()
+  if (current?.status === 'settled') {
+    throw new Error('精算済みの予約は削除できません')
+  }
   // reservation_rooms cascade-deleted via FK
   const { error } = await supabase.from('reservations').delete().eq('id', id)
   if (error) throw error

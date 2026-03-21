@@ -33,6 +33,17 @@ export default function EditReservation() {
     )
   }
 
+  if (reservation.status === 'settled') {
+    return (
+      <div>
+        <PageHeader title="予約を編集" />
+        <div className="flex items-center justify-center h-48 text-sm text-text-3">
+          精算済みの予約は編集できません
+        </div>
+      </div>
+    )
+  }
+
   return (
     <ReservationForm
       mode="edit"

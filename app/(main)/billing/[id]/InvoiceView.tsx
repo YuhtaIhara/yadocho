@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Printer } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
@@ -14,7 +14,7 @@ import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
 import { useInvoicePresets } from '@/lib/hooks/useInvoicePresets'
 import { useInn } from '@/lib/hooks/useInn'
-import { upsertInvoiceItems, lockInvoice } from '@/lib/api/invoices'
+import { upsertInvoiceItems, lockInvoice, fetchInvoiceItems } from '@/lib/api/invoices'
 import { verifyTax } from '@/lib/api/verifyTax'
 import { formatDateFull, nightCount } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
@@ -41,6 +41,17 @@ export default function InvoiceView() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [settleSuccess, setSettleSuccess] = useState(false)
   const [settleError, setSettleError] = useState('')
+
+  // Load saved extras from DB when viewing a settled invoice
+  useEffect(() => {
+    if (!res || res.status !== 'settled') return
+    fetchInvoiceItems(res.id).then(items => {
+      const savedExtras = items
+        .filter(item => item.category === 'extra')
+        .map(item => ({ name: item.name, unitPrice: item.unit_price, quantity: item.quantity }))
+      if (savedExtras.length > 0) setExtras(savedExtras)
+    })
+  }, [res?.id, res?.status])
 
   const computed = useMemo(() => {
     if (!res) return null

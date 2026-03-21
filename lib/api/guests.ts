@@ -91,6 +91,16 @@ export async function updateGuest(
 }
 
 export async function deleteGuest(id: string): Promise<void> {
+  // Prevent deletion if guest has settled reservations
+  const { data: settled } = await supabase
+    .from('reservations')
+    .select('id')
+    .eq('guest_id', id)
+    .eq('status', 'settled')
+    .limit(1)
+  if (settled && settled.length > 0) {
+    throw new Error('精算済みの予約があるゲストは削除できません')
+  }
   const { error } = await supabase.from('guests').delete().eq('id', id)
   if (error) throw error
 }

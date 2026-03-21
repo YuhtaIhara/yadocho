@@ -17,6 +17,16 @@ export async function upsertInvoiceItems(
   reservationId: string,
   items: Omit<InvoiceItem, 'id' | 'created_at'>[],
 ): Promise<InvoiceItem[]> {
+  // Prevent modification if invoice is already locked
+  const { data: lockedItems } = await supabase
+    .from('invoice_items')
+    .select('id')
+    .eq('reservation_id', reservationId)
+    .eq('locked', true)
+    .limit(1)
+  if (lockedItems && lockedItems.length > 0) {
+    throw new Error('精算済みの請求書は変更できません')
+  }
   await supabase.from('invoice_items').delete().eq('reservation_id', reservationId).eq('locked', false)
 
   if (items.length === 0) return []

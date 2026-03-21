@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import Stepper from '@/components/ui/Stepper'
 import { useRooms } from '@/lib/hooks/useRooms'
 import { useReservations } from '@/lib/hooks/useReservations'
+import { useBlockedDates } from '@/lib/hooks/useBlockedDates'
 import { usePricing } from '@/lib/hooks/usePricing'
 import { usePricingPlans } from '@/lib/hooks/usePricingPlans'
 import { useCreateReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
@@ -256,18 +257,25 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
   const taxExempt = watch('tax_exempt')
 
   const { data: existingRes = [] } = useReservations(checkin, checkout)
+  const { data: blockedDates = [] } = useBlockedDates(checkin, checkout)
 
   const unavailableRoomIds = useMemo(() => {
     const set = new Set<string>()
+    // Existing reservations overlap
     for (const r of existingRes) {
-      // When editing, exclude the current reservation from overlap detection
       if (isEdit && initialData && r.id === initialData.id) continue
       if (r.checkin < checkout && r.checkout > checkin) {
         r.rooms?.forEach(room => set.add(room.id))
       }
     }
+    // Blocked dates — room is unavailable if any day in the stay is blocked
+    for (const b of blockedDates) {
+      if (b.room_id && b.date >= checkin && b.date < checkout) {
+        set.add(b.room_id)
+      }
+    }
     return set
-  }, [existingRes, checkin, checkout, isEdit, initialData])
+  }, [existingRes, blockedDates, checkin, checkout, isEdit, initialData])
 
   const nights = useMemo(() => {
     if (!checkin || !checkout || checkout <= checkin) return 0
@@ -779,6 +787,7 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
             {rooms.map(room => {
               const unavailable = unavailableRoomIds.has(room.id)
               const selected = selectedRoomIds.includes(room.id)
+              const isBlocked = blockedDates.some(b => b.room_id === room.id && b.date >= checkin && b.date < checkout)
               return (
                 <button
                   key={room.id}
@@ -801,6 +810,11 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
                   )}
                 >
                   {room.name}
+                  {unavailable && (
+                    <span className="block text-[11px] font-normal no-underline">
+                      {isBlocked ? '休業' : '予約あり'}
+                    </span>
+                  )}
                 </button>
               )
             })}

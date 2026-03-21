@@ -96,6 +96,11 @@ export default function ReservationDetail() {
   }
 
   function handleDelete() {
+    if (!res) return
+    if (res.status === 'settled') {
+      alert('精算済みの予約は削除できません。先に精算を取り消してください。')
+      return
+    }
     if (!confirm('この予約を削除しますか？')) return
     deleteRes.mutate(id, { onSuccess: () => router.push('/calendar') })
   }
