@@ -78,7 +78,14 @@ export default function ReservationDetail() {
 
   function handleStatusChange(status: ReservationStatus) {
     setShowStatusMenu(false)
-    updateRes.mutate({ id, status })
+    updateRes.mutate(
+      { id, status },
+      {
+        onError: (err) => {
+          alert(`ステータスの変更に失敗しました: ${err instanceof Error ? err.message : '不明なエラー'}`)
+        },
+      },
+    )
   }
 
   function handleDelete() {

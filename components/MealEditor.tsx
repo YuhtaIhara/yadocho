@@ -110,17 +110,17 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
 
             {/* Breakfast */}
             <div className="grid grid-cols-[1fr_auto] items-center gap-y-1.5">
-              <span className="text-xs text-text-2">朝食 大人</span>
+              <span className="text-[15px] text-text-2">朝食 大人</span>
               <Stepper
                 value={day.breakfast_adults}
                 onChange={v => updateDay(idx, { breakfast_adults: v })}
               />
-              <span className="text-xs text-text-2">朝食 子供</span>
+              <span className="text-[15px] text-text-2">朝食 子供</span>
               <Stepper
                 value={day.breakfast_children}
                 onChange={v => updateDay(idx, { breakfast_children: v })}
               />
-              <span className="text-xs text-text-2">朝食時間</span>
+              <span className="text-[15px] text-text-2">朝食時間</span>
               <select
                 value={day.breakfast_time ?? ''}
                 onChange={e => updateDay(idx, { breakfast_time: e.target.value || null })}
@@ -135,17 +135,17 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
 
             {/* Lunch */}
             <div className="grid grid-cols-[1fr_auto] items-center gap-y-1.5">
-              <span className="text-xs text-text-2">昼食 大人</span>
+              <span className="text-[15px] text-text-2">昼食 大人</span>
               <Stepper
                 value={day.lunch_adults}
                 onChange={v => updateDay(idx, { lunch_adults: v })}
               />
-              <span className="text-xs text-text-2">昼食 子供</span>
+              <span className="text-[15px] text-text-2">昼食 子供</span>
               <Stepper
                 value={day.lunch_children}
                 onChange={v => updateDay(idx, { lunch_children: v })}
               />
-              <span className="text-xs text-text-2">昼食時間</span>
+              <span className="text-[15px] text-text-2">昼食時間</span>
               <select
                 value={day.lunch_time ?? ''}
                 onChange={e => updateDay(idx, { lunch_time: e.target.value || null })}
@@ -160,17 +160,17 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
 
             {/* Dinner */}
             <div className="grid grid-cols-[1fr_auto] items-center gap-y-1.5">
-              <span className="text-xs text-text-2">夕食 大人</span>
+              <span className="text-[15px] text-text-2">夕食 大人</span>
               <Stepper
                 value={day.dinner_adults}
                 onChange={v => updateDay(idx, { dinner_adults: v })}
               />
-              <span className="text-xs text-text-2">夕食 子供</span>
+              <span className="text-[15px] text-text-2">夕食 子供</span>
               <Stepper
                 value={day.dinner_children}
                 onChange={v => updateDay(idx, { dinner_children: v })}
               />
-              <span className="text-xs text-text-2">夕食時間</span>
+              <span className="text-[15px] text-text-2">夕食時間</span>
               <select
                 value={day.dinner_time ?? ''}
                 onChange={e => updateDay(idx, { dinner_time: e.target.value || null })}

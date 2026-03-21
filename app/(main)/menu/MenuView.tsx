@@ -8,10 +8,14 @@ import {
   Settings,
   BarChart3,
   LogOut,
-  ChevronRight,
   LogIn,
   Hotel,
   LogOutIcon,
+  FileText,
+  Calendar,
+  Home,
+  DollarSign,
+  Receipt,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { signOut } from '@/lib/auth'
@@ -28,12 +32,18 @@ function getGreeting(): string {
   return 'おつかれさまです'
 }
 
-// ── Menu items (2-column grid) ──
-const MENU_ITEMS = [
+// ── Section: 業務 ──
+const BUSINESS_ITEMS = [
   { href: '/reservations', icon: ClipboardList, label: '予約一覧' },
   { href: '/guests', icon: Users, label: '顧客管理' },
+  { href: '/report', icon: BarChart3, label: '月次レポート' },
+  { href: '/report/daily', icon: DollarSign, label: '売上日報' },
+  { href: '/report/tax', icon: FileText, label: '税申告書' },
+] as const
+
+// ── Section: 設定 ──
+const SETTINGS_ITEMS = [
   { href: '/settings', icon: Settings, label: '設定' },
-  { href: '/report', icon: BarChart3, label: 'レポート' },
 ] as const
 
 export default function MenuView() {
@@ -75,32 +85,59 @@ export default function MenuView() {
       </div>
 
       <div className="px-4 py-4 flex flex-col gap-5 pb-32">
-        {/* ── Today KPI cards ── */}
-        <Link href="/calendar" className="block">
-          <div className="grid grid-cols-3 gap-3">
-            <KpiCard icon={LogIn} label="チェックイン" count={checkInCount} color="var(--color-checkin)" />
-            <KpiCard icon={Hotel} label="滞在中" count={stayingCount} color="var(--color-staying)" />
-            <KpiCard icon={LogOutIcon} label="チェックアウト" count={checkOutCount} color="var(--color-booked)" />
-          </div>
-        </Link>
+        {/* ── 今日 ── */}
+        <section>
+          <h2 className="text-section font-medium text-text mb-2" style={{ fontFamily: 'var(--font-body)' }}>
+            今日
+          </h2>
+          <Link href="/calendar" className="block">
+            <div className="grid grid-cols-3 gap-3">
+              <KpiCard icon={LogIn} label="チェックイン" count={checkInCount} color="var(--color-checkin)" />
+              <KpiCard icon={Hotel} label="滞在中" count={stayingCount} color="var(--color-staying)" />
+              <KpiCard icon={LogOutIcon} label="チェックアウト" count={checkOutCount} color="var(--color-booked)" />
+            </div>
+          </Link>
+        </section>
 
-        {/* ── Menu grid (2 columns) ── */}
-        <div className="grid grid-cols-2 gap-3">
-          {MENU_ITEMS.map(({ href, icon: Icon, label }) => (
-            <Link key={href} href={href} className="block">
-              <Card className="flex flex-col items-center justify-center gap-2 py-5 min-h-[80px]">
-                <Icon size={24} className="text-primary" />
-                <span className="text-body font-medium">{label}</span>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        {/* ── 業務 ── */}
+        <section>
+          <h2 className="text-section font-medium text-text mb-2" style={{ fontFamily: 'var(--font-body)' }}>
+            業務
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {BUSINESS_ITEMS.map(({ href, icon: Icon, label }) => (
+              <Link key={href} href={href} className="block">
+                <Card className="flex flex-col items-center justify-center gap-2 py-5 min-h-[80px]">
+                  <Icon size={24} className="text-primary" />
+                  <span className="text-body font-medium">{label}</span>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 設定 ── */}
+        <section>
+          <h2 className="text-section font-medium text-text mb-2" style={{ fontFamily: 'var(--font-body)' }}>
+            設定
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {SETTINGS_ITEMS.map(({ href, icon: Icon, label }) => (
+              <Link key={href} href={href} className="block">
+                <Card className="flex flex-col items-center justify-center gap-2 py-5 min-h-[80px]">
+                  <Icon size={24} className="text-primary" />
+                  <span className="text-body font-medium">{label}</span>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         {/* ── Logout ── */}
         <button
           type="button"
           onClick={handleSignOut}
-          className="w-full mt-4"
+          className="w-full mt-2"
         >
           <Card className="flex items-center justify-center gap-3 py-3.5 active:scale-[0.98] transition-transform">
             <LogOut size={18} className="text-danger" />
@@ -108,7 +145,7 @@ export default function MenuView() {
           </Card>
         </button>
 
-        <p className="text-center text-sub text-text-sub mt-6">yadocho v0.2.0</p>
+        <p className="text-center text-sub text-text-sub mt-4">yadocho v0.2.0</p>
       </div>
     </div>
   )

@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: '/meals', label: '食事', icon: UtensilsCrossed },
   { href: '/reservations/new', label: '新規予約', icon: Plus, isCenter: true },
   { href: '/billing', label: '請求', icon: Receipt },
-  { href: '/menu', label: 'メニュー', icon: Menu },
+  { href: '/menu', label: 'その他', icon: Menu },
 ] as const
 
 export default function BottomNav() {
