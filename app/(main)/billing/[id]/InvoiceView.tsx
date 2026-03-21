@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import Stepper from '@/components/ui/Stepper'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 import { useReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
@@ -34,6 +35,7 @@ export default function InvoiceView() {
   const updateRes = useUpdateReservation()
   const { data: presets = [] } = useInvoicePresets()
   const { data: inn } = useInn()
+  const { showToast } = useToast()
   const [extras, setExtras] = useState<ExtraItem[]>([])
   const [newName, setNewName] = useState('')
   const [newPrice, setNewPrice] = useState('')
@@ -375,7 +377,7 @@ export default function InvoiceView() {
                   { id: res.id, status: 'checked_in' },
                   {
                     onSuccess: () => setSettleSuccess(false),
-                    onError: (err) => alert(`取消に失敗しました: ${err instanceof Error ? err.message : '不明なエラー'}`),
+                    onError: (err) => showToast(err instanceof Error ? err.message : '取消に失敗しました'),
                   },
                 )
               }}

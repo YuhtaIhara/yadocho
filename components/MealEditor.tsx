@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
 import Stepper from '@/components/ui/Stepper'
 import { Button } from '@/components/ui/Button'
+import { useToast } from '@/components/ui/Toast'
 import { upsertMealDays } from '@/lib/api/meals'
 import { formatDateJP } from '@/lib/utils/date'
 import type { MealDay } from '@/lib/types'
@@ -59,6 +60,7 @@ function toEditable(md: MealDay): EditableMealDay {
 
 export default function MealEditor({ reservationId, mealDays, open, onClose, onSaved }: Props) {
   const [days, setDays] = useState<EditableMealDay[]>([])
+  const { showToast } = useToast()
   const [saving, setSaving] = useState(false)
   const [prevOpen, setPrevOpen] = useState(false)
 
@@ -96,7 +98,7 @@ export default function MealEditor({ reservationId, mealDays, open, onClose, onS
       onClose()
     } catch (e) {
       console.error('Failed to save meal days:', e)
-      alert(`食事データの保存に失敗しました: ${e instanceof Error ? e.message : '不明なエラー'}`)
+      showToast(e instanceof Error ? e.message : '食事データの保存に失敗しました')
     } finally {
       setSaving(false)
     }

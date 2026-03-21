@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { useQueryClient } from '@tanstack/react-query'
+import { useToast } from '@/components/ui/Toast'
 import { useReservation, useUpdateReservation } from '@/lib/hooks/useReservations'
 import { useMealDays } from '@/lib/hooks/useMealDays'
 import { usePricing } from '@/lib/hooks/usePricing'
@@ -50,6 +51,7 @@ export default function ReservationDetail() {
   const { data: pricing } = usePricing()
   const { taxRules, taxRuleRates } = useTaxData()
   const queryClient = useQueryClient()
+  const { showToast } = useToast()
   const updateRes = useUpdateReservation()
   const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [showMealEditor, setShowMealEditor] = useState(false)
@@ -87,8 +89,11 @@ export default function ReservationDetail() {
     updateRes.mutate(
       { id, status },
       {
+        onSuccess: () => {
+          showToast(STATUS_LABELS[status] + ' に変更しました')
+        },
         onError: (err) => {
-          alert(`ステータスの変更に失敗しました: ${err instanceof Error ? err.message : '不明なエラー'}`)
+          showToast(err instanceof Error ? err.message : 'ステータスの変更に失敗しました')
         },
       },
     )
@@ -105,16 +110,16 @@ export default function ReservationDetail() {
               <button
                 type="button"
                 onClick={() => router.push(`/reservations/${id}/edit`)}
-                className="w-9 h-9 flex items-center justify-center rounded-full active:bg-primary-soft"
+                className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
               >
-                <Pencil size={16} className="text-text-2" />
+                <Pencil size={18} className="text-text-2" />
               </button>
             )}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowStatusMenu(v => !v)}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 min-h-[48px] px-1"
               >
                 <Badge variant={STATUS_BADGE[res.status]}>{STATUS_LABELS[res.status]}</Badge>
               </button>
@@ -211,8 +216,9 @@ export default function ReservationDetail() {
         <Card>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-text-2">食事</h3>
-            <button type="button" onClick={() => setShowMealEditor(true)} className="p-1 rounded-full active:bg-primary-soft">
-              <Pencil size={14} className="text-text-3" />
+            <button type="button" onClick={() => setShowMealEditor(true)} className="flex items-center gap-1 px-3 py-1.5 min-h-[44px] rounded-full active:bg-primary-soft text-[15px] text-primary font-medium">
+              <Pencil size={14} />
+              編集
             </button>
           </div>
           {mealDays.length > 0 ? (
