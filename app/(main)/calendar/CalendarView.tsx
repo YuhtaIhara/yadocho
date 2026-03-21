@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   startOfMonth,
@@ -29,13 +29,12 @@ type ViewDays = 7 | 14 | 'month'
 export default function CalendarView() {
   const router = useRouter()
   const [viewStart, setViewStart] = useState(() => new Date())
-  const [viewDays, setViewDays] = useState<ViewDays>(7)
+  const [viewDays, setViewDays] = useState<ViewDays>('month')
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [blockMode, setBlockMode] = useState(false)
   const [monthPickerOpen, setMonthPickerOpen] = useState(false)
 
-  // Swipe tracking
-  const touchRef = useRef<{ x: number; y: number; t: number } | null>(null)
+  // Swipe removed — conflicts with horizontal scroll
 
   // Compute date range based on view mode
   const { from, to, dates } = useMemo(() => {
@@ -142,24 +141,6 @@ export default function CalendarView() {
     setSelectedDate(isSameMonth(today, d) ? today : d)
   }
 
-  // Swipe handlers
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    const t = e.touches[0]
-    touchRef.current = { x: t.clientX, y: t.clientY, t: Date.now() }
-  }, [])
-
-  const onTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!touchRef.current) return
-    const t = e.changedTouches[0]
-    const dx = t.clientX - touchRef.current.x
-    const dy = t.clientY - touchRef.current.y
-    const dt = Date.now() - touchRef.current.t
-    touchRef.current = null
-    // Horizontal swipe: > 60px, more horizontal than vertical, under 400ms
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 400) {
-      navigate(dx < 0 ? 1 : -1)
-    }
-  }, [viewDays])
 
   // Header label
   const headerLabel = useMemo(() => {
@@ -259,7 +240,7 @@ export default function CalendarView() {
           <span className="text-sm text-text-3">読み込み中…</span>
         </div>
       ) : (
-        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div>
           <CalendarGrid
             rooms={sortedRooms}
             reservations={reservations}

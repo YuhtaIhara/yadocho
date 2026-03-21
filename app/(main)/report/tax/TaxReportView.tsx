@@ -3,17 +3,17 @@
 import { useState, useMemo } from 'react'
 import { format, startOfMonth, addMonths, subMonths } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, FileText, Download } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileText, Printer } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { getSupabase } from '@/lib/supabase'
 import { buildMonthlyTaxData, type MonthlyTaxSummary } from '@/lib/utils/tax-report'
+import { toReiwaLabel } from '@/lib/utils/reiwa'
 import { useTaxData } from '@/lib/hooks/useTaxRules'
 import type { Reservation } from '@/lib/types'
 
 type ReportType = 'village-monthly' | 'village-form' | 'pref-monthly' | 'pref-form'
-
 type ReportDef = { type: ReportType; label: string; desc: string }
 
 async function fetchReservationsForMonth(year: number, month: number) {
@@ -58,12 +58,12 @@ export default function TaxReportView() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [loading, setLoading] = useState<ReportType | null>(null)
   const [error, setError] = useState('')
+  const [preview, setPreview] = useState<{ type: ReportType; html: string } | null>(null)
   const { taxRules } = useTaxData()
 
   const year = month.getFullYear()
   const monthNum = month.getMonth() + 1
 
-  // 税ルールから自治体パターンを自動判定
   const hasMunicipalTax = useMemo(
     () => taxRules.some(r => r.tax_type === 'municipal'),
     [taxRules],
@@ -73,18 +73,14 @@ export default function TaxReportView() {
     [taxRules],
   )
 
-  // 独自課税市町村（野沢温泉村等）: 村への申告のみ（村が県分を代行）→ 村帳票のみ
-  // 一般市町村（麻績村等）: 県への申告のみ → 県帳票のみ
   const reportTypes = useMemo<ReportDef[]>(() => {
     if (hasMunicipalTax) {
-      // 独自課税市町村: 村帳票のみ（村に一括提出、県への申告不要）
       return [
         { type: 'village-monthly', label: '月計表', desc: '日別の宿泊者数・課税標準額・税額' },
         { type: 'village-form', label: '納入申告書（様式第2号）', desc: '3ヶ月分の申告書' },
       ]
     }
     if (hasPrefectureTax) {
-      // 一般市町村: 県帳票のみ
       return [
         { type: 'pref-monthly', label: '月計表', desc: '日別の課税対象・対象外の宿泊数' },
         { type: 'pref-form', label: '納入申告書（様式第2号）', desc: '3ヶ月分の申告書。県税事務所に提出' },
@@ -93,7 +89,6 @@ export default function TaxReportView() {
     return []
   }, [hasMunicipalTax, hasPrefectureTax])
 
-  // 提出先の説明
   const filingNote = useMemo(() => {
     if (hasMunicipalTax) {
       return '申告書は村（町/市）に提出します。県への申告は不要です（村が県分を代行納入します）。'
@@ -104,33 +99,23 @@ export default function TaxReportView() {
     return '宿泊税の設定がされていません。設定画面で自治体を選択してください。'
   }, [hasMunicipalTax, hasPrefectureTax])
 
-  async function generatePDF(type: ReportType) {
+  async function showReport(type: ReportType) {
     setLoading(type)
     setError('')
     try {
-      // Dynamic import to avoid SSR issues
-      const { pdf } = await import('@react-pdf/renderer')
-      const React = (await import('react')).default
-
       const inn = await fetchInnInfo()
       if (!inn) {
         setError('宿の情報が取得できません')
         return
       }
 
-      let element: React.ReactElement
+      let html = ''
 
       if (type === 'village-monthly') {
-        const { VillageMonthlyReport } = await import('@/lib/pdf/VillageMonthlyReport')
         const reservations = await fetchReservationsForMonth(year, monthNum)
         const data = buildMonthlyTaxData(reservations, year, monthNum, 6000, 3.5)
-        element = React.createElement(VillageMonthlyReport, {
-          data,
-          innName: inn.name ?? '',
-          representative: inn.representative ?? '',
-        })
+        html = renderVillageMonthly(data, inn.name ?? '', inn.representative ?? '')
       } else if (type === 'village-form') {
-        const { VillageDeclarationForm } = await import('@/lib/pdf/VillageDeclarationForm')
         const monthsData: MonthlyTaxSummary[] = []
         for (let m = 0; m < 3; m++) {
           const tMonth = ((monthNum - 1 + m) % 12) + 1
@@ -138,26 +123,12 @@ export default function TaxReportView() {
           const res = await fetchReservationsForMonth(tYear, tMonth)
           monthsData.push(buildMonthlyTaxData(res, tYear, tMonth, 6000, 3.5))
         }
-        const today = new Date()
-        element = React.createElement(VillageDeclarationForm, {
-          months: monthsData,
-          innName: inn.name ?? '',
-          innAddress: inn.address ?? '',
-          representative: inn.representative ?? '',
-          phone: inn.phone ?? '',
-          filingDate: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
-          taxRatePercent: 3.5,
-        })
+        html = renderVillageForm(monthsData, inn)
       } else if (type === 'pref-monthly') {
-        const { PrefMonthlyReport } = await import('@/lib/pdf/PrefMonthlyReport')
         const reservations = await fetchReservationsForMonth(year, monthNum)
         const data = buildMonthlyTaxData(reservations, year, monthNum, 6000, 3.5)
-        element = React.createElement(PrefMonthlyReport, {
-          data,
-          innName: inn.name ?? '',
-        })
+        html = renderPrefMonthly(data, inn.name ?? '')
       } else {
-        const { PrefDeclarationForm } = await import('@/lib/pdf/PrefDeclarationForm')
         const monthsData: MonthlyTaxSummary[] = []
         for (let m = 0; m < 3; m++) {
           const tMonth = ((monthNum - 1 + m) % 12) + 1
@@ -165,56 +136,33 @@ export default function TaxReportView() {
           const res = await fetchReservationsForMonth(tYear, tMonth)
           monthsData.push(buildMonthlyTaxData(res, tYear, tMonth, 6000, 3.5))
         }
-        const today = new Date()
-        element = React.createElement(PrefDeclarationForm, {
-          months: monthsData,
-          innName: inn.name ?? '',
-          innAddress: inn.address ?? '',
-          representative: inn.representative ?? '',
-          phone: inn.phone ?? '',
-          filingDate: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
-          prefFlatAmount: 100,
-        })
+        html = renderPrefForm(monthsData, inn)
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const blob = await pdf(element as any).toBlob()
-      const filename = `${type}-${year}-${String(monthNum).padStart(2, '0')}.pdf`
-      const file = new File([blob], filename, { type: 'application/pdf' })
-
-      // モバイル: Web Share API で共有シート（印刷・AirDrop・ファイル保存）
-      if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: reportTypes.find(r => r.type === type)?.label ?? 'PDF' })
-      } else {
-        // デスクトップ or Share API非対応: ダウンロード
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-      }
+      setPreview({ type, html })
     } catch (err) {
       console.error(err)
-      setError('PDF生成に失敗しました')
+      setError('データの取得に失敗しました')
     } finally {
       setLoading(null)
     }
+  }
+
+  function handlePrint() {
+    window.print()
   }
 
   return (
     <div>
       <PageHeader title="税申告書" />
 
-      <div className="px-4 py-4 flex flex-col gap-4 pb-32">
+      <div className="px-4 py-4 flex flex-col gap-4 pb-32 no-print">
         {/* Month selector */}
         <div className="flex items-center justify-between">
           <button
             type="button"
-            onClick={() => setMonth(m => subMonths(m, 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft"
+            onClick={() => { setMonth(m => subMonths(m, 1)); setPreview(null) }}
+            className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
           >
             <ChevronLeft size={20} />
           </button>
@@ -223,14 +171,14 @@ export default function TaxReportView() {
           </span>
           <button
             type="button"
-            onClick={() => setMonth(m => addMonths(m, 1))}
-            className="w-10 h-10 flex items-center justify-center rounded-full active:bg-primary-soft"
+            onClick={() => { setMonth(m => addMonths(m, 1)); setPreview(null) }}
+            className="w-12 h-12 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full active:bg-primary-soft"
           >
             <ChevronRight size={20} />
           </button>
         </div>
 
-        <p className="text-sm text-text-2">{filingNote}</p>
+        <p className="text-[15px] text-text-2">{filingNote}</p>
 
         {/* Report types */}
         {reportTypes.map(r => (
@@ -239,23 +187,16 @@ export default function TaxReportView() {
               <div className="flex-1 mr-3">
                 <div className="flex items-center gap-2 mb-1">
                   <FileText size={16} className="text-primary shrink-0" />
-                  <p className="text-sm font-medium">{r.label}</p>
+                  <p className="text-[15px] font-medium">{r.label}</p>
                 </div>
-                <p className="text-xs text-text-3">{r.desc}</p>
+                <p className="text-[15px] text-text-3">{r.desc}</p>
               </div>
               <Button
                 size="sm"
-                onClick={() => generatePDF(r.type)}
+                onClick={() => showReport(r.type)}
                 disabled={loading !== null}
               >
-                {loading === r.type ? (
-                  '生成中…'
-                ) : (
-                  <>
-                    <Download size={14} className="mr-1" />
-                    PDF出力
-                  </>
-                )}
+                {loading === r.type ? '読込中…' : '表示'}
               </Button>
             </div>
           </Card>
@@ -263,28 +204,239 @@ export default function TaxReportView() {
 
         {reportTypes.length === 0 && (
           <Card className="!bg-danger-soft border border-danger/10">
-            <p className="text-sm text-danger">
+            <p className="text-[15px] text-danger">
               宿泊税の設定がされていません。設定 → 宿泊税 から自治体を選択してください。
             </p>
           </Card>
         )}
 
         {error && (
-          <p className="text-sm text-danger text-center bg-danger-soft rounded-xl py-3 px-4">
+          <p className="text-[15px] text-danger text-center bg-danger-soft rounded-xl py-3 px-4">
             {error}
           </p>
         )}
 
+        {/* Print button (visible when preview is shown) */}
+        {preview && (
+          <Button size="lg" className="w-full" onClick={handlePrint}>
+            <Printer size={16} className="mr-2" />
+            この帳票を印刷する
+          </Button>
+        )}
+
         <Card className="!bg-primary/[0.04] border border-primary/10">
-          <p className="text-xs text-text-2">
+          <p className="text-[15px] text-text-2">
             月計表は毎月の申告書添付資料として提出します。
             納入申告書は3ヶ月分をまとめて提出（年税額360万円未満の承認がある場合は四半期ごと）。
           </p>
-          <p className="text-xs text-text-3 mt-1">
+          <p className="text-[15px] text-text-3 mt-1">
             「宿泊システム導入事業者は任意様式で可」
           </p>
         </Card>
       </div>
+
+      {/* Print-only: HTML report preview */}
+      {preview && (
+        <div
+          className="hidden print:block print-report"
+          dangerouslySetInnerHTML={{ __html: preview.html }}
+        />
+      )}
+
+      {/* Inline preview (visible on screen too) */}
+      {preview && (
+        <div className="px-4 pb-32 no-print">
+          <div className="border border-border rounded-xl p-4 bg-white overflow-x-auto">
+            <div dangerouslySetInnerHTML={{ __html: preview.html }} />
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+// ── HTML renderers ──
+
+function renderVillageMonthly(data: MonthlyTaxSummary, innName: string, representative: string): string {
+  const reiwa = toReiwaLabel(data.year, data.month)
+  const rows = data.rows.map(r => `
+    <tr>
+      <td style="text-align:center">${r.day}</td>
+      <td style="text-align:right">${r.taxableStays || ''}</td>
+      <td style="text-align:right">${r.exemptStays || ''}</td>
+      <td style="text-align:right">${r.taxableBase ? r.taxableBase.toLocaleString() : ''}</td>
+      <td style="text-align:right">${r.taxAmount ? r.taxAmount.toLocaleString() : ''}</td>
+    </tr>
+  `).join('')
+
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;font-size:11px;max-width:600px;margin:0 auto">
+      <h2 style="text-align:center;font-size:16px;font-weight:500;margin-bottom:4px">宿泊税月計表</h2>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px">
+        <span>${reiwa}</span>
+        <span>施設名: ${innName}</span>
+        <span>義務者: ${representative}</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="background:#f5f5f5">
+            <th style="border:1px solid #333;padding:3px;width:30px">日</th>
+            <th style="border:1px solid #333;padding:3px">課税宿泊数</th>
+            <th style="border:1px solid #333;padding:3px">課税免除</th>
+            <th style="border:1px solid #333;padding:3px">課税標準額</th>
+            <th style="border:1px solid #333;padding:3px">宿泊税額</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr style="background:#f5f5f5;font-weight:500">
+            <td style="border:1px solid #333;padding:3px;text-align:center">計</td>
+            <td style="border:1px solid #333;padding:3px;text-align:right">${data.totals.taxableStays}</td>
+            <td style="border:1px solid #333;padding:3px;text-align:right">${data.totals.exemptStays || ''}</td>
+            <td style="border:1px solid #333;padding:3px;text-align:right">${data.totals.taxableBase.toLocaleString()}</td>
+            <td style="border:1px solid #333;padding:3px;text-align:right">${data.totals.taxAmount.toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `
+}
+
+function renderVillageForm(months: MonthlyTaxSummary[], inn: { name: string | null; address: string | null; representative: string | null; phone: string | null }): string {
+  const today = new Date()
+  const filingDate = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`
+
+  const monthRows = months.map(m => `
+    <tr>
+      <td style="border:1px solid #333;padding:4px;text-align:center">${toReiwaLabel(m.year, m.month)}</td>
+      <td style="border:1px solid #333;padding:4px;text-align:right">${m.totals.taxableStays}</td>
+      <td style="border:1px solid #333;padding:4px;text-align:right">${m.totals.taxableBase.toLocaleString()}</td>
+      <td style="border:1px solid #333;padding:4px;text-align:right">${m.totals.taxAmount.toLocaleString()}</td>
+    </tr>
+  `).join('')
+
+  const grandTotal = months.reduce((s, m) => s + m.totals.taxAmount, 0)
+
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;font-size:12px;max-width:600px;margin:0 auto">
+      <h2 style="text-align:center;font-size:16px;font-weight:500;margin-bottom:8px">宿泊税 納入申告書（様式第2号）</h2>
+      <div style="text-align:right;margin-bottom:8px">提出日: ${filingDate}</div>
+      <div style="margin-bottom:12px;font-size:11px">
+        <div>施設名: ${inn.name ?? ''}</div>
+        <div>所在地: ${inn.address ?? ''}</div>
+        <div>代表者: ${inn.representative ?? ''}</div>
+        <div>電話: ${inn.phone ?? ''}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f5f5f5">
+            <th style="border:1px solid #333;padding:4px">期間</th>
+            <th style="border:1px solid #333;padding:4px">課税宿泊数</th>
+            <th style="border:1px solid #333;padding:4px">課税標準額</th>
+            <th style="border:1px solid #333;padding:4px">宿泊税額</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${monthRows}
+          <tr style="background:#f5f5f5;font-weight:500">
+            <td style="border:1px solid #333;padding:4px;text-align:center">合計</td>
+            <td style="border:1px solid #333;padding:4px"></td>
+            <td style="border:1px solid #333;padding:4px"></td>
+            <td style="border:1px solid #333;padding:4px;text-align:right">${grandTotal.toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:8px;font-size:10px;color:#666">税率: 0.035（3.5%）</p>
+    </div>
+  `
+}
+
+function renderPrefMonthly(data: MonthlyTaxSummary, innName: string): string {
+  const reiwa = toReiwaLabel(data.year, data.month)
+  const rows = data.rows.map(r => `
+    <tr>
+      <td style="text-align:center">${r.day}</td>
+      <td style="text-align:right">${r.taxableStays || ''}</td>
+      <td style="text-align:right">${r.belowThresholdStays || ''}</td>
+      <td style="text-align:right">${r.exemptStays || ''}</td>
+      <td style="text-align:right">${(r.taxableStays + r.belowThresholdStays + r.exemptStays) || ''}</td>
+    </tr>
+  `).join('')
+
+  const total = data.totals
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;font-size:11px;max-width:600px;margin:0 auto">
+      <h2 style="text-align:center;font-size:16px;font-weight:500;margin-bottom:4px">宿泊税月計表</h2>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px">
+        <span>${reiwa}</span>
+        <span>施設名: ${innName}</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="background:#f5f5f5">
+            <th style="border:1px solid #333;padding:3px;width:30px">日</th>
+            <th style="border:1px solid #333;padding:3px">課税対象</th>
+            <th style="border:1px solid #333;padding:3px">免税点未満</th>
+            <th style="border:1px solid #333;padding:3px">課税免除</th>
+            <th style="border:1px solid #333;padding:3px">合計</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr style="background:#f5f5f5;font-weight:500">
+            <td style="border:1px solid #333;padding:3px;text-align:center">計</td>
+            <td style="border:1px solid #333;padding:3px;text-align:right">${total.taxableStays}</td>
+            <td style="border:1px solid #333;padding:3px;text-align:right">${total.belowThresholdStays}</td>
+            <td style="border:1px solid #333;padding:3px;text-align:right">${total.exemptStays}</td>
+            <td style="border:1px solid #333;padding:3px;text-align:right">${total.taxableStays + total.belowThresholdStays + total.exemptStays}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `
+}
+
+function renderPrefForm(months: MonthlyTaxSummary[], inn: { name: string | null; address: string | null; representative: string | null; phone: string | null }): string {
+  const today = new Date()
+  const filingDate = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`
+
+  const monthRows = months.map(m => `
+    <tr>
+      <td style="border:1px solid #333;padding:4px;text-align:center">${toReiwaLabel(m.year, m.month)}</td>
+      <td style="border:1px solid #333;padding:4px;text-align:right">${m.totals.taxableStays}</td>
+      <td style="border:1px solid #333;padding:4px;text-align:right">${(m.totals.taxableStays * 100).toLocaleString()}</td>
+    </tr>
+  `).join('')
+
+  const grandTax = months.reduce((s, m) => s + m.totals.taxableStays * 100, 0)
+
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;font-size:12px;max-width:600px;margin:0 auto">
+      <h2 style="text-align:center;font-size:16px;font-weight:500;margin-bottom:8px">宿泊税 納入申告書（様式第2号）</h2>
+      <div style="text-align:right;margin-bottom:8px">提出日: ${filingDate}</div>
+      <div style="margin-bottom:12px;font-size:11px">
+        <div>施設名: ${inn.name ?? ''}</div>
+        <div>所在地: ${inn.address ?? ''}</div>
+        <div>代表者: ${inn.representative ?? ''}</div>
+        <div>電話: ${inn.phone ?? ''}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f5f5f5">
+            <th style="border:1px solid #333;padding:4px">期間</th>
+            <th style="border:1px solid #333;padding:4px">課税宿泊数</th>
+            <th style="border:1px solid #333;padding:4px">宿泊税額（@¥100）</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${monthRows}
+          <tr style="background:#f5f5f5;font-weight:500">
+            <td style="border:1px solid #333;padding:4px;text-align:center">合計</td>
+            <td style="border:1px solid #333;padding:4px"></td>
+            <td style="border:1px solid #333;padding:4px;text-align:right">${grandTax.toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `
 }
