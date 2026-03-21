@@ -29,11 +29,13 @@ export async function fetchGuests(search?: string): Promise<Guest[]> {
 }
 
 export async function fetchGuest(id: string): Promise<Guest | null> {
-  const { data, error } = await supabase
+  const innId = await getInnId()
+  const query = supabase
     .from('guests')
     .select('*')
     .eq('id', id)
-    .single()
+  if (innId) query.eq('inn_id', innId)
+  const { data, error } = await query.single()
 
   if (error) throw error
   return data

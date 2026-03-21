@@ -13,7 +13,7 @@ export function useMealDays(reservationId: string) {
 
 export function useMealDaysForDate(date: string, reservationIds: string[]) {
   return useQuery({
-    queryKey: ['mealDaysDate', date, reservationIds],
+    queryKey: ['mealDaysDate', date, [...reservationIds].sort()],
     queryFn: () => fetchMealDaysForDate(date, reservationIds),
     enabled: !!date && reservationIds.length > 0,
   })

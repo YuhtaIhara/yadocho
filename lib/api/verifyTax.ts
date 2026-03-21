@@ -31,5 +31,5 @@ export async function verifyTax(
     throw new Error(body.error ?? `税額検証に失敗しました (${res.status})`)
   }
 
-  return res.json()
+  return res.json().catch(() => { throw new Error('税額検証のレスポンスが不正です') })
 }

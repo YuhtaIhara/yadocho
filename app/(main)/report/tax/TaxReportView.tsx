@@ -271,6 +271,13 @@ export default function TaxReportView() {
   )
 }
 
+// ── HTML helpers ──
+
+function esc(s: string | null | undefined): string {
+  if (!s) return ''
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 // ── HTML renderers ──
 
 function renderVillageMonthly(data: MonthlyTaxSummary, innName: string, representative: string): string {
@@ -290,8 +297,8 @@ function renderVillageMonthly(data: MonthlyTaxSummary, innName: string, represen
       <h2 style="text-align:center;font-size:16px;font-weight:500;margin-bottom:4px">宿泊税月計表</h2>
       <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px">
         <span>${reiwa}</span>
-        <span>施設名: ${innName}</span>
-        <span>義務者: ${representative}</span>
+        <span>施設名: ${esc(innName)}</span>
+        <span>義務者: ${esc(representative)}</span>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:11px">
         <thead>
@@ -338,10 +345,10 @@ function renderVillageForm(months: MonthlyTaxSummary[], inn: { name: string | nu
       <h2 style="text-align:center;font-size:16px;font-weight:500;margin-bottom:8px">宿泊税 納入申告書（様式第2号）</h2>
       <div style="text-align:right;margin-bottom:8px">提出日: ${filingDate}</div>
       <div style="margin-bottom:12px;font-size:11px">
-        <div>施設名: ${inn.name ?? ''}</div>
-        <div>所在地: ${inn.address ?? ''}</div>
-        <div>代表者: ${inn.representative ?? ''}</div>
-        <div>電話: ${inn.phone ?? ''}</div>
+        <div>施設名: ${esc(inn.name)}</div>
+        <div>所在地: ${esc(inn.address)}</div>
+        <div>代表者: ${esc(inn.representative)}</div>
+        <div>電話: ${esc(inn.phone)}</div>
       </div>
       <table style="width:100%;border-collapse:collapse">
         <thead>
@@ -385,7 +392,7 @@ function renderPrefMonthly(data: MonthlyTaxSummary, innName: string): string {
       <h2 style="text-align:center;font-size:16px;font-weight:500;margin-bottom:4px">宿泊税月計表</h2>
       <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px">
         <span>${reiwa}</span>
-        <span>施設名: ${innName}</span>
+        <span>施設名: ${esc(innName)}</span>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:11px">
         <thead>
@@ -431,10 +438,10 @@ function renderPrefForm(months: MonthlyTaxSummary[], inn: { name: string | null;
       <h2 style="text-align:center;font-size:16px;font-weight:500;margin-bottom:8px">宿泊税 納入申告書（様式第2号）</h2>
       <div style="text-align:right;margin-bottom:8px">提出日: ${filingDate}</div>
       <div style="margin-bottom:12px;font-size:11px">
-        <div>施設名: ${inn.name ?? ''}</div>
-        <div>所在地: ${inn.address ?? ''}</div>
-        <div>代表者: ${inn.representative ?? ''}</div>
-        <div>電話: ${inn.phone ?? ''}</div>
+        <div>施設名: ${esc(inn.name)}</div>
+        <div>所在地: ${esc(inn.address)}</div>
+        <div>代表者: ${esc(inn.representative)}</div>
+        <div>電話: ${esc(inn.phone)}</div>
       </div>
       <table style="width:100%;border-collapse:collapse">
         <thead>

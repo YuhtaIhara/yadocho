@@ -45,11 +45,13 @@ export async function searchReservations(): Promise<Reservation[]> {
 }
 
 export async function fetchReservation(id: string): Promise<Reservation | null> {
-  const { data, error } = await supabase
+  const innId = await getInnId()
+  const query = supabase
     .from('reservations')
     .select(SELECT)
     .eq('id', id)
-    .single()
+  if (innId) query.eq('inn_id', innId)
+  const { data, error } = await query.single()
 
   if (error) throw error
   return data ? flattenRooms(data) : null
