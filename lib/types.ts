@@ -57,6 +57,7 @@ export type Reservation = {
   id: string
   inn_id: string
   guest_id: string
+  reservation_number: string | null
   checkin: string
   checkout: string
   adults: number

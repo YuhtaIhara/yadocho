@@ -43,7 +43,8 @@ export default function ReservationListView() {
         (r) =>
           r.guest?.name?.toLowerCase().includes(q) ||
           r.guest?.furigana?.toLowerCase().includes(q) ||
-          r.guest?.phone?.includes(q),
+          r.guest?.phone?.includes(q) ||
+          r.reservation_number?.includes(q),
       )
     }
     return list
@@ -120,6 +121,7 @@ export default function ReservationListView() {
                       </Badge>
                     </div>
                     <p className="text-sub text-text-sub mt-0.5">
+                      {r.reservation_number && <span className="mr-2">{r.reservation_number}</span>}
                       {formatDateJP(r.checkin)} 〜 {formatDateJP(r.checkout)}　{roomLabel(r)}
                     </p>
                   </div>

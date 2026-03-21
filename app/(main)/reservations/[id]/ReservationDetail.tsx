@@ -132,6 +132,9 @@ export default function ReservationDetail() {
       <div className="px-4 py-4 space-y-4 pb-32">
         {/* Guest info */}
         <Card>
+          {res.reservation_number && (
+            <p className="text-xs text-text-3 mb-1">No. {res.reservation_number}</p>
+          )}
           <Link href={`/guests/${res.guest_id}`} className="block">
             <p className="text-lg font-medium">{res.guest?.name ?? '—'} 様</p>
           </Link>
