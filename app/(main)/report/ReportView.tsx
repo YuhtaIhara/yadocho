@@ -226,6 +226,17 @@ export default function ReportView() {
           </div>
         </Card>
 
+        {/* Daily report link */}
+        <Link href="/report/daily">
+          <Card className="!bg-primary/[0.04] border border-primary/10 flex flex-row items-center gap-3">
+            <FileText size={20} className="text-primary shrink-0" />
+            <div>
+              <p className="text-sm font-medium">売上日報</p>
+              <p className="text-xs text-text-3">日別の予約売上明細を確認</p>
+            </div>
+          </Card>
+        </Link>
+
         {/* Tax report link */}
         <Link href="/report/tax">
           <Card className="!bg-primary/[0.04] border border-primary/10 flex flex-row items-center gap-3">
