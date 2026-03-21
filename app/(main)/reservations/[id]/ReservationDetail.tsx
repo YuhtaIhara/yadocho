@@ -20,7 +20,7 @@ import { formatYen } from '@/lib/utils/format'
 import { calcAllTaxes, sumTaxResults } from '@/lib/utils/tax'
 import { calcMealCost, getMealPrices } from '@/lib/utils/pricing'
 import { cn } from '@/lib/utils/cn'
-import { roomLabel, STATUS_LABELS, type ReservationStatus } from '@/lib/types'
+import { roomLabel, STATUS_LABELS, SOURCE_OPTIONS, PAYMENT_METHODS, type ReservationStatus } from '@/lib/types'
 
 const STATUS_COLOR: Record<string, string> = {
   scheduled: '#E8A65D',
@@ -202,6 +202,18 @@ export default function ReservationDetail() {
               <div>
                 <span className="text-text-3">到着</span>
                 <p className="font-semibold">{res.checkin_time.slice(0, 5)}</p>
+              </div>
+            )}
+            {res.source && (
+              <div>
+                <span className="text-text-3">予約経路</span>
+                <p className="font-semibold">{SOURCE_OPTIONS.find(s => s.value === res.source)?.label ?? res.source}</p>
+              </div>
+            )}
+            {res.payment_method && (
+              <div>
+                <span className="text-text-3">支払方法</span>
+                <p className="font-semibold">{PAYMENT_METHODS.find(m => m.value === res.payment_method)?.label ?? res.payment_method}</p>
               </div>
             )}
           </div>

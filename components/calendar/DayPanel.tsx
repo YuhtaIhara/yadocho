@@ -123,7 +123,7 @@ function Section({
   title,
   dotColor,
   children,
-  defaultOpen = false,
+  defaultOpen = true,
 }: {
   icon?: React.ReactNode
   title: string
