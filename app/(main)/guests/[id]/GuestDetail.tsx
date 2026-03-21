@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Phone, Mail, MapPin, AlertTriangle, Pencil, Save, X, Trash2 } from 'lucide-react'
+import { Phone, Mail, MapPin, Building2, AlertTriangle, Pencil, Save, X, Trash2 } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -33,9 +33,11 @@ export default function GuestDetail() {
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({
     name: '',
+    furigana: '',
     phone: '',
     email: '',
     address: '',
+    company: '',
     allergy: '',
     notes: '',
   })
@@ -44,9 +46,11 @@ export default function GuestDetail() {
     if (!guest) return
     setForm({
       name: guest.name,
+      furigana: guest.furigana ?? '',
       phone: guest.phone ?? '',
       email: guest.email ?? '',
       address: guest.address ?? '',
+      company: guest.company ?? '',
       allergy: guest.allergy ?? '',
       notes: guest.notes ?? '',
     })
@@ -57,9 +61,11 @@ export default function GuestDetail() {
     try {
       await updateGuest(id, {
         name: form.name,
+        furigana: form.furigana || null,
         phone: form.phone || null,
         email: form.email || null,
         address: form.address || null,
+        company: form.company || null,
         allergy: form.allergy || null,
         notes: form.notes || null,
       })
@@ -126,9 +132,11 @@ export default function GuestDetail() {
         {editing ? (
           <Card className="space-y-3">
             <Input label="名前" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            <Input label="ふりがな" value={form.furigana} onChange={e => setForm(f => ({ ...f, furigana: e.target.value }))} />
             <Input label="電話番号" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
             <Input label="メール" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
             <Input label="住所" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+            <Input label="会社名" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} />
             <Input label="アレルギー" value={form.allergy} onChange={e => setForm(f => ({ ...f, allergy: e.target.value }))} />
             <Textarea label="メモ" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
           </Card>
@@ -136,7 +144,13 @@ export default function GuestDetail() {
           <>
             <Card>
               <p className="text-lg font-bold">{guest.name}</p>
+              {guest.furigana && <p className="text-xs text-text-3 mt-0.5">{guest.furigana}</p>}
               <div className="mt-3 space-y-2 text-sm">
+                {guest.company && (
+                  <div className="flex items-center gap-2 text-text-2">
+                    <Building2 size={14} /> {guest.company}
+                  </div>
+                )}
                 {guest.phone && (
                   <a href={`tel:${guest.phone}`} className="flex items-center gap-2 text-primary">
                     <Phone size={14} /> {guest.phone}

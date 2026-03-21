@@ -19,7 +19,7 @@ export async function fetchGuests(search?: string): Promise<Guest[]> {
       const cleaned = search.replace(/[-\s]/g, '')
       query = query.ilike('phone', `%${cleaned}%`)
     } else {
-      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`)
+      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,furigana.ilike.%${search}%`)
     }
   }
 
@@ -41,9 +41,11 @@ export async function fetchGuest(id: string): Promise<Guest | null> {
 
 export async function createGuest(input: {
   name: string
+  furigana?: string
   phone?: string
   email?: string
   address?: string
+  company?: string
   allergy?: string
   notes?: string
 }): Promise<Guest> {

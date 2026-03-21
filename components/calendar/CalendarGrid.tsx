@@ -206,7 +206,7 @@ export default function CalendarGrid({
                   }}
                   className={cn(
                     'shrink-0 border-r border-b border-border/30 cursor-pointer hover:bg-primary/[0.05] transition-colors',
-                    today && 'bg-primary/[0.03]',
+                    today && 'bg-primary/[0.06] border-l border-l-primary/20',
                     selected && !today && 'bg-primary/[0.06]',
                   )}
                   style={{

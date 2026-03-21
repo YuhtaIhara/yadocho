@@ -14,14 +14,15 @@ import { createGuest } from '@/lib/api/guests'
 import type { Guest } from '@/lib/types'
 
 /**
- * 名前の先頭文字からセクションキーを取得
+ * ふりがな（あれば）or 名前の先頭文字からセクションキーを取得
  * ひらがな・カタカナ → 五十音のあ行〜わ行
  * 漢字 → そのまま先頭1文字
  * その他 → '#'
  */
-function getSectionKey(name: string): string {
-  if (!name) return '#'
-  const first = name.charAt(0)
+function getSectionKey(guest: Guest): string {
+  const source = guest.furigana || guest.name
+  if (!source) return '#'
+  const first = source.charAt(0)
 
   // カタカナ→ひらがな変換してから行判定
   const kana = first.replace(/[\u30A0-\u30FF]/g, ch =>
@@ -52,10 +53,14 @@ function getSectionKey(name: string): string {
 type GuestSection = { key: string; guests: Guest[] }
 
 function groupAndSort(guests: Guest[]): GuestSection[] {
-  const sorted = [...guests].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+  const sorted = [...guests].sort((a, b) => {
+    const aKey = a.furigana || a.name
+    const bKey = b.furigana || b.name
+    return aKey.localeCompare(bKey, 'ja')
+  })
   const map = new Map<string, Guest[]>()
   for (const g of sorted) {
-    const key = getSectionKey(g.name)
+    const key = getSectionKey(g)
     if (!map.has(key)) map.set(key, [])
     map.get(key)!.push(g)
   }
@@ -70,8 +75,10 @@ export default function GuestList() {
   const { data: guests = [], isLoading } = useGuests(search || undefined)
   const [adding, setAdding] = useState(false)
   const [name, setName] = useState('')
+  const [furigana, setFurigana] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
+  const [company, setCompany] = useState('')
   const [allergy, setAllergy] = useState('')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
@@ -94,16 +101,20 @@ export default function GuestList() {
     try {
       const guest = await createGuest({
         name,
+        furigana: furigana || undefined,
         phone: phone || undefined,
         address: address || undefined,
+        company: company || undefined,
         allergy: allergy || undefined,
         notes: notes || undefined,
       })
       qc.invalidateQueries({ queryKey: ['guests'] })
       setAdding(false)
       setName('')
+      setFurigana('')
       setPhone('')
       setAddress('')
+      setCompany('')
       setAllergy('')
       setNotes('')
       router.push(`/guests/${guest.id}`)
@@ -135,8 +146,10 @@ export default function GuestList() {
           <div className="space-y-3">
             <p className="text-sm font-bold">新規ゲスト登録</p>
             <Input label="名前" placeholder="山田 太郎" value={name} onChange={e => setName(e.target.value)} />
+            <Input label="ふりがな" placeholder="やまだ たろう" value={furigana} onChange={e => setFurigana(e.target.value)} />
             <Input label="電話番号" placeholder="09012345678" value={phone} onChange={e => setPhone(e.target.value)} />
             <Input label="住所" placeholder="東京都渋谷区..." value={address} onChange={e => setAddress(e.target.value)} />
+            <Input label="会社名" placeholder="株式会社〇〇" value={company} onChange={e => setCompany(e.target.value)} />
             <Input label="アレルギー" placeholder="甲殻類、そばなど" value={allergy} onChange={e => setAllergy(e.target.value)} />
             <Input label="メモ" placeholder="備考" value={notes} onChange={e => setNotes(e.target.value)} />
             <div className="flex gap-2">
@@ -156,7 +169,7 @@ export default function GuestList() {
           />
           <input
             type="text"
-            placeholder="名前・電話番号で検索"
+            placeholder="名前・ふりがな・電話番号で検索"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface border border-border text-sm placeholder:text-text-3 focus:outline-none focus:ring-2 focus:ring-ring"
@@ -204,6 +217,7 @@ export default function GuestList() {
                           <div className="flex items-center justify-between">
                             <div className="min-w-0">
                               <p className="text-sm font-bold truncate">{g.name}</p>
+                              {g.furigana && <p className="text-[11px] text-text-3 -mt-0.5">{g.furigana}</p>}
                               <p className="text-xs text-text-2 mt-0.5">{g.phone ?? '電話番号なし'}</p>
                               {g.allergy && (
                                 <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-danger-soft text-danger text-xs font-medium">

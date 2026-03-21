@@ -10,10 +10,20 @@ export type Inn = {
   updated_at: string
 }
 
+export type RoomType = 'japanese' | 'western' | 'mixed' | 'other'
+
+export const ROOM_TYPE_LABELS: Record<RoomType, string> = {
+  japanese: '和室',
+  western: '洋室',
+  mixed: '和洋室',
+  other: 'その他',
+}
+
 export type Room = {
   id: string
   inn_id: string
   name: string
+  room_type: RoomType
   capacity: number
   sort_order: number
   created_at: string
@@ -23,9 +33,11 @@ export type Guest = {
   id: string
   inn_id: string
   name: string
+  furigana: string | null
   phone: string | null
   email: string | null
   address: string | null
+  company: string | null
   allergy: string | null
   notes: string | null
   created_at: string

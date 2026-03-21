@@ -3,21 +3,22 @@
 import { useState, useMemo, useCallback } from 'react'
 import { format, addDays, subDays, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronDown, Printer, AlertTriangle } from 'lucide-react'
+import { ChevronDown, FileText, AlertTriangle } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Textarea } from '@/components/ui/Textarea'
+import { useInn } from '@/lib/hooks/useInn'
 import { useReservations } from '@/lib/hooks/useReservations'
 import { useMealDaysForDate } from '@/lib/hooks/useMealDays'
 import { fetchKondate, upsertKondate } from '@/lib/api/kondate'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
-import { roomLabel } from '@/lib/types'
+import { roomLabel, type Reservation, type MealDay } from '@/lib/types'
+import type { MealEntry } from '@/lib/pdf/MealDailyReport'
 import DatePicker from '@/components/DatePicker'
 import MealEditor from '@/components/MealEditor'
-import type { Reservation, MealDay } from '@/lib/types'
 
 function useKondateDB(dateStr: string) {
   const qc = useQueryClient()
@@ -50,7 +51,9 @@ function useKondateDB(dateStr: string) {
 
 export default function MealBoard() {
   const queryClient = useQueryClient()
+  const { data: inn } = useInn()
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [pdfLoading, setPdfLoading] = useState(false)
   const dateStr = toDateStr(selectedDate)
   const isToday = isSameDay(selectedDate, new Date())
   const kondate = useKondateDB(dateStr)
@@ -126,6 +129,56 @@ export default function MealBoard() {
     setSelectedDate(new Date())
   }
 
+  async function generateDailyPDF() {
+    setPdfLoading(true)
+    try {
+      const React = await import('react')
+      const { pdf } = await import('@react-pdf/renderer')
+      const { default: MealDailyReport } = await import('@/lib/pdf/MealDailyReport')
+
+      const toEntry = (m: typeof enriched[0], type: 'dinner' | 'breakfast' | 'lunch'): MealEntry => ({
+        roomName: m.reservation ? roomLabel(m.reservation) : '—',
+        guestName: m.reservation?.guest?.name ?? '—',
+        adults: type === 'dinner' ? m.dinner_adults : type === 'breakfast' ? m.breakfast_adults : m.lunch_adults,
+        children: type === 'dinner' ? m.dinner_children : type === 'breakfast' ? m.breakfast_children : m.lunch_children,
+        time: type === 'dinner' ? m.dinner_time?.slice(0, 5) : undefined,
+        allergy: m.reservation?.guest?.allergy || undefined,
+      })
+
+      const element = React.createElement(MealDailyReport, {
+        innName: inn?.name ?? '',
+        date: format(selectedDate, 'yyyy年M月d日（E）', { locale: ja }),
+        dinner: dinnerItems.map(m => toEntry(m, 'dinner')),
+        breakfast: breakfastItems.map(m => toEntry(m, 'breakfast')),
+        lunch: lunchItems.map(m => toEntry(m, 'lunch')),
+        kondate: kondate.value,
+        allergies,
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const blob = await pdf(element as any).toBlob()
+      const filename = `料理帳票_${format(selectedDate, 'yyyyMMdd')}.pdf`
+
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        const file = new File([blob], filename, { type: 'application/pdf' })
+        await navigator.share({ files: [file] })
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') {
+        console.error('PDF generation failed:', e)
+      }
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [editingReservationId, setEditingReservationId] = useState<string | null>(null)
   const editingMealDays = useMemo(
@@ -141,11 +194,12 @@ export default function MealBoard() {
         rightSlot={
           <button
             type="button"
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-surface border border-border text-text-2 active:bg-primary-soft transition-colors"
+            onClick={generateDailyPDF}
+            disabled={pdfLoading}
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-surface border border-border text-text-2 active:bg-primary-soft transition-colors disabled:opacity-50"
           >
-            <Printer size={14} />
-            印刷
+            <FileText size={14} />
+            {pdfLoading ? '生成中…' : 'PDF'}
           </button>
         }
       />
