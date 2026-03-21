@@ -122,7 +122,7 @@ export default function CalendarView() {
     <div>
       {/* ── Unified header: [今日]  ◀ M/d(E) ▶  [休み] ── */}
       <div
-        className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/20"
+        className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border/20"
         style={{ paddingTop: 'max(env(safe-area-inset-top), 8px)' }}
       >
         <div className="flex items-center justify-between px-3 py-1.5">
