@@ -216,10 +216,12 @@ export default function ReservationDetail() {
         <Card>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-text-2">食事</h3>
-            <button type="button" onClick={() => setShowMealEditor(true)} className="flex items-center gap-1 px-3 py-1.5 min-h-[44px] rounded-full active:bg-primary-soft text-[15px] text-primary font-medium">
-              <Pencil size={14} />
-              編集
-            </button>
+            {res.status !== 'settled' && res.status !== 'cancelled' && (
+              <button type="button" onClick={() => setShowMealEditor(true)} className="flex items-center gap-1 px-3 py-1.5 min-h-[44px] rounded-full active:bg-primary-soft text-[15px] text-primary font-medium">
+                <Pencil size={14} />
+                編集
+              </button>
+            )}
           </div>
           {mealDays.length > 0 ? (
             <div className="space-y-2.5 text-sm">

@@ -135,7 +135,10 @@ export async function updateReservation(
     if (!current) throw new Error('予約が見つかりません')
     const allowed = STATUS_TRANSITIONS[current.status] ?? []
     if (!allowed.includes(fields.status)) {
-      throw new Error(`${current.status} から ${fields.status} への変更はできません`)
+      const STATUS_JP: Record<string, string> = {
+        scheduled: '予約済み', checked_in: 'チェックイン', settled: '精算済み', cancelled: 'キャンセル',
+      }
+      throw new Error(`${STATUS_JP[current.status] ?? current.status} から ${STATUS_JP[fields.status] ?? fields.status} への変更はできません`)
     }
   }
 

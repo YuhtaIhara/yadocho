@@ -14,7 +14,7 @@ import { useReservations } from '@/lib/hooks/useReservations'
 import { fetchSettledReservationIds } from '@/lib/api/invoices'
 import { formatDateJP, nightCount, toDateStr } from '@/lib/utils/date'
 import { formatYen } from '@/lib/utils/format'
-import { roomLabel } from '@/lib/types'
+import { roomLabel, STATUS_LABELS } from '@/lib/types'
 import type { Reservation } from '@/lib/types'
 
 export default function BillingList() {
@@ -156,7 +156,7 @@ export default function BillingList() {
                         variant="outline"
                         className="mt-1"
                       >
-                        予約済み
+                        {STATUS_LABELS[r.status] ?? r.status}
                       </Badge>
                     </div>
                   </div>
