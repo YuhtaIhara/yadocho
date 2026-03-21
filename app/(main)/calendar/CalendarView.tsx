@@ -21,7 +21,7 @@ import { useRooms } from '@/lib/hooks/useRooms'
 import { useBlockedDates, useCreateBlockedDate, useDeleteBlockedDate } from '@/lib/hooks/useBlockedDates'
 import { toDateStr } from '@/lib/utils/date'
 import { cn } from '@/lib/utils/cn'
-import { Palmtree, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Palmtree, CalendarDays } from 'lucide-react'
 import { ROOM_TYPE_LABELS, type RoomType } from '@/lib/types'
 
 export default function CalendarView() {
@@ -146,7 +146,7 @@ export default function CalendarView() {
               onClick={() => handleDayNav(-1)}
               className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
             >
-              <ChevronLeft size={20} className="text-text-2" />
+              <span className="text-[18px] text-text-2">◀</span>
             </button>
             <button
               type="button"
@@ -160,7 +160,7 @@ export default function CalendarView() {
               onClick={() => handleDayNav(1)}
               className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:bg-primary-soft"
             >
-              <ChevronRight size={20} className="text-text-2" />
+              <span className="text-[18px] text-text-2">▶</span>
             </button>
           </div>
 
