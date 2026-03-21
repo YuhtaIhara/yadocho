@@ -65,6 +65,12 @@ export default function TaxReportView() {
   const year = month.getFullYear()
   const monthNum = month.getMonth() + 1
 
+  // Get earliest effective_from from tax rules
+  const effectiveFrom = useMemo(() => {
+    const dates = taxRules.map(r => r.effective_from).filter(Boolean).sort()
+    return dates[0] ?? undefined
+  }, [taxRules])
+
   const hasMunicipalTax = useMemo(
     () => taxRules.some(r => r.tax_type === 'municipal'),
     [taxRules],
@@ -114,7 +120,7 @@ export default function TaxReportView() {
 
       if (type === 'village-monthly') {
         const reservations = await fetchReservationsForMonth(year, monthNum)
-        const data = buildMonthlyTaxData(reservations, year, monthNum, 6000, 3.5)
+        const data = buildMonthlyTaxData(reservations, year, monthNum, 6000, 3.5, effectiveFrom)
         html = renderVillageMonthly(data, inn.name ?? '', inn.representative ?? '')
       } else if (type === 'village-form') {
         const monthsData: MonthlyTaxSummary[] = []
@@ -122,12 +128,12 @@ export default function TaxReportView() {
           const tMonth = ((monthNum - 1 + m) % 12) + 1
           const tYear = monthNum + m > 12 ? year + 1 : year
           const res = await fetchReservationsForMonth(tYear, tMonth)
-          monthsData.push(buildMonthlyTaxData(res, tYear, tMonth, 6000, 3.5))
+          monthsData.push(buildMonthlyTaxData(res, tYear, tMonth, 6000, 3.5, effectiveFrom))
         }
         html = renderVillageForm(monthsData, inn)
       } else if (type === 'pref-monthly') {
         const reservations = await fetchReservationsForMonth(year, monthNum)
-        const data = buildMonthlyTaxData(reservations, year, monthNum, 6000, 3.5)
+        const data = buildMonthlyTaxData(reservations, year, monthNum, 6000, 3.5, effectiveFrom)
         html = renderPrefMonthly(data, inn.name ?? '')
       } else {
         const monthsData: MonthlyTaxSummary[] = []
@@ -135,7 +141,7 @@ export default function TaxReportView() {
           const tMonth = ((monthNum - 1 + m) % 12) + 1
           const tYear = monthNum + m > 12 ? year + 1 : year
           const res = await fetchReservationsForMonth(tYear, tMonth)
-          monthsData.push(buildMonthlyTaxData(res, tYear, tMonth, 6000, 3.5))
+          monthsData.push(buildMonthlyTaxData(res, tYear, tMonth, 6000, 3.5, effectiveFrom))
         }
         html = renderPrefForm(monthsData, inn)
       }

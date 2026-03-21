@@ -45,10 +45,15 @@ export function buildMonthlyTaxData(
   month: number,
   threshold: number,
   municipalRatePercent: number,
+  effectiveFrom?: string,
 ): MonthlyTaxSummary {
   const firstDay = new Date(year, month - 1, 1)
   const lastDay = new Date(year, month, 0)
   const daysInMonth = lastDay.getDate()
+  const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
+
+  // If effectiveFrom is set and this entire month is before it, return empty
+  const taxActive = !effectiveFrom || monthEnd >= effectiveFrom
 
   // Initialize rows for each day
   const rows: DailyTaxRow[] = Array.from({ length: daysInMonth }, (_, i) => ({
@@ -75,7 +80,11 @@ export function buildMonthlyTaxData(
 
     const personNights = res.adults * nights
 
-    if (res.tax_exempt) {
+    // 施行前は全て非課税
+    const checkinDate = res.checkin
+    const isBeforeEffective = effectiveFrom && checkinDate < effectiveFrom
+
+    if (res.tax_exempt || isBeforeEffective) {
       // 免税
       row.exemptStays += personNights
     } else if (res.adult_price < threshold) {
@@ -92,7 +101,7 @@ export function buildMonthlyTaxData(
   // 課税標準額を100円未満切捨て、税額を計算
   for (const row of rows) {
     row.taxableBase = Math.floor(row.taxableBase / 100) * 100
-    row.taxAmount = Math.floor(row.taxableBase * municipalRatePercent / 100)
+    row.taxAmount = taxActive ? Math.floor(row.taxableBase * municipalRatePercent / 100) : 0
   }
 
   // 合計行
