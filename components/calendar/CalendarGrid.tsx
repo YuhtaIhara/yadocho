@@ -12,6 +12,7 @@ import {
 import { ja } from 'date-fns/locale'
 import { cn } from '@/lib/utils/cn'
 import type { Room, Reservation, BlockedDate } from '@/lib/types'
+import { isJapaneseHoliday } from '@/lib/utils/holidays'
 
 const COL_W = 48
 const ROOM_W = 56
@@ -132,6 +133,8 @@ export default function CalendarGrid({
             const today = dateFnsIsToday(d)
             const selected = isSameDay(d, selectedDate)
             const dow = getDay(d)
+            const holiday = isJapaneseHoliday(ds)
+            const isRed = dow === 0 || holiday
             return (
               <button
                 key={ds}
@@ -150,7 +153,7 @@ export default function CalendarGrid({
                       ? 'font-medium text-white bg-primary'
                       : selected
                         ? 'font-medium text-primary'
-                        : dow === 0
+                        : isRed
                           ? 'text-danger font-medium'
                           : dow === 6
                             ? 'text-blue-500 font-medium'
@@ -162,7 +165,7 @@ export default function CalendarGrid({
                 <span
                   className={cn(
                     'text-[13px] leading-none mt-0.5',
-                    today ? 'font-medium text-primary' : dow === 0 ? 'text-danger/70' : dow === 6 ? 'text-blue-400' : 'text-text-3',
+                    today ? 'font-medium text-primary' : isRed ? 'text-danger/70' : dow === 6 ? 'text-blue-400' : 'text-text-3',
                   )}
                 >
                   ({format(d, 'E', { locale: ja })})
