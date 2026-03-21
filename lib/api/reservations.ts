@@ -63,19 +63,17 @@ async function checkDoubleBooking(
   excludeReservationId?: string,
 ) {
   for (const roomId of roomIds) {
-    let query = supabase
+    const { data: links } = await supabase
       .from('reservation_rooms')
       .select('reservation_id, reservations!inner(checkin, checkout, status)')
       .eq('room_id', roomId)
-    const { data: links } = await query
     if (!links) continue
     for (const link of links) {
-      const r = (link as any).reservations
+      const r = (link as Record<string, any>).reservations as { checkin: string; checkout: string; status: string } | null
       if (!r || r.status === 'cancelled') continue
       if (excludeReservationId && link.reservation_id === excludeReservationId) continue
-      // Overlap check: r.checkin < checkout && r.checkout > checkin
       if (r.checkin < checkout && r.checkout > checkin) {
-        throw new Error(`この期間は既に予約が入っています（部屋の空きがありません）`)
+        throw new Error('この期間は既に予約が入っています（部屋の空きがありません）')
       }
     }
   }

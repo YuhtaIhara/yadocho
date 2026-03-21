@@ -377,10 +377,14 @@ export default function ReservationForm({ mode = 'create', initialData }: Props)
 
   async function onSubmit(data: FormValues) {
     // Validate room selection
+    if (selectedRoomIds.length === 0) {
+      setFormError('部屋を1つ以上選択してください')
+      return
+    }
     // Remove unavailable rooms from selection
     const validRoomIds = selectedRoomIds.filter(id => !unavailableRoomIds.has(id))
     if (validRoomIds.length === 0) {
-      setFormError('選択可能な部屋がありません。予約済みまたは休業日の部屋が含まれています。')
+      setFormError('選択した部屋はすべて予約済みまたは休業日です。別の部屋を選んでください。')
       return
     }
 
