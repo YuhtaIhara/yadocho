@@ -223,6 +223,22 @@ export default function CalendarView() {
         />
       </div>
 
+      {/* ── Status legend ── */}
+      <div className="flex items-center justify-center gap-4 px-4 py-1.5 text-[13px] text-text-sub">
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(135deg, #E8A65D, #E09B4E)' }} />
+          予約済み
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(135deg, #5B9A6E, #4F8A60)' }} />
+          チェックイン
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(135deg, #9B9490, #8A8380)' }} />
+          精算済み
+        </span>
+      </div>
+
       {/* Block mode banner */}
       {blockMode && (
         <div className="px-4 py-2 bg-danger/10 border-b border-danger/20 text-center">
